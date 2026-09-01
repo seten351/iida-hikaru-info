@@ -4,10 +4,11 @@ import type { Appearance } from "@/domain/appearance";
 import {
   categoryClassNames,
   formatAppearanceDate,
+  formatPublishedAt,
   formatUpdatedAt,
   groupAppearances,
 } from "@/lib/appearances";
-import { listAppearances } from "@/server/appearances/repository";
+import { getAppearancePageData } from "@/server/appearances/repository";
 
 type AppearanceSectionProps = {
   id: string;
@@ -33,6 +34,9 @@ function AppearanceCard({ item }: { item: Appearance }) {
         </time>
       </div>
       <h3>{item.title}</h3>
+      <p className="appearance-card__published">
+        公式発表 {formatPublishedAt(item.publishedAt)}
+      </p>
       <a
         className="source-link"
         href={item.sourceUrl}
@@ -86,7 +90,7 @@ export default async function Home() {
   await connection();
 
   const now = new Date();
-  const appearances = await listAppearances();
+  const { appearances, lastUpdatedAt } = await getAppearancePageData();
   const { latest, upcoming, past } = groupAppearances(appearances, now);
 
   return (
@@ -121,17 +125,14 @@ export default async function Home() {
             <span className="status-dot" aria-hidden="true" />
             <div>
               <strong>日本時間で更新</strong>
-              <p>{formatUpdatedAt(now)} 現在</p>
+              <p>
+                {lastUpdatedAt
+                  ? `${formatUpdatedAt(new Date(lastUpdatedAt))} 最終DB更新`
+                  : "更新情報はまだありません"}
+              </p>
             </div>
           </div>
         </section>
-
-        <aside className="sample-notice" aria-label="サンプルデータについて">
-          <span aria-hidden="true">!</span>
-          <p>
-            現在掲載している内容は、表示確認用の架空のサンプル情報です。実際の出演情報ではありません。
-          </p>
-        </aside>
 
         <AppearanceSection
           id="latest"

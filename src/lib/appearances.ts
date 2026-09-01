@@ -37,6 +37,10 @@ export function formatUpdatedAt(value: Date) {
   return updatedAtFormatter.format(value);
 }
 
+export function formatPublishedAt(value: string) {
+  return updatedAtFormatter.format(new Date(value));
+}
+
 export function groupAppearances(items: Appearance[], now: Date) {
   const timestamp = now.getTime();
   const byStartsAtAscending = (a: Appearance, b: Appearance) =>

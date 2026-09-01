@@ -1,14 +1,21 @@
 import assert from "node:assert/strict";
 
-import { asc } from "drizzle-orm";
+import { asc, count, eq, inArray } from "drizzle-orm";
 
 import { getDb } from "../src/db/client";
 import { appearancesTable } from "../src/db/schema";
-import type { Appearance } from "../src/domain/appearance";
+import {
+  validateAppearanceImportItems,
+  type Appearance,
+} from "../src/domain/appearance";
 import { groupAppearances } from "../src/lib/appearances";
-import { appearanceSeedData } from "./appearance-seed-data";
+import { appearanceImportData } from "./appearance-import-data";
+
+const allowSamples = process.argv.slice(2).includes("--allow-samples");
 
 async function main() {
+  validateAppearanceImportItems(appearanceImportData);
+
   const rows = await getDb()
     .select({
       id: appearancesTable.id,
@@ -17,20 +24,30 @@ async function main() {
       category: appearancesTable.category,
       sourceUrl: appearancesTable.sourceUrl,
       publishedAt: appearancesTable.publishedAt,
+      sourceName: appearancesTable.sourceName,
+      sourceItemId: appearancesTable.sourceItemId,
+      collectedAt: appearancesTable.collectedAt,
     })
     .from(appearancesTable)
+    .where(
+      inArray(
+        appearancesTable.id,
+        appearanceImportData.map((item) => item.id),
+      ),
+    )
     .orderBy(asc(appearancesTable.id));
 
-  const actual: Appearance[] = rows.map((row) => ({
+  const actual = rows.map((row) => ({
     id: row.id,
     startsAt: row.startsAt.toISOString(),
     title: row.title,
     category: row.category,
     sourceUrl: row.sourceUrl,
     publishedAt: row.publishedAt.toISOString(),
+    sourceName: row.sourceName,
+    sourceItemId: row.sourceItemId,
   }));
-
-  const expected = [...appearanceSeedData]
+  const expected = [...appearanceImportData]
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((item) => ({
       ...item,
@@ -39,21 +56,42 @@ async function main() {
     }));
 
   assert.deepEqual(actual, expected);
+  assert.ok(rows.every((row) => row.collectedAt !== null));
 
+  const [sampleRows] = await getDb()
+    .select({ value: count() })
+    .from(appearancesTable)
+    .where(eq(appearancesTable.sourceName, "sample"));
+  if (!allowSamples) {
+    assert.equal(sampleRows.value, 0, "Sample appearance records still exist.");
+  }
+
+  const appearances: Appearance[] = rows.map((row) => ({
+    id: row.id,
+    startsAt: row.startsAt.toISOString(),
+    title: row.title,
+    category: row.category,
+    sourceUrl: row.sourceUrl,
+    publishedAt: row.publishedAt.toISOString(),
+  }));
   const grouped = groupAppearances(
-    actual,
+    appearances,
     new Date("2026-09-01T00:00:00+09:00"),
   );
 
   assert.deepEqual(
     grouped.latest.map((item) => item.id),
-    ["sample-stream-autumn", "sample-radio-night", "sample-tv-feature"],
+    [
+      "hagoromo6-geisho-ui-2-day",
+      "hagoromo6-geisho-ui-2-night",
+      "hikaroom-birthday-party-2026-day",
+    ],
   );
-  assert.equal(grouped.upcoming.length, 4);
-  assert.equal(grouped.past.length, 3);
+  assert.equal(grouped.upcoming.length, 2);
+  assert.equal(grouped.past.length, 2);
 
   console.log(
-    `Verified ${actual.length} records: ${grouped.latest.length} latest, ${grouped.upcoming.length} upcoming, ${grouped.past.length} past.`,
+    `Verified ${rows.length} real records: ${grouped.latest.length} latest, ${grouped.upcoming.length} upcoming, ${grouped.past.length} past, ${sampleRows.value} samples.`,
   );
 }
 

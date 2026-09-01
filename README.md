@@ -1,8 +1,6 @@
 # 飯田ヒカル 出演情報
 
-飯田ヒカルさんの新着情報、今後の出演予定、過去の出演履歴をまとめるWebサイトのローカル最小版です。
-
-現在の掲載内容はすべて表示確認用の架空のサンプルデータで、実際の出演情報ではありません。
+飯田ヒカルさんの新着情報、今後の出演予定、過去の出演履歴をまとめるWebサイトです。
 
 ## このサイトについて
 
@@ -44,13 +42,25 @@ npm run db:generate
 npm run db:migrate
 ```
 
-表示確認用のサンプルデータ投入と内容検証も、それぞれ明示的に実行します。seedは同じIDのレコードを更新するため、繰り返し実行できます。
+出演情報はGit管理された `scripts/appearance-import-data.ts` から安全に投入します。公式情報元URL、公式発表日時、情報元内の識別子は必須です。
+
+importは既定でdry-runとなり、追加・更新・変更なしの差分だけを表示します。確認後に `--apply` を付けた場合だけ書き込みます。通常importはレコードを削除しません。
 
 ```bash
-npm run db:seed
+npm run db:import
+npm run db:import -- --apply
 npm run db:verify
 ```
 
-DBスキーマは`src/db/schema.ts`、画面へ返すデータ取得処理は`src/server/appearances/repository.ts`、サンプルデータは`scripts/appearance-seed-data.ts`に置いています。
+旧サンプルデータの削除は通常importと分離されています。実データの投入と表示を確認した後にdry-runし、既知のサンプル行だけが対象であることを確認してから実行します。
+
+```bash
+npm run db:remove-samples
+npm run db:remove-samples -- --apply --confirm=remove-sample-appearances
+```
+
+DBスキーマは `src/db/schema.ts`、画面へ返すデータ取得処理は `src/server/appearances/repository.ts`、実データは `scripts/appearance-import-data.ts` に置いています。将来の自動収集も `src/server/appearances/import-service.ts` の検証・upsert経路を共有できます。
+
+Vercel Web AnalyticsとSpeed InsightsをRoot Layoutへ組み込み、ページビューとCore Web Vitalsを収集します。利用にはVercel Dashboard側でも各機能を有効にしてください。
 
 この環境ではCSS処理時の内部ポート制限を避けるため、開発・ビルドともNext.js公式のWebpackオプションを使用します。

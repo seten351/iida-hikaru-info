@@ -1,0 +1,44 @@
+import type { AppearanceImportItem } from "../src/domain/appearance";
+
+export const appearanceImportData = [
+  {
+    id: "hikaroom-birthday-party-2026-day",
+    startsAt: "2026-08-23T14:00:00+09:00",
+    title: "飯田ヒカル バースデーパーティ2026 昼公演",
+    category: "イベント",
+    sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
+    publishedAt: "2026-05-18T21:00:01+09:00",
+    sourceName: "x:iidahikaroom",
+    sourceItemId: "2056344052958638140:day",
+  },
+  {
+    id: "hikaroom-birthday-party-2026-night",
+    startsAt: "2026-08-23T18:00:00+09:00",
+    title: "飯田ヒカル バースデーパーティ2026 夜公演",
+    category: "イベント",
+    sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
+    publishedAt: "2026-05-18T21:00:01+09:00",
+    sourceName: "x:iidahikaroom",
+    sourceItemId: "2056344052958638140:night",
+  },
+  {
+    id: "hagoromo6-geisho-ui-2-day",
+    startsAt: "2026-11-29T12:00:00+09:00",
+    title: "羽衣6 2nd LIVE『GEISHO-UI 2』昼公演",
+    category: "イベント",
+    sourceUrl: "https://x.com/hagoromo_6/status/2090725596485882355",
+    publishedAt: "2026-08-21T18:00:00+09:00",
+    sourceName: "x:hagoromo6",
+    sourceItemId: "2090725596485882355:day",
+  },
+  {
+    id: "hagoromo6-geisho-ui-2-night",
+    startsAt: "2026-11-29T16:00:00+09:00",
+    title: "羽衣6 2nd LIVE『GEISHO-UI 2』夜公演",
+    category: "イベント",
+    sourceUrl: "https://x.com/hagoromo_6/status/2090725596485882355",
+    publishedAt: "2026-08-21T18:00:00+09:00",
+    sourceName: "x:hagoromo6",
+    sourceItemId: "2090725596485882355:night",
+  },
+] as const satisfies readonly AppearanceImportItem[];
