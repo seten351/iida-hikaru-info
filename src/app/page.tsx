@@ -1,0 +1,171 @@
+import { connection } from "next/server";
+
+import { appearances, type Appearance } from "@/data/appearances";
+import {
+  categoryClassNames,
+  formatAppearanceDate,
+  formatUpdatedAt,
+  groupAppearances,
+} from "@/lib/appearances";
+
+type AppearanceSectionProps = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  items: Appearance[];
+  emptyMessage: string;
+  featured?: boolean;
+};
+
+function AppearanceCard({ item }: { item: Appearance }) {
+  return (
+    <article className="appearance-card">
+      <div className="appearance-card__meta">
+        <span
+          className={`category-badge ${categoryClassNames[item.category]}`}
+        >
+          {item.category}
+        </span>
+        <time dateTime={item.startsAt}>
+          {formatAppearanceDate(item.startsAt)}
+        </time>
+      </div>
+      <h3>{item.title}</h3>
+      <a
+        className="source-link"
+        href={item.sourceUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${item.title}の情報元を新しいタブで開く`}
+      >
+        情報元を見る <span aria-hidden="true">↗</span>
+      </a>
+    </article>
+  );
+}
+
+function AppearanceSection({
+  id,
+  eyebrow,
+  title,
+  description,
+  items,
+  emptyMessage,
+  featured = false,
+}: AppearanceSectionProps) {
+  return (
+    <section
+      className={`appearance-section${featured ? " appearance-section--featured" : ""}`}
+      id={id}
+      aria-labelledby={`${id}-heading`}
+    >
+      <header className="section-heading">
+        <div>
+          <p className="eyebrow">{eyebrow}</p>
+          <h2 id={`${id}-heading`}>{title}</h2>
+        </div>
+        <p>{description}</p>
+      </header>
+
+      {items.length > 0 ? (
+        <div className="appearance-grid">
+          {items.map((item) => (
+            <AppearanceCard item={item} key={item.id} />
+          ))}
+        </div>
+      ) : (
+        <p className="empty-state">{emptyMessage}</p>
+      )}
+    </section>
+  );
+}
+
+export default async function Home() {
+  await connection();
+
+  const now = new Date();
+  const { latest, upcoming, past } = groupAppearances(appearances, now);
+
+  return (
+    <main>
+      <header className="site-header">
+        <div className="site-header__inner">
+          <a className="site-mark" href="#top" aria-label="ページ上部へ戻る">
+            <span aria-hidden="true">IH</span>
+            飯田ヒカル 出演情報
+          </a>
+          <nav aria-label="ページ内ナビゲーション">
+            <a href="#latest">新着</a>
+            <a href="#upcoming">今後の予定</a>
+            <a href="#history">出演履歴</a>
+          </nav>
+        </div>
+      </header>
+
+      <div id="top" className="page-shell">
+        <section className="intro" aria-labelledby="page-title">
+          <div className="intro__copy">
+            <p className="eyebrow">IIDA HIKARU INFORMATION</p>
+            <h1 id="page-title">
+              飯田ヒカルさんの
+              <span>出演情報をひとつに。</span>
+            </h1>
+            <p className="intro__lead">
+              これからの出演予定と、これまでの活動を見やすくまとめてお届けします。
+            </p>
+          </div>
+          <div className="intro__status" aria-label="掲載情報について">
+            <span className="status-dot" aria-hidden="true" />
+            <div>
+              <strong>日本時間で更新</strong>
+              <p>{formatUpdatedAt(now)} 現在</p>
+            </div>
+          </div>
+        </section>
+
+        <aside className="sample-notice" aria-label="サンプルデータについて">
+          <span aria-hidden="true">!</span>
+          <p>
+            現在掲載している内容は、表示確認用の架空のサンプル情報です。実際の出演情報ではありません。
+          </p>
+        </aside>
+
+        <AppearanceSection
+          id="latest"
+          eyebrow="LATEST NEWS"
+          title="新着情報"
+          description="最近追加された出演情報をお知らせします。"
+          items={latest}
+          emptyMessage="新着情報はまだありません。"
+          featured
+        />
+
+        <AppearanceSection
+          id="upcoming"
+          eyebrow="UPCOMING"
+          title="今後の出演予定"
+          description="閲覧時点から近い順に掲載しています。"
+          items={upcoming}
+          emptyMessage="現在お知らせできる出演予定はありません。"
+        />
+
+        <AppearanceSection
+          id="history"
+          eyebrow="ARCHIVE"
+          title="過去の出演履歴"
+          description="これまでの出演情報を新しい順に振り返れます。"
+          items={past}
+          emptyMessage="過去の出演情報はまだありません。"
+        />
+      </div>
+
+      <footer>
+        <div className="footer-inner">
+          <p>飯田ヒカル 出演情報</p>
+          <p>非公式の情報まとめサイト（ローカル版）</p>
+        </div>
+      </footer>
+    </main>
+  );
+}
