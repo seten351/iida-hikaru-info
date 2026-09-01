@@ -162,8 +162,19 @@ export default async function Home() {
 
       <footer>
         <div className="footer-inner">
-          <p>飯田ヒカル 出演情報</p>
-          <p>非公式の情報まとめサイト（ローカル版）</p>
+          <div className="footer-brand">
+            <p>飯田ヒカル 出演情報</p>
+            <p>非公式ファンサイト</p>
+          </div>
+          <section
+            className="fan-site-notice"
+            aria-labelledby="fan-site-notice-heading"
+          >
+            <h2 id="fan-site-notice-heading">このサイトについて</h2>
+            <p>
+              当サイトは非公式ファンサイトであり、飯田ヒカルさんご本人、所属事務所、各コンテンツ運営会社とは関係ありません。正確な情報は公式サイト・公式SNSをご確認ください。
+            </p>
+          </section>
         </div>
       </footer>
     </main>

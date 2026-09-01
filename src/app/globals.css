@@ -364,20 +364,47 @@ footer {
 
 .footer-inner {
   display: flex;
-  min-height: 9rem;
+  min-height: 11rem;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 4rem;
   font-size: 0.78rem;
 }
 
-.footer-inner p {
+.footer-brand {
+  flex: 0 0 auto;
+}
+
+.footer-brand p,
+.fan-site-notice p {
   margin: 0;
 }
 
-.footer-inner p:first-child {
+.footer-brand p:first-child {
   color: white;
   font-weight: 750;
+}
+
+.footer-brand p:last-child {
+  margin-top: 0.15rem;
+  color: #ac9fa5;
+}
+
+.fan-site-notice {
+  max-width: 650px;
+  padding-left: 1.5rem;
+  border-left: 1px solid #544a4f;
+}
+
+.fan-site-notice h2 {
+  margin: 0 0 0.3rem;
+  color: white;
+  font-size: 0.78rem;
+}
+
+.fan-site-notice p {
+  color: #bfb3b8;
+  line-height: 1.7;
 }
 
 @media (max-width: 860px) {
@@ -466,11 +493,19 @@ footer {
   }
 
   .footer-inner {
-    min-height: 8rem;
+    min-height: 12rem;
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    gap: 0.3rem;
+    gap: 1.5rem;
+  }
+
+  .fan-site-notice {
+    max-width: none;
+    padding-top: 1rem;
+    padding-left: 0;
+    border-top: 1px solid #544a4f;
+    border-left: 0;
   }
 }
 
