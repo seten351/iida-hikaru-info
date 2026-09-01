@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 
-import type { Appearance } from "@/domain/appearance";
 import {
+  type AppearanceCard,
   categoryClassNames,
   formatAppearanceDate,
   formatPublishedAt,
@@ -15,12 +15,14 @@ type AppearanceSectionProps = {
   eyebrow: string;
   title: string;
   description: string;
-  items: Appearance[];
+  items: AppearanceCard[];
   emptyMessage: string;
   featured?: boolean;
 };
 
-function AppearanceCard({ item }: { item: Appearance }) {
+function AppearanceCard({ item }: { item: AppearanceCard }) {
+  const hasMultipleSources = item.sourceUrls.length > 1;
+
   return (
     <article className="appearance-card">
       <div className="appearance-card__meta">
@@ -29,23 +31,44 @@ function AppearanceCard({ item }: { item: Appearance }) {
         >
           {item.category}
         </span>
-        <time dateTime={item.startsAt}>
-          {formatAppearanceDate(item.startsAt)}
-        </time>
+        {!item.isGrouped && (
+          <time dateTime={item.sessions[0].startsAt}>
+            {formatAppearanceDate(item.sessions[0].startsAt)}
+          </time>
+        )}
       </div>
       <h3>{item.title}</h3>
+      {item.isGrouped && (
+        <ul className="appearance-card__sessions" aria-label={`${item.title}の公演一覧`}>
+          {item.sessions.map((session) => (
+            <li key={session.id}>
+              <span>{session.sessionLabel}</span>
+              <time dateTime={session.startsAt}>
+                {formatAppearanceDate(session.startsAt)}
+              </time>
+            </li>
+          ))}
+        </ul>
+      )}
       <p className="appearance-card__published">
-        公式発表 {formatPublishedAt(item.publishedAt)}
+        {item.isGrouped ? "最新公式発表" : "公式発表"}{" "}
+        {formatPublishedAt(item.publishedAt)}
       </p>
-      <a
-        className="source-link"
-        href={item.sourceUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`${item.title}の情報元を新しいタブで開く`}
-      >
-        情報元を見る <span aria-hidden="true">↗</span>
-      </a>
+      <div className="appearance-card__sources">
+        {item.sourceUrls.map((sourceUrl, index) => (
+          <a
+            className="source-link"
+            href={sourceUrl}
+            key={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${item.title}の情報元${index + 1}を新しいタブで開く`}
+          >
+            {hasMultipleSources ? `情報元 ${index + 1}` : "情報元を見る"}{" "}
+            <span aria-hidden="true">↗</span>
+          </a>
+        ))}
+      </div>
     </article>
   );
 }

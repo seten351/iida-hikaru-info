@@ -8,6 +8,13 @@
       "when": 1788256134478,
       "tag": "0000_dashing_jazinda",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788273178838,
+      "tag": "0001_tranquil_the_santerians",
+      "breakpoints": true
     }
   ]
 }

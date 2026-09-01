@@ -304,6 +304,37 @@ nav a:hover {
   line-height: 1.6;
 }
 
+.appearance-card__sessions {
+  display: grid;
+  width: 100%;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.appearance-card__sessions li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.78rem;
+}
+
+.appearance-card__sessions li span {
+  flex: 0 0 auto;
+  color: var(--foreground);
+  font-weight: 750;
+}
+
+.appearance-card__sessions li time {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: right;
+}
+
 .appearance-card__published {
   margin: 0 0 1.5rem;
   color: var(--muted);
@@ -311,11 +342,17 @@ nav a:hover {
 }
 
 .source-link {
-  margin-top: auto;
   color: var(--accent-dark);
   font-size: 0.78rem;
   font-weight: 750;
   text-underline-offset: 4px;
+}
+
+.appearance-card__sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: auto;
 }
 
 .source-link:hover {

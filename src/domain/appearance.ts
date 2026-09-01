@@ -12,6 +12,9 @@ export type Appearance = {
   id: string;
   startsAt: string;
   title: string;
+  eventGroupId: string | null;
+  eventTitle: string | null;
+  sessionLabel: string | null;
   category: AppearanceCategory;
   sourceUrl: string;
   publishedAt: string;
@@ -49,6 +52,11 @@ export function validateAppearanceImportItems(
 ) {
   const ids = new Set<string>();
   const sourceKeys = new Set<string>();
+  const groupMetadata = new Map<
+    string,
+    { eventTitle: string; category: AppearanceCategory }
+  >();
+  const groupSessionKeys = new Set<string>();
 
   if (items.length === 0) {
     throw new Error("At least one appearance is required.");
@@ -65,6 +73,51 @@ export function validateAppearanceImportItems(
 
     assertDateTime(item.startsAt, "startsAt", item.id);
     assertDateTime(item.publishedAt, "publishedAt", item.id);
+
+    const groupValues = [
+      item.eventGroupId,
+      item.eventTitle,
+      item.sessionLabel,
+    ];
+    const hasGroupValue = groupValues.some((value) => value !== null);
+    const hasMissingGroupValue = groupValues.some((value) => value === null);
+
+    if (hasGroupValue && hasMissingGroupValue) {
+      throw new Error(
+        `${item.id}: eventGroupId, eventTitle, and sessionLabel must be set together.`,
+      );
+    }
+
+    if (hasGroupValue) {
+      const eventGroupId = item.eventGroupId as string;
+      const eventTitle = item.eventTitle as string;
+      const sessionLabel = item.sessionLabel as string;
+
+      if (!eventGroupId.trim() || !eventTitle.trim() || !sessionLabel.trim()) {
+        throw new Error(`${item.id}: group information must not be empty.`);
+      }
+
+      const existingGroup = groupMetadata.get(eventGroupId);
+      if (
+        existingGroup &&
+        (existingGroup.eventTitle !== eventTitle ||
+          existingGroup.category !== item.category)
+      ) {
+        throw new Error(
+          `${item.id}: group ${eventGroupId} must use one eventTitle and category.`,
+        );
+      }
+
+      groupMetadata.set(eventGroupId, { eventTitle, category: item.category });
+
+      const groupSessionKey = `${eventGroupId}\u0000${sessionLabel}`;
+      if (groupSessionKeys.has(groupSessionKey)) {
+        throw new Error(
+          `${item.id}: duplicate sessionLabel ${sessionLabel} in group ${eventGroupId}.`,
+        );
+      }
+      groupSessionKeys.add(groupSessionKey);
+    }
 
     const source = officialAppearanceSources[item.sourceName];
     const sourceUrl = new URL(item.sourceUrl);

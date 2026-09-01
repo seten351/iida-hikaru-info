@@ -34,6 +34,9 @@ function hasContentChanged(
   return (
     existing.startsAt.getTime() !== new Date(incoming.startsAt).getTime() ||
     existing.title !== incoming.title ||
+    existing.eventGroupId !== incoming.eventGroupId ||
+    existing.eventTitle !== incoming.eventTitle ||
+    existing.sessionLabel !== incoming.sessionLabel ||
     existing.category !== incoming.category ||
     existing.sourceUrl !== incoming.sourceUrl ||
     existing.publishedAt.getTime() !== new Date(incoming.publishedAt).getTime()
@@ -142,6 +145,9 @@ export async function applyAppearanceImport(
     id: item.id,
     startsAt: new Date(item.startsAt),
     title: item.title,
+    eventGroupId: item.eventGroupId,
+    eventTitle: item.eventTitle,
+    sessionLabel: item.sessionLabel,
     category: item.category,
     sourceUrl: item.sourceUrl,
     publishedAt: new Date(item.publishedAt),
@@ -159,6 +165,9 @@ export async function applyAppearanceImport(
       set: {
         startsAt: sql`excluded.starts_at`,
         title: sql`excluded.title`,
+        eventGroupId: sql`excluded.event_group_id`,
+        eventTitle: sql`excluded.event_title`,
+        sessionLabel: sql`excluded.session_label`,
         category: sql`excluded.category`,
         sourceUrl: sql`excluded.source_url`,
         publishedAt: sql`excluded.published_at`,
@@ -167,6 +176,9 @@ export async function applyAppearanceImport(
       },
       setWhere: sql`${appearancesTable.startsAt} is distinct from excluded.starts_at
         or ${appearancesTable.title} is distinct from excluded.title
+        or ${appearancesTable.eventGroupId} is distinct from excluded.event_group_id
+        or ${appearancesTable.eventTitle} is distinct from excluded.event_title
+        or ${appearancesTable.sessionLabel} is distinct from excluded.session_label
         or ${appearancesTable.category} is distinct from excluded.category
         or ${appearancesTable.sourceUrl} is distinct from excluded.source_url
         or ${appearancesTable.publishedAt} is distinct from excluded.published_at`,
