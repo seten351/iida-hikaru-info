@@ -1,4 +1,4 @@
-import type { Appearance, AppearanceCategory } from "@/data/appearances";
+import type { Appearance, AppearanceCategory } from "@/domain/appearance";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
   timeZone: "Asia/Tokyo",
@@ -40,21 +40,22 @@ export function formatUpdatedAt(value: Date) {
 export function groupAppearances(items: Appearance[], now: Date) {
   const timestamp = now.getTime();
   const byStartsAtAscending = (a: Appearance, b: Appearance) =>
-    new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime();
+    new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime() ||
+    a.id.localeCompare(b.id);
+  const byStartsAtDescending = (a: Appearance, b: Appearance) =>
+    new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime() ||
+    a.id.localeCompare(b.id);
+  const byPublishedAtDescending = (a: Appearance, b: Appearance) =>
+    new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime() ||
+    a.id.localeCompare(b.id);
 
   return {
-    latest: [...items]
-      .sort(
-        (a, b) =>
-          new Date(b.publishedAt).getTime() -
-          new Date(a.publishedAt).getTime(),
-      )
-      .slice(0, 3),
+    latest: [...items].sort(byPublishedAtDescending).slice(0, 3),
     upcoming: items
       .filter((item) => new Date(item.startsAt).getTime() >= timestamp)
       .sort(byStartsAtAscending),
     past: items
       .filter((item) => new Date(item.startsAt).getTime() < timestamp)
-      .sort((a, b) => byStartsAtAscending(b, a)),
+      .sort(byStartsAtDescending),
   };
 }

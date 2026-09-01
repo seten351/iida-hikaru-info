@@ -30,6 +30,27 @@ npm run lint
 npm run build
 ```
 
-出演情報は `src/data/appearances.ts` に置いています。ページはリクエスト時に現在時刻を取得し、日本時間で予定と履歴を分類します。
+出演情報はNeon Postgresから取得します。ページはリクエスト時に現在時刻を取得し、日本時間で予定と履歴を分類します。
+
+## データベース
+
+Vercel Marketplaceで接続したNeon PostgresとDrizzle ORMを使用します。接続情報はGit管理外の`.env.local`から読み込みます。
+
+初回セットアップまたはスキーマ変更時は、VercelのDevelopment環境変数を取得してから、マイグレーションを明示的に実行します。
+
+```bash
+npx vercel env pull .env.local --yes
+npm run db:generate
+npm run db:migrate
+```
+
+表示確認用のサンプルデータ投入と内容検証も、それぞれ明示的に実行します。seedは同じIDのレコードを更新するため、繰り返し実行できます。
+
+```bash
+npm run db:seed
+npm run db:verify
+```
+
+DBスキーマは`src/db/schema.ts`、画面へ返すデータ取得処理は`src/server/appearances/repository.ts`、サンプルデータは`scripts/appearance-seed-data.ts`に置いています。
 
 この環境ではCSS処理時の内部ポート制限を避けるため、開発・ビルドともNext.js公式のWebpackオプションを使用します。

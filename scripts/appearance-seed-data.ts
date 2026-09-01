@@ -1,23 +1,6 @@
-export const appearanceCategories = [
-  "テレビ",
-  "ラジオ",
-  "配信",
-  "イベント",
-  "その他",
-] as const;
+import type { Appearance } from "../src/domain/appearance";
 
-export type AppearanceCategory = (typeof appearanceCategories)[number];
-
-export type Appearance = {
-  id: string;
-  startsAt: string;
-  title: string;
-  category: AppearanceCategory;
-  sourceUrl: string;
-  publishedAt: string;
-};
-
-export const appearances: Appearance[] = [
+export const appearanceSeedData: Appearance[] = [
   {
     id: "sample-stream-autumn",
     startsAt: "2026-09-12T20:00:00+09:00",

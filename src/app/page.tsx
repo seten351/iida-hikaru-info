@@ -1,12 +1,13 @@
 import { connection } from "next/server";
 
-import { appearances, type Appearance } from "@/data/appearances";
+import type { Appearance } from "@/domain/appearance";
 import {
   categoryClassNames,
   formatAppearanceDate,
   formatUpdatedAt,
   groupAppearances,
 } from "@/lib/appearances";
+import { listAppearances } from "@/server/appearances/repository";
 
 type AppearanceSectionProps = {
   id: string;
@@ -85,6 +86,7 @@ export default async function Home() {
   await connection();
 
   const now = new Date();
+  const appearances = await listAppearances();
   const { latest, upcoming, past } = groupAppearances(appearances, now);
 
   return (
