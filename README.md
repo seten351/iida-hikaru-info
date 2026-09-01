@@ -42,7 +42,7 @@ npm run db:generate
 npm run db:migrate
 ```
 
-出演情報はGit管理された `scripts/appearance-import-data.ts` から安全に投入します。公式情報元URL、公式発表日時、情報元内の識別子は必須です。
+出演情報はGit管理された `scripts/appearance-import-data.ts` から安全に投入します。公式情報元URLと情報元内の識別子は必須です。公式発表は、時刻まで判明した場合・日付のみ判明した場合・不明の場合を区別して記録し、架空の時刻は補完しません。
 
 importは既定でdry-runとなり、追加・更新・変更なしの差分だけを表示します。確認後に `--apply` を付けた場合だけ書き込みます。通常importはレコードを削除しません。
 

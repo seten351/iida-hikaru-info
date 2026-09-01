@@ -1,4 +1,8 @@
-import type { Appearance, AppearanceCategory } from "@/domain/appearance";
+import type {
+  Appearance,
+  AppearanceCategory,
+  PublishedAtPrecision,
+} from "@/domain/appearance";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
   timeZone: "Asia/Tokyo",
@@ -37,8 +41,26 @@ export function formatUpdatedAt(value: Date) {
   return updatedAtFormatter.format(value);
 }
 
-export function formatPublishedAt(value: string) {
-  return updatedAtFormatter.format(new Date(value));
+function formatCalendarDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return `${year}年${month}月${day}日`;
+}
+
+export type Publication = Pick<
+  Appearance,
+  "publishedAtPrecision" | "publishedAt" | "publishedOn" | "collectedAt"
+>;
+
+export function formatPublication(publication: Publication) {
+  if (publication.publishedAtPrecision === "exact") {
+    return updatedAtFormatter.format(new Date(publication.publishedAt!));
+  }
+
+  if (publication.publishedAtPrecision === "date") {
+    return `${formatCalendarDate(publication.publishedOn!)}（日付のみ）`;
+  }
+
+  return `日時不明（サイト掲載 ${updatedAtFormatter.format(new Date(publication.collectedAt))}）`;
 }
 
 export type AppearanceCardSession = {
@@ -53,9 +75,73 @@ export type AppearanceCard = {
   category: AppearanceCategory;
   sessions: AppearanceCardSession[];
   sourceUrls: string[];
-  publishedAt: string;
+  publication: Publication;
   isGrouped: boolean;
 };
+
+const referenceDayFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Asia/Tokyo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function formatReferenceDay(value: string) {
+  const parts = referenceDayFormatter.formatToParts(new Date(value));
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function publicationReferenceDay(publication: Publication) {
+  if (publication.publishedAtPrecision === "exact") {
+    return formatReferenceDay(publication.publishedAt!);
+  }
+
+  if (publication.publishedAtPrecision === "date") {
+    return publication.publishedOn!;
+  }
+
+  return formatReferenceDay(publication.collectedAt);
+}
+
+function publicationPrecisionRank(precision: PublishedAtPrecision) {
+  return { exact: 2, date: 1, unknown: 0 }[precision];
+}
+
+export function comparePublications(a: Publication, b: Publication) {
+  const referenceDayComparison = publicationReferenceDay(b).localeCompare(
+    publicationReferenceDay(a),
+  );
+  if (referenceDayComparison !== 0) {
+    return referenceDayComparison;
+  }
+
+  const precisionComparison =
+    publicationPrecisionRank(b.publishedAtPrecision) -
+    publicationPrecisionRank(a.publishedAtPrecision);
+  if (precisionComparison !== 0) {
+    return precisionComparison;
+  }
+
+  if (a.publishedAtPrecision === "exact" && b.publishedAtPrecision === "exact") {
+    return new Date(b.publishedAt!).getTime() - new Date(a.publishedAt!).getTime();
+  }
+
+  return new Date(b.collectedAt).getTime() - new Date(a.collectedAt).getTime();
+}
+
+function publicationOf(item: Appearance): Publication {
+  return {
+    publishedAtPrecision: item.publishedAtPrecision,
+    publishedAt: item.publishedAt,
+    publishedOn: item.publishedOn,
+    collectedAt: item.collectedAt,
+  };
+}
 
 function compareStartsAtAscending(
   a: Pick<AppearanceCardSession, "id" | "startsAt">,
@@ -92,11 +178,8 @@ export function buildAppearanceCards(items: Appearance[]): AppearanceCard[] {
       if (!existing.sourceUrls.includes(item.sourceUrl)) {
         existing.sourceUrls.push(item.sourceUrl);
       }
-      if (
-        new Date(item.publishedAt).getTime() >
-        new Date(existing.publishedAt).getTime()
-      ) {
-        existing.publishedAt = item.publishedAt;
+      if (comparePublications(publicationOf(item), existing.publication) < 0) {
+        existing.publication = publicationOf(item);
       }
       continue;
     }
@@ -107,7 +190,7 @@ export function buildAppearanceCards(items: Appearance[]): AppearanceCard[] {
       category: item.category,
       sessions: [session],
       sourceUrls: [item.sourceUrl],
-      publishedAt: item.publishedAt,
+      publication: publicationOf(item),
       isGrouped,
     });
   }
@@ -135,10 +218,8 @@ export function groupAppearances(items: Appearance[], now: Date) {
 
   return {
     latest: [...cards]
-      .sort(
-        (a, b) =>
-          new Date(b.publishedAt).getTime() -
-            new Date(a.publishedAt).getTime() || a.id.localeCompare(b.id),
+      .sort((a, b) =>
+        comparePublications(a.publication, b.publication) || a.id.localeCompare(b.id),
       )
       .slice(0, 3),
     upcoming: cards

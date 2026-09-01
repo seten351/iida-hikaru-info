@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  date,
   index,
   pgEnum,
   pgTable,
@@ -9,11 +10,19 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-import { appearanceCategories } from "../domain/appearance";
+import {
+  appearanceCategories,
+  publishedAtPrecisions,
+} from "../domain/appearance";
 
 export const appearanceCategoryEnum = pgEnum(
   "appearance_category",
   appearanceCategories,
+);
+
+export const publishedAtPrecisionEnum = pgEnum(
+  "appearance_published_precision",
+  publishedAtPrecisions,
 );
 
 export const appearancesTable = pgTable(
@@ -33,13 +42,19 @@ export const appearancesTable = pgTable(
     publishedAt: timestamp("published_at", {
       withTimezone: true,
       mode: "date",
-    }).notNull(),
+    }),
+    publishedOn: date("published_on", { mode: "string" }),
+    publishedAtPrecision: publishedAtPrecisionEnum(
+      "published_at_precision",
+    ).notNull(),
     sourceName: text("source_name"),
     sourceItemId: text("source_item_id"),
     collectedAt: timestamp("collected_at", {
       withTimezone: true,
       mode: "date",
-    }),
+    })
+      .defaultNow()
+      .notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "date",
@@ -58,6 +73,12 @@ export const appearancesTable = pgTable(
       "appearances_event_group_fields_complete",
       sql`(${table.eventGroupId} is null and ${table.eventTitle} is null and ${table.sessionLabel} is null)
         or (${table.eventGroupId} is not null and ${table.eventTitle} is not null and ${table.sessionLabel} is not null)`,
+    ),
+    check(
+      "appearances_published_at_precision_valid",
+      sql`(${table.publishedAtPrecision} = 'exact' and ${table.publishedAt} is not null and ${table.publishedOn} is null)
+        or (${table.publishedAtPrecision} = 'date' and ${table.publishedAt} is null and ${table.publishedOn} is not null)
+        or (${table.publishedAtPrecision} = 'unknown' and ${table.publishedAt} is null and ${table.publishedOn} is null)`,
     ),
     index("appearances_starts_at_idx").on(table.startsAt),
     index("appearances_published_at_idx").on(table.publishedAt),

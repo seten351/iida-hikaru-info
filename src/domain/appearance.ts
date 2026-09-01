@@ -8,6 +8,10 @@ export const appearanceCategories = [
 
 export type AppearanceCategory = (typeof appearanceCategories)[number];
 
+export const publishedAtPrecisions = ["exact", "date", "unknown"] as const;
+
+export type PublishedAtPrecision = (typeof publishedAtPrecisions)[number];
+
 export type Appearance = {
   id: string;
   startsAt: string;
@@ -17,10 +21,13 @@ export type Appearance = {
   sessionLabel: string | null;
   category: AppearanceCategory;
   sourceUrl: string;
-  publishedAt: string;
+  publishedAtPrecision: PublishedAtPrecision;
+  publishedAt: string | null;
+  publishedOn: string | null;
+  collectedAt: string;
 };
 
-export type AppearanceImportItem = Appearance & {
+export type AppearanceImportItem = Omit<Appearance, "collectedAt"> & {
   sourceName: OfficialAppearanceSourceName;
   sourceItemId: string;
 };
@@ -44,6 +51,51 @@ const timezoneSuffixPattern = /(?:Z|[+-]\d{2}:\d{2})$/;
 function assertDateTime(value: string, fieldName: string, id: string) {
   if (!timezoneSuffixPattern.test(value) || Number.isNaN(Date.parse(value))) {
     throw new Error(`${id}: ${fieldName} must be a valid timezone-aware datetime.`);
+  }
+}
+
+function assertCalendarDate(value: string, fieldName: string, id: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    throw new Error(`${id}: ${fieldName} must be a valid YYYY-MM-DD date.`);
+  }
+
+  const [year, month, day] = match.slice(1).map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    throw new Error(`${id}: ${fieldName} must be a valid YYYY-MM-DD date.`);
+  }
+}
+
+function validatePublication(item: AppearanceImportItem) {
+  switch (item.publishedAtPrecision) {
+    case "exact":
+      if (item.publishedAt === null || item.publishedOn !== null) {
+        throw new Error(
+          `${item.id}: exact publishedAtPrecision requires publishedAt only.`,
+        );
+      }
+      assertDateTime(item.publishedAt, "publishedAt", item.id);
+      return;
+    case "date":
+      if (item.publishedAt !== null || item.publishedOn === null) {
+        throw new Error(
+          `${item.id}: date publishedAtPrecision requires publishedOn only.`,
+        );
+      }
+      assertCalendarDate(item.publishedOn, "publishedOn", item.id);
+      return;
+    case "unknown":
+      if (item.publishedAt !== null || item.publishedOn !== null) {
+        throw new Error(
+          `${item.id}: unknown publishedAtPrecision cannot include a publication date.`,
+        );
+      }
+      return;
   }
 }
 
@@ -72,7 +124,7 @@ export function validateAppearanceImportItems(
     }
 
     assertDateTime(item.startsAt, "startsAt", item.id);
-    assertDateTime(item.publishedAt, "publishedAt", item.id);
+    validatePublication(item);
 
     const groupValues = [
       item.eventGroupId,

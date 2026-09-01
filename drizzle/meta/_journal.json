@@ -15,6 +15,13 @@
       "when": 1788273178838,
       "tag": "0001_tranquil_the_santerians",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788303249809,
+      "tag": "0002_fluffy_reptil",
+      "breakpoints": true
     }
   ]
 }

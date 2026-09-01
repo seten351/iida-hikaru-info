@@ -39,7 +39,12 @@ function hasContentChanged(
     existing.sessionLabel !== incoming.sessionLabel ||
     existing.category !== incoming.category ||
     existing.sourceUrl !== incoming.sourceUrl ||
-    existing.publishedAt.getTime() !== new Date(incoming.publishedAt).getTime()
+    existing.publishedAtPrecision !== incoming.publishedAtPrecision ||
+    (existing.publishedAt?.getTime() ?? null) !==
+      (incoming.publishedAt === null
+        ? null
+        : new Date(incoming.publishedAt).getTime()) ||
+    existing.publishedOn !== incoming.publishedOn
   );
 }
 
@@ -150,10 +155,12 @@ export async function applyAppearanceImport(
     sessionLabel: item.sessionLabel,
     category: item.category,
     sourceUrl: item.sourceUrl,
-    publishedAt: new Date(item.publishedAt),
+    publishedAt:
+      item.publishedAt === null ? null : new Date(item.publishedAt),
+    publishedOn: item.publishedOn,
+    publishedAtPrecision: item.publishedAtPrecision,
     sourceName: item.sourceName,
     sourceItemId: item.sourceItemId,
-    collectedAt: new Date(),
   }));
 
   const appliedRows = await getDb()
@@ -171,7 +178,8 @@ export async function applyAppearanceImport(
         category: sql`excluded.category`,
         sourceUrl: sql`excluded.source_url`,
         publishedAt: sql`excluded.published_at`,
-        collectedAt: sql`now()`,
+        publishedOn: sql`excluded.published_on`,
+        publishedAtPrecision: sql`excluded.published_at_precision`,
         updatedAt: sql`now()`,
       },
       setWhere: sql`${appearancesTable.startsAt} is distinct from excluded.starts_at
@@ -181,7 +189,9 @@ export async function applyAppearanceImport(
         or ${appearancesTable.sessionLabel} is distinct from excluded.session_label
         or ${appearancesTable.category} is distinct from excluded.category
         or ${appearancesTable.sourceUrl} is distinct from excluded.source_url
-        or ${appearancesTable.publishedAt} is distinct from excluded.published_at`,
+        or ${appearancesTable.publishedAt} is distinct from excluded.published_at
+        or ${appearancesTable.publishedOn} is distinct from excluded.published_on
+        or ${appearancesTable.publishedAtPrecision} is distinct from excluded.published_at_precision`,
     })
     .returning({ id: appearancesTable.id });
 

@@ -21,6 +21,9 @@ export async function getAppearancePageData(): Promise<{
       category: appearancesTable.category,
       sourceUrl: appearancesTable.sourceUrl,
       publishedAt: appearancesTable.publishedAt,
+      publishedOn: appearancesTable.publishedOn,
+      publishedAtPrecision: appearancesTable.publishedAtPrecision,
+      collectedAt: appearancesTable.collectedAt,
       updatedAt: appearancesTable.updatedAt,
     })
     .from(appearancesTable)
@@ -42,7 +45,10 @@ export async function getAppearancePageData(): Promise<{
       sessionLabel: row.sessionLabel,
       category: row.category,
       sourceUrl: row.sourceUrl,
-      publishedAt: row.publishedAt.toISOString(),
+      publishedAt: row.publishedAt?.toISOString() ?? null,
+      publishedOn: row.publishedOn,
+      publishedAtPrecision: row.publishedAtPrecision,
+      collectedAt: row.collectedAt.toISOString(),
     })),
     lastUpdatedAt: lastUpdatedAt?.toISOString() ?? null,
   };

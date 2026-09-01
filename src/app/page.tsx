@@ -4,7 +4,7 @@ import {
   type AppearanceCard,
   categoryClassNames,
   formatAppearanceDate,
-  formatPublishedAt,
+  formatPublication,
   formatUpdatedAt,
   groupAppearances,
 } from "@/lib/appearances";
@@ -52,7 +52,7 @@ function AppearanceCard({ item }: { item: AppearanceCard }) {
       )}
       <p className="appearance-card__published">
         {item.isGrouped ? "最新公式発表" : "公式発表"}{" "}
-        {formatPublishedAt(item.publishedAt)}
+        {formatPublication(item.publication)}
       </p>
       <div className="appearance-card__sources">
         {item.sourceUrls.map((sourceUrl, index) => (

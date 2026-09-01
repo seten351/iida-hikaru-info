@@ -8,10 +8,33 @@ import {
   validateAppearanceImportItems,
   type Appearance,
 } from "../src/domain/appearance";
-import { groupAppearances } from "../src/lib/appearances";
+import {
+  formatPublication,
+  groupAppearances,
+} from "../src/lib/appearances";
 import { appearanceImportData } from "./appearance-import-data";
 
 const allowSamples = process.argv.slice(2).includes("--allow-samples");
+
+function fixture(
+  id: string,
+  publication: Pick<
+    Appearance,
+    "publishedAtPrecision" | "publishedAt" | "publishedOn" | "collectedAt"
+  >,
+): Appearance {
+  return {
+    id,
+    startsAt: "2026-10-01T18:00:00+09:00",
+    title: id,
+    eventGroupId: null,
+    eventTitle: null,
+    sessionLabel: null,
+    category: "イベント",
+    sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
+    ...publication,
+  };
+}
 
 async function main() {
   validateAppearanceImportItems(appearanceImportData);
@@ -26,10 +49,13 @@ async function main() {
       sessionLabel: appearancesTable.sessionLabel,
       category: appearancesTable.category,
       sourceUrl: appearancesTable.sourceUrl,
+      publishedAtPrecision: appearancesTable.publishedAtPrecision,
       publishedAt: appearancesTable.publishedAt,
+      publishedOn: appearancesTable.publishedOn,
       sourceName: appearancesTable.sourceName,
       sourceItemId: appearancesTable.sourceItemId,
       collectedAt: appearancesTable.collectedAt,
+      createdAt: appearancesTable.createdAt,
     })
     .from(appearancesTable)
     .where(
@@ -49,7 +75,9 @@ async function main() {
     sessionLabel: row.sessionLabel,
     category: row.category,
     sourceUrl: row.sourceUrl,
-    publishedAt: row.publishedAt.toISOString(),
+    publishedAtPrecision: row.publishedAtPrecision,
+    publishedAt: row.publishedAt?.toISOString() ?? null,
+    publishedOn: row.publishedOn,
     sourceName: row.sourceName,
     sourceItemId: row.sourceItemId,
   }));
@@ -58,11 +86,28 @@ async function main() {
     .map((item) => ({
       ...item,
       startsAt: new Date(item.startsAt).toISOString(),
-      publishedAt: new Date(item.publishedAt).toISOString(),
+      publishedAt:
+        item.publishedAt === null ? null : new Date(item.publishedAt).toISOString(),
     }));
 
   assert.deepEqual(actual, expected);
   assert.ok(rows.every((row) => row.collectedAt !== null));
+  assert.ok(rows.every((row) => row.createdAt !== null));
+  assert.ok(
+    rows.every(
+      (row) => row.collectedAt!.getTime() === row.createdAt!.getTime(),
+    ),
+    "Existing records must retain their original first-collection time.",
+  );
+  assert.ok(
+    rows.every(
+      (row) =>
+        row.publishedAtPrecision === "exact" &&
+        row.publishedAt !== null &&
+        row.publishedOn === null,
+    ),
+    "Existing records must migrate as exact publication timestamps.",
+  );
 
   const [sampleRows] = await getDb()
     .select({ value: count() })
@@ -81,143 +126,92 @@ async function main() {
     sessionLabel: row.sessionLabel,
     category: row.category,
     sourceUrl: row.sourceUrl,
-    publishedAt: row.publishedAt.toISOString(),
+    publishedAtPrecision: row.publishedAtPrecision,
+    publishedAt: row.publishedAt?.toISOString() ?? null,
+    publishedOn: row.publishedOn,
+    collectedAt: row.collectedAt!.toISOString(),
   }));
   const grouped = groupAppearances(
     appearances,
     new Date("2026-09-01T00:00:00+09:00"),
   );
 
-  assert.deepEqual(
-    grouped.latest.map((item) => item.id),
-    ["hagoromo6-geisho-ui-2", "hikaroom-birthday-party-2026"],
-  );
+  assert.deepEqual(grouped.latest.map((item) => item.id), [
+    "hagoromo6-geisho-ui-2",
+    "hikaroom-birthday-party-2026",
+  ]);
   assert.equal(grouped.upcoming.length, 1);
   assert.equal(grouped.past.length, 1);
-  assert.deepEqual(grouped.upcoming[0].sessions.map((item) => item.id), [
-    "hagoromo6-geisho-ui-2-day",
-    "hagoromo6-geisho-ui-2-night",
-  ]);
-  assert.deepEqual(grouped.past[0].sessions.map((item) => item.id), [
-    "hikaroom-birthday-party-2026-day",
-    "hikaroom-birthday-party-2026-night",
-  ]);
 
-  const groupingFixtures: Appearance[] = [
-    {
-      id: "day-two",
-      startsAt: "2026-10-12T17:00:00+09:00",
-      title: "連日イベント DAY2",
-      eventGroupId: "two-day-event",
-      eventTitle: "連日イベント",
-      sessionLabel: "DAY2",
-      category: "イベント",
-      sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
-      publishedAt: "2026-08-02T18:00:00+09:00",
-    },
-    {
-      id: "day-one",
-      startsAt: "2026-10-11T17:00:00+09:00",
-      title: "連日イベント DAY1",
-      eventGroupId: "two-day-event",
-      eventTitle: "連日イベント",
-      sessionLabel: "DAY1",
-      category: "イベント",
-      sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
-      publishedAt: "2026-08-02T18:00:00+09:00",
-    },
-    {
-      id: "morning",
-      startsAt: "2026-09-01T10:00:00+09:00",
-      title: "昼夜イベント 昼公演",
-      eventGroupId: "day-night-event",
-      eventTitle: "昼夜イベント",
-      sessionLabel: "昼公演",
-      category: "イベント",
-      sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
-      publishedAt: "2026-08-03T18:00:00+09:00",
-    },
-    {
-      id: "night",
-      startsAt: "2026-09-01T18:00:00+09:00",
-      title: "昼夜イベント 夜公演",
-      eventGroupId: "day-night-event",
-      eventTitle: "昼夜イベント",
-      sessionLabel: "夜公演",
-      category: "イベント",
-      sourceUrl: "https://x.com/hagoromo_6/status/2090725596485882355",
-      publishedAt: "2026-08-04T18:00:00+09:00",
-    },
-    {
-      id: "standalone",
-      startsAt: "2026-09-02T12:00:00+09:00",
-      title: "単独出演",
-      eventGroupId: null,
-      eventTitle: null,
-      sessionLabel: null,
-      category: "配信",
-      sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
-      publishedAt: "2026-08-05T18:00:00+09:00",
-    },
-    {
-      id: "past-day-two",
-      startsAt: "2026-08-31T18:00:00+09:00",
-      title: "過去の連日イベント DAY2",
-      eventGroupId: "past-two-day-event",
-      eventTitle: "過去の連日イベント",
-      sessionLabel: "DAY2",
-      category: "イベント",
-      sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
-      publishedAt: "2026-08-01T18:00:00+09:00",
-    },
-    {
-      id: "past-day-one",
-      startsAt: "2026-08-30T18:00:00+09:00",
-      title: "過去の連日イベント DAY1",
-      eventGroupId: "past-two-day-event",
-      eventTitle: "過去の連日イベント",
-      sessionLabel: "DAY1",
-      category: "イベント",
-      sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
-      publishedAt: "2026-08-01T18:00:00+09:00",
-    },
-    {
-      id: "older-standalone",
-      startsAt: "2026-08-29T18:00:00+09:00",
-      title: "過去の単独出演",
-      eventGroupId: null,
-      eventTitle: null,
-      sessionLabel: null,
-      category: "配信",
-      sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
-      publishedAt: "2026-07-01T18:00:00+09:00",
-    },
+  const sameDayFixtures = [
+    fixture("unknown", {
+      publishedAtPrecision: "unknown",
+      publishedAt: null,
+      publishedOn: null,
+      collectedAt: "2026-08-10T09:00:00+09:00",
+    }),
+    fixture("date", {
+      publishedAtPrecision: "date",
+      publishedAt: null,
+      publishedOn: "2026-08-10",
+      collectedAt: "2026-08-10T08:00:00+09:00",
+    }),
+    fixture("exact", {
+      publishedAtPrecision: "exact",
+      publishedAt: "2026-08-10T07:00:00+09:00",
+      publishedOn: null,
+      collectedAt: "2026-08-10T07:01:00+09:00",
+    }),
   ];
-  const fixtureGroups = groupAppearances(
-    groupingFixtures,
+  const precisionGroups = groupAppearances(
+    sameDayFixtures,
     new Date("2026-09-01T12:00:00+09:00"),
   );
+  assert.deepEqual(precisionGroups.latest.map((item) => item.id), [
+    "appearance:exact",
+    "appearance:date",
+    "appearance:unknown",
+  ]);
+  assert.equal(
+    formatPublication(sameDayFixtures[1]),
+    "2026年8月10日（日付のみ）",
+  );
+  assert.match(formatPublication(sameDayFixtures[0]), /^日時不明（サイト掲載 /);
+  assert.doesNotMatch(formatPublication(sameDayFixtures[1]), /00:00/);
 
-  assert.deepEqual(fixtureGroups.upcoming.map((item) => item.id), [
-    "day-night-event",
-    "appearance:standalone",
-    "two-day-event",
-  ]);
-  assert.deepEqual(fixtureGroups.past.map((item) => item.id), [
-    "past-two-day-event",
-    "appearance:older-standalone",
-  ]);
-  assert.deepEqual(
-    fixtureGroups.upcoming[0].sessions.map((item) => item.sessionLabel),
-    ["昼公演", "夜公演"],
+  const groupedFixtures: Appearance[] = [
+    {
+      ...fixture("day-two", {
+        publishedAtPrecision: "date",
+        publishedAt: null,
+        publishedOn: "2026-08-10",
+        collectedAt: "2026-08-10T10:00:00+09:00",
+      }),
+      startsAt: "2026-10-12T17:00:00+09:00",
+      eventGroupId: "two-day-event",
+      eventTitle: "連日イベント",
+      sessionLabel: "DAY2",
+    },
+    {
+      ...fixture("day-one", {
+        publishedAtPrecision: "exact",
+        publishedAt: "2026-08-10T18:00:00+09:00",
+        publishedOn: null,
+        collectedAt: "2026-08-10T18:01:00+09:00",
+      }),
+      startsAt: "2026-10-11T17:00:00+09:00",
+      eventGroupId: "two-day-event",
+      eventTitle: "連日イベント",
+      sessionLabel: "DAY1",
+    },
+  ];
+  const groupedFixtureCards = groupAppearances(
+    groupedFixtures,
+    new Date("2026-09-01T12:00:00+09:00"),
   );
-  assert.equal(fixtureGroups.upcoming[0].sourceUrls.length, 2);
+  assert.equal(groupedFixtureCards.latest[0].publication.publishedAtPrecision, "exact");
   assert.deepEqual(
-    fixtureGroups.upcoming[2].sessions.map((item) => item.sessionLabel),
-    ["DAY1", "DAY2"],
-  );
-  assert.deepEqual(
-    fixtureGroups.past[0].sessions.map((item) => item.sessionLabel),
+    groupedFixtureCards.upcoming[0].sessions.map((item) => item.sessionLabel),
     ["DAY1", "DAY2"],
   );
 
