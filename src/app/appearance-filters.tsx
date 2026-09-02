@@ -4,8 +4,6 @@ import {
   type ChangeEvent,
   type FormEvent,
   useCallback,
-  useEffect,
-  useRef,
   useState,
   useTransition,
 } from "react";
@@ -13,7 +11,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
   createAppearanceFilterHref,
-  getAppearanceFilterNavigation,
   hasAppearanceFilters,
   type AppearanceFilterOptions,
   type AppearanceFilters,
@@ -26,8 +23,6 @@ type AppearanceFiltersProps = {
   matchedCount: number;
 };
 
-const queryDebounceMs = 300;
-
 export function AppearanceFilters({
   filters,
   options,
@@ -37,77 +32,57 @@ export function AppearanceFilters({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [localFilters, setLocalFilters] = useState(filters);
+  const [draftFilters, setDraftFilters] = useState(filters);
   const [isPending, startTransition] = useTransition();
-  const queryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const clearQueryTimer = useCallback(() => {
-    if (queryTimer.current !== null) {
-      clearTimeout(queryTimer.current);
-      queryTimer.current = null;
-    }
-  }, []);
-
-  useEffect(() => clearQueryTimer, [clearQueryTimer]);
 
   const navigate = useCallback(
-    (
-      nextFilters: AppearanceFilters,
-      change: "query" | "facet" | "clear",
-    ) => {
+    (nextFilters: AppearanceFilters) => {
       const href = createAppearanceFilterHref(
         pathname,
         searchParams.toString(),
         nextFilters,
       );
-      const method = getAppearanceFilterNavigation(change);
 
       startTransition(() => {
-        router[method](href, { scroll: false });
+        router.push(href, { scroll: false });
       });
     },
     [pathname, router, searchParams, startTransition],
   );
 
   const updateQuery = (event: ChangeEvent<HTMLInputElement>) => {
-    const nextFilters = { ...localFilters, q: event.target.value.slice(0, 100) };
-    setLocalFilters(nextFilters);
-    clearQueryTimer();
-    queryTimer.current = setTimeout(() => {
-      navigate(nextFilters, "query");
-      queryTimer.current = null;
-    }, queryDebounceMs);
+    setDraftFilters((current) => ({
+      ...current,
+      q: event.target.value.slice(0, 100),
+    }));
   };
 
   const updateFacet = (
     key: "series" | "category" | "year",
     value: string,
   ) => {
-    clearQueryTimer();
-    const nextFilters = { ...localFilters, [key]: value || null } as AppearanceFilters;
-    setLocalFilters(nextFilters);
-    navigate(nextFilters, "facet");
+    setDraftFilters(
+      (current) => ({ ...current, [key]: value || null }) as AppearanceFilters,
+    );
   };
 
   const clearFilters = () => {
-    clearQueryTimer();
     const nextFilters: AppearanceFilters = {
       q: "",
       series: null,
       category: null,
       year: null,
     };
-    setLocalFilters(nextFilters);
-    navigate(nextFilters, "clear");
+    setDraftFilters(nextFilters);
+    navigate(nextFilters);
   };
 
   const submitQuery = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    clearQueryTimer();
-    navigate(localFilters, "query");
+    navigate(draftFilters);
   };
 
-  const active = hasAppearanceFilters(localFilters);
+  const active = hasAppearanceFilters(draftFilters);
 
   return (
     <section className="appearance-filters" aria-labelledby="filters-heading">
@@ -131,18 +106,20 @@ export function AppearanceFilters({
           <span>フリーワード</span>
           <input
             type="search"
-            value={localFilters.q}
+            value={draftFilters.q}
             onChange={updateQuery}
             maxLength={100}
             placeholder="番組名・イベント名など"
+            disabled={isPending}
           />
         </label>
 
         <label className="appearance-filter-field">
           <span>シリーズ</span>
           <select
-            value={localFilters.series ?? ""}
+            value={draftFilters.series ?? ""}
             onChange={(event) => updateFacet("series", event.target.value)}
+            disabled={isPending}
           >
             <option value="">すべて</option>
             {options.series.map((option) => (
@@ -156,8 +133,9 @@ export function AppearanceFilters({
         <label className="appearance-filter-field">
           <span>カテゴリ</span>
           <select
-            value={localFilters.category ?? ""}
+            value={draftFilters.category ?? ""}
             onChange={(event) => updateFacet("category", event.target.value)}
+            disabled={isPending}
           >
             <option value="">すべて</option>
             {options.categories.map((category) => (
@@ -171,8 +149,9 @@ export function AppearanceFilters({
         <label className="appearance-filter-field">
           <span>年</span>
           <select
-            value={localFilters.year ?? ""}
+            value={draftFilters.year ?? ""}
             onChange={(event) => updateFacet("year", event.target.value)}
+            disabled={isPending}
           >
             <option value="">すべて</option>
             {options.years.map((year) => (
@@ -183,14 +162,23 @@ export function AppearanceFilters({
           </select>
         </label>
 
-        <button
-          className="appearance-filter-clear"
-          type="button"
-          disabled={!active}
-          onClick={clearFilters}
-        >
-          条件をクリア
-        </button>
+        <div className="appearance-filter-actions">
+          <button
+            className="appearance-filter-search"
+            type="submit"
+            disabled={isPending}
+          >
+            検索
+          </button>
+          <button
+            className="appearance-filter-clear"
+            type="button"
+            disabled={isPending || !active}
+            onClick={clearFilters}
+          >
+            条件をクリア
+          </button>
+        </div>
       </form>
     </section>
   );

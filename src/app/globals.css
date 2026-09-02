@@ -238,6 +238,7 @@ nav a:hover {
 
 .appearance-filter-field input,
 .appearance-filter-field select,
+.appearance-filter-search,
 .appearance-filter-clear {
   min-width: 0;
   min-height: 2.8rem;
@@ -274,6 +275,42 @@ nav a:hover {
   transition:
     border-color 160ms ease,
     background 160ms ease;
+}
+
+.appearance-filter-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.appearance-filter-search,
+.appearance-filter-clear {
+  white-space: nowrap;
+}
+
+.appearance-filter-search {
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.appearance-filter-search:hover:not(:disabled) {
+  border-color: var(--accent-dark);
+  background: var(--accent-dark);
+}
+
+.appearance-filter-search:disabled {
+  border-color: #a69da3;
+  background: #a69da3;
+  cursor: not-allowed;
 }
 
 .appearance-filter-clear:hover:not(:disabled) {
@@ -564,6 +601,10 @@ footer {
   .appearance-filter-clear {
     justify-self: start;
   }
+
+  .appearance-filter-actions {
+    justify-self: start;
+  }
 }
 
 @media (max-width: 640px) {
@@ -635,7 +676,15 @@ footer {
   }
 
   .appearance-filter-clear {
+    flex: 1;
+  }
+
+  .appearance-filter-actions {
     width: 100%;
+  }
+
+  .appearance-filter-search {
+    flex: 1;
   }
 
   .appearance-grid {

@@ -4,10 +4,10 @@ import type { Appearance } from "../src/domain/appearance";
 import {
   createAppearanceFilterHref,
   filterAppearanceCards,
-  getAppearanceFilterNavigation,
   getAppearanceFilterOptions,
   parseAppearanceFilters,
 } from "../src/lib/appearance-filters";
+import { appearanceSeriesSearchAliases } from "../src/lib/appearance-series-search-aliases";
 import {
   buildAppearanceCards,
   groupAppearanceCards,
@@ -50,6 +50,23 @@ const hikaroomAndDay = filterAppearanceCards(
   filtersFor(cards, { q: "ヒカROOM DAY1" }),
 );
 assert.ok(hikaroomAndDay.every((card) => card.sessions.some((session) => session.sessionLabel === "DAY1")));
+
+const gakumas = filterAppearanceCards(cards, filtersFor(cards, { q: "学マス" }));
+assert.ok(gakumas.length > 0);
+assert.ok(gakumas.every((card) => card.seriesId === "gakuen-idolmaster"));
+
+const gakumasAndDay = filterAppearanceCards(
+  cards,
+  filtersFor(cards, { q: "学マス DAY1" }),
+);
+assert.ok(gakumasAndDay.length > 0);
+assert.ok(gakumasAndDay.every((card) => card.seriesId === "gakuen-idolmaster"));
+assert.ok(
+  gakumasAndDay.every((card) =>
+    card.title.includes("DAY1") ||
+    card.sessions.some((session) => session.sessionLabel === "DAY1"),
+  ),
+);
 
 const noSeries = filterAppearanceCards(
   cards,
@@ -111,9 +128,6 @@ assert.equal(crossYearMatches[0].sessions.length, 2);
 const grouped = groupAppearanceCards(filterAppearanceCards(cards, noFilters), new Date("2026-09-02T12:00:00+09:00"));
 assert.equal(grouped.latest.length, 3);
 
-assert.equal(getAppearanceFilterNavigation("query"), "replace");
-assert.equal(getAppearanceFilterNavigation("facet"), "push");
-assert.equal(getAppearanceFilterNavigation("clear"), "push");
 assert.equal(
   createAppearanceFilterHref("/", "utm_source=test&year=2025", {
     q: "ヒカROOM",
@@ -125,4 +139,25 @@ assert.equal(
 );
 
 assert.ok(options.series.some((option) => option.value === "hikaroom"));
+
+for (const [seriesId, aliases] of Object.entries(appearanceSeriesSearchAliases)) {
+  assert.ok(seriesNames.has(seriesId), `${seriesId}: unknown series alias key.`);
+  assert.ok(aliases.length > 0, `${seriesId}: aliases must not be empty.`);
+  const normalizedAliases = aliases.map((alias) => alias.normalize("NFKC").toLocaleLowerCase("ja-JP"));
+  assert.ok(aliases.every((alias) => alias.trim().length > 0), `${seriesId}: alias must not be empty.`);
+  assert.equal(
+    new Set(normalizedAliases).size,
+    aliases.length,
+    `${seriesId}: aliases must not duplicate after normalization.`,
+  );
+
+  for (const alias of aliases) {
+    const matches = filterAppearanceCards(cards, filtersFor(cards, { q: alias }));
+    assert.ok(matches.length > 0, `${seriesId}: ${alias} must match cards.`);
+    assert.ok(
+      matches.every((card) => card.seriesId === seriesId),
+      `${seriesId}: ${alias} must not match another series.`,
+    );
+  }
+}
 console.log("Verified appearance filter logic and navigation behavior.");

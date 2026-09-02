@@ -3,6 +3,7 @@ import {
   type AppearanceCategory,
 } from "@/domain/appearance";
 import type { AppearanceCard } from "@/lib/appearances";
+import { appearanceSeriesSearchAliases } from "@/lib/appearance-series-search-aliases";
 
 export const appearanceFilterSearchParamKeys = [
   "q",
@@ -23,8 +24,6 @@ export type AppearanceFilterOptions = {
   categories: AppearanceCategory[];
   years: string[];
 };
-
-export type AppearanceFilterNavigation = "push" | "replace";
 
 type SearchParamValue = string | string[] | undefined;
 type AppearanceSearchParams = Record<string, SearchParamValue>;
@@ -154,6 +153,9 @@ export function filterAppearanceCards(
       [
         card.title,
         card.seriesName,
+        ...(card.seriesId === null
+          ? []
+          : (appearanceSeriesSearchAliases[card.seriesId] ?? [])),
         ...card.sessions.map((session) => session.sessionLabel),
       ]
         .filter((value): value is string => value !== null)
@@ -190,12 +192,6 @@ export function createAppearanceFilterHref(
 
   const query = searchParams.toString();
   return query ? `${pathname}?${query}` : pathname;
-}
-
-export function getAppearanceFilterNavigation(
-  change: "query" | "facet" | "clear",
-): AppearanceFilterNavigation {
-  return change === "query" ? "replace" : "push";
 }
 
 export const appearanceNoSeriesValue = noSeriesValue;
