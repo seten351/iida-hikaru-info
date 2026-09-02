@@ -1,9 +1,14 @@
 import "server-only";
 
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
-import { appearanceSeriesTable, appearancesTable } from "@/db/schema";
+import {
+  appearanceSeriesTable,
+  appearanceSourceLinksTable,
+  appearancesTable,
+  sourceItemsTable,
+} from "@/db/schema";
 import type { Appearance } from "@/domain/appearance";
 import { publicAppearanceCondition } from "@/server/appearances/visibility";
 
@@ -22,14 +27,30 @@ export async function getAppearancePageData(): Promise<{
       eventTitle: appearancesTable.eventTitle,
       sessionLabel: appearancesTable.sessionLabel,
       category: appearancesTable.category,
-      sourceUrl: appearancesTable.sourceUrl,
-      publishedAt: appearancesTable.publishedAt,
-      publishedOn: appearancesTable.publishedOn,
-      publishedAtPrecision: appearancesTable.publishedAtPrecision,
-      collectedAt: appearancesTable.collectedAt,
-      updatedAt: appearancesTable.updatedAt,
+      sourceUrl: sourceItemsTable.canonicalUrl,
+      publishedAt: appearanceSourceLinksTable.publishedAt,
+      publishedOn: appearanceSourceLinksTable.publishedOn,
+      publishedAtPrecision: appearanceSourceLinksTable.publishedAtPrecision,
+      collectedAt: appearanceSourceLinksTable.collectedAt,
+      updatedAt: sql<Date>`greatest(
+          ${appearancesTable.updatedAt},
+          ${appearanceSourceLinksTable.updatedAt},
+          ${sourceItemsTable.updatedAt}
+        )`.mapWith(appearancesTable.updatedAt),
     })
     .from(appearancesTable)
+    .innerJoin(
+      appearanceSourceLinksTable,
+      and(
+        eq(appearanceSourceLinksTable.appearanceId, appearancesTable.id),
+        eq(appearanceSourceLinksTable.active, true),
+        eq(appearanceSourceLinksTable.isPrimary, true),
+      ),
+    )
+    .innerJoin(
+      sourceItemsTable,
+      eq(appearanceSourceLinksTable.sourceId, sourceItemsTable.id),
+    )
     .leftJoin(
       appearanceSeriesTable,
       eq(appearancesTable.seriesId, appearanceSeriesTable.id),

@@ -15,6 +15,7 @@
     "verify:filters": "tsx scripts/verify-appearance-filters.ts",
     "verify:phase1a": "tsx scripts/verify-phase-1a.ts",
     "verify:phase1b": "tsx scripts/verify-phase-1b.ts",
+    "verify:phase1c": "NODE_OPTIONS=--conditions=react-server tsx scripts/verify-phase-1c.ts",
     "db:remove-samples": "dotenv -e .env.local -- tsx scripts/remove-sample-appearances.ts"
   },
   "dependencies": {

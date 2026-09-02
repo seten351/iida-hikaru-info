@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import { getWriterDb } from "@/db/client";
 import {
@@ -388,13 +388,6 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
           eventTitle: item.eventTitle,
           sessionLabel: item.sessionLabel,
           category: item.category,
-          sourceUrl: source.canonicalUrl,
-          publishedAt:
-            item.publishedAt === null ? null : new Date(item.publishedAt),
-          publishedOn: item.publishedOn,
-          publishedAtPrecision: item.publishedAtPrecision,
-          sourceName: item.sourceName,
-          sourceItemId: item.sourceItemId,
           visibilityStatus: sql`coalesce(${appearancesTable.visibilityStatus}, 'public')`,
           firstVisibleAt: sql`coalesce(${appearancesTable.firstVisibleAt}, ${appearancesTable.createdAt})`,
           visibilityChangedAt: sql`coalesce(${appearancesTable.visibilityChangedAt}, ${appearancesTable.createdAt})`,
@@ -413,7 +406,8 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
       .where(
         and(
           eq(appearanceSourceLinksTable.appearanceId, item.id),
-          ne(appearanceSourceLinksTable.sourceId, source.sourceId),
+          eq(appearanceSourceLinksTable.active, true),
+          eq(appearanceSourceLinksTable.isPrimary, true),
         ),
       );
 

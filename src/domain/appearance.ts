@@ -239,7 +239,6 @@ export function validateAppearanceImportItems(
   series: readonly AppearanceSeries[],
 ) {
   const ids = new Set<string>();
-  const sourceKeys = new Set<string>();
   const seriesIds = new Set<string>();
   const seriesNames = new Set<string>();
   const groupMetadata = new Map<
@@ -350,19 +349,10 @@ export function validateAppearanceImportItems(
       );
     }
 
-    const sourceKey = `${item.sourceName}\u0000${item.sourceItemId}`;
-
     if (ids.has(item.id)) {
       throw new Error(`Duplicate appearance id: ${item.id}.`);
     }
 
-    if (sourceKeys.has(sourceKey)) {
-      throw new Error(
-        `Duplicate source identity: ${item.sourceName}/${item.sourceItemId}.`,
-      );
-    }
-
     ids.add(item.id);
-    sourceKeys.add(sourceKey);
   }
 }

@@ -1,13 +1,20 @@
-import { and, eq, inArray, or, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
-import { appearanceSeriesTable, appearancesTable } from "@/db/schema";
+import {
+  appearanceSeriesTable,
+  appearanceSourceLinksTable,
+  appearancesTable,
+  sourceIdentitiesTable,
+  sourceItemsTable,
+} from "@/db/schema";
 import {
   validateAppearanceImportItems,
   type AppearanceImportItem,
   type AppearanceSeries,
 } from "@/domain/appearance";
 import {
+  canonicalizeSourceUrl,
   dualWriteAppearance,
   withBootstrapImportTransaction,
 } from "@/server/appearances/source-foundation";
@@ -36,11 +43,24 @@ export type AppearanceSeriesImportPlan = {
   counts: Record<ImportStatus, number>;
 };
 
-type ExistingAppearance = typeof appearancesTable.$inferSelect;
-
-function sourceKey(sourceName: string, sourceItemId: string) {
-  return `${sourceName}\u0000${sourceItemId}`;
-}
+type ExistingAppearance = Pick<
+  typeof appearancesTable.$inferSelect,
+  | "id"
+  | "startsAt"
+  | "title"
+  | "seriesId"
+  | "eventGroupId"
+  | "eventTitle"
+  | "sessionLabel"
+  | "category"
+> & {
+  sourceUrl: string;
+  publishedAt: Date | null;
+  publishedOn: string | null;
+  publishedAtPrecision: AppearanceImportItem["publishedAtPrecision"];
+  sourceName: string;
+  sourceItemId: string;
+};
 
 function hasContentChanged(
   existing: ExistingAppearance,
@@ -54,7 +74,9 @@ function hasContentChanged(
     existing.eventTitle !== incoming.eventTitle ||
     existing.sessionLabel !== incoming.sessionLabel ||
     existing.category !== incoming.category ||
-    existing.sourceUrl !== incoming.sourceUrl ||
+    existing.sourceUrl !== canonicalizeSourceUrl(incoming.sourceUrl) ||
+    existing.sourceName !== incoming.sourceName ||
+    existing.sourceItemId !== incoming.sourceItemId ||
     existing.publishedAtPrecision !== incoming.publishedAtPrecision ||
     (existing.publishedAt?.getTime() ?? null) !==
       (incoming.publishedAt === null
@@ -70,61 +92,53 @@ export async function planAppearanceImport(
 ): Promise<AppearanceImportPlan> {
   validateAppearanceImportItems(items, series);
 
-  const sourceConditions = items.map((item) =>
-    and(
-      eq(appearancesTable.sourceName, item.sourceName),
-      eq(appearancesTable.sourceItemId, item.sourceItemId),
-    ),
-  );
   const existingRows = await getDb()
-    .select()
+    .select({
+      id: appearancesTable.id,
+      startsAt: appearancesTable.startsAt,
+      title: appearancesTable.title,
+      seriesId: appearancesTable.seriesId,
+      eventGroupId: appearancesTable.eventGroupId,
+      eventTitle: appearancesTable.eventTitle,
+      sessionLabel: appearancesTable.sessionLabel,
+      category: appearancesTable.category,
+      sourceUrl: sourceItemsTable.canonicalUrl,
+      publishedAt: appearanceSourceLinksTable.publishedAt,
+      publishedOn: appearanceSourceLinksTable.publishedOn,
+      publishedAtPrecision: appearanceSourceLinksTable.publishedAtPrecision,
+      sourceName: sourceIdentitiesTable.sourceName,
+      sourceItemId: sourceIdentitiesTable.externalItemId,
+    })
     .from(appearancesTable)
+    .innerJoin(
+      appearanceSourceLinksTable,
+      and(
+        eq(appearanceSourceLinksTable.appearanceId, appearancesTable.id),
+        eq(appearanceSourceLinksTable.active, true),
+        eq(appearanceSourceLinksTable.isPrimary, true),
+      ),
+    )
+    .innerJoin(
+      sourceItemsTable,
+      eq(appearanceSourceLinksTable.sourceId, sourceItemsTable.id),
+    )
+    .innerJoin(
+      sourceIdentitiesTable,
+      eq(
+        appearanceSourceLinksTable.sourceIdentityId,
+        sourceIdentitiesTable.id,
+      ),
+    )
     .where(
-      or(
-        inArray(
-          appearancesTable.id,
-          items.map((item) => item.id),
-        ),
-        ...sourceConditions,
+      inArray(
+        appearancesTable.id,
+        items.map((item) => item.id),
       ),
     );
   const byId = new Map(existingRows.map((row) => [row.id, row]));
-  const bySource = new Map(
-    existingRows
-      .filter(
-        (row): row is ExistingAppearance & {
-          sourceName: string;
-          sourceItemId: string;
-        } => row.sourceName !== null && row.sourceItemId !== null,
-      )
-      .map((row) => [sourceKey(row.sourceName, row.sourceItemId), row]),
-  );
 
   const planItems = items.map((item): AppearanceImportPlanItem => {
-    const existingById = byId.get(item.id);
-    const existingBySource = bySource.get(
-      sourceKey(item.sourceName, item.sourceItemId),
-    );
-
-    if (existingById && existingBySource && existingById.id !== existingBySource.id) {
-      throw new Error(`${item.id}: id and source identity refer to different rows.`);
-    }
-
-    const existing = existingById ?? existingBySource;
-
-    if (existing && existing.id !== item.id) {
-      throw new Error(
-        `${item.id}: source identity is already assigned to ${existing.id}.`,
-      );
-    }
-
-    if (
-      existing &&
-      (existing.sourceName !== item.sourceName ||
-        existing.sourceItemId !== item.sourceItemId)
-    ) {
-      throw new Error(`${item.id}: id is already assigned to another source.`);
-    }
+    const existing = byId.get(item.id);
 
     return {
       id: item.id,

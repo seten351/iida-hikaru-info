@@ -286,6 +286,7 @@ async function main() {
     const links = await getDb()
       .select({
         appearanceId: appearanceSourceLinksTable.appearanceId,
+        sourceIdentityId: appearanceSourceLinksTable.sourceIdentityId,
         evidenceKey: appearanceSourceLinksTable.evidenceKey,
         active: appearanceSourceLinksTable.active,
         isPrimary: appearanceSourceLinksTable.isPrimary,
@@ -342,14 +343,19 @@ async function main() {
       getWriterDb().insert(appearanceSourceLinksTable).values({
         appearanceId: day1.id,
         sourceId: sharedSource.id,
+        sourceIdentityId: links.find((link) => link.appearanceId === day1.id)!
+          .sourceIdentityId,
         evidenceKey: "",
+        publishedOn: day1.publishedOn,
+        publishedAtPrecision: day1.publishedAtPrecision,
+        collectedAt: new Date(),
       }),
       (error) => hasPostgresErrorCode(error, "23514"),
     );
 
     await getWriterDb()
       .update(appearancesTable)
-      .set({ visibilityStatus: null })
+      .set({ visibilityStatus: sql`null` })
       .where(eq(appearancesTable.id, day1.id));
     await getWriterDb()
       .update(appearancesTable)

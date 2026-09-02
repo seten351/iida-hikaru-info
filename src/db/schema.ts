@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   date,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -11,6 +12,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
@@ -125,18 +127,18 @@ export const appearancesTable = pgTable(
     publishedAtPrecision: publishedAtPrecisionEnum(
       "published_at_precision",
     ).notNull(),
-    sourceName: text("source_name"),
-    sourceItemId: text("source_item_id"),
-    visibilityStatus: appearanceVisibilityStatusEnum("visibility_status"),
+    sourceName: text("source_name").notNull(),
+    sourceItemId: text("source_item_id").notNull(),
+    visibilityStatus: appearanceVisibilityStatusEnum("visibility_status").notNull(),
     firstVisibleAt: timestamp("first_visible_at", {
       withTimezone: true,
       mode: "date",
-    }),
+    }).notNull(),
     visibilityChangedAt: timestamp("visibility_changed_at", {
       withTimezone: true,
       mode: "date",
-    }),
-    version: integer("version"),
+    }).notNull(),
+    version: integer("version").notNull(),
     collectedAt: timestamp("collected_at", {
       withTimezone: true,
       mode: "date",
@@ -172,11 +174,6 @@ export const appearancesTable = pgTable(
     index("appearances_published_at_idx").on(table.publishedAt),
     index("appearances_series_id_idx").on(table.seriesId),
     index("appearances_event_group_id_idx").on(table.eventGroupId),
-    uniqueIndex("appearances_source_item_unique")
-      .on(table.sourceName, table.sourceItemId)
-      .where(
-        sql`${table.sourceName} is not null and ${table.sourceItemId} is not null`,
-      ),
   ],
 );
 
@@ -243,6 +240,10 @@ export const sourceIdentitiesTable = pgTable(
       table.sourceName,
       table.externalItemId,
     ),
+    unique("source_identities_id_source_id_unique").on(
+      table.id,
+      table.sourceId,
+    ),
     uniqueIndex("source_identities_one_canonical_per_source")
       .on(table.sourceId)
       .where(sql`${table.isCanonical} = true`),
@@ -259,10 +260,7 @@ export const appearanceSourceLinksTable = pgTable(
     sourceId: text("source_id")
       .notNull()
       .references(() => sourceItemsTable.id, { onDelete: "restrict" }),
-    sourceIdentityId: text("source_identity_id").references(
-      () => sourceIdentitiesTable.id,
-      { onDelete: "restrict" },
-    ),
+    sourceIdentityId: text("source_identity_id").notNull(),
     evidenceKey: text("evidence_key").notNull(),
     active: boolean("active").default(true).notNull(),
     isPrimary: boolean("is_primary").default(false).notNull(),
@@ -271,11 +269,13 @@ export const appearanceSourceLinksTable = pgTable(
       mode: "date",
     }),
     publishedOn: date("published_on", { mode: "string" }),
-    publishedAtPrecision: publishedAtPrecisionEnum("published_at_precision"),
+    publishedAtPrecision: publishedAtPrecisionEnum(
+      "published_at_precision",
+    ).notNull(),
     collectedAt: timestamp("collected_at", {
       withTimezone: true,
       mode: "date",
-    }),
+    }).notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "date",
@@ -296,16 +296,23 @@ export const appearanceSourceLinksTable = pgTable(
     ),
     check(
       "appearance_source_links_published_at_precision_valid",
-      sql`${table.publishedAtPrecision} is null
-        or (${table.publishedAtPrecision} = 'exact' and ${table.publishedAt} is not null and ${table.publishedOn} is null)
+      sql`(${table.publishedAtPrecision} = 'exact' and ${table.publishedAt} is not null and ${table.publishedOn} is null)
         or (${table.publishedAtPrecision} = 'date' and ${table.publishedAt} is null and ${table.publishedOn} is not null)
         or (${table.publishedAtPrecision} = 'unknown' and ${table.publishedAt} is null and ${table.publishedOn} is null)`,
     ),
+    foreignKey({
+      name: "appearance_source_links_identity_source_fk",
+      columns: [table.sourceIdentityId, table.sourceId],
+      foreignColumns: [sourceIdentitiesTable.id, sourceIdentitiesTable.sourceId],
+    }).onDelete("restrict"),
     uniqueIndex("appearance_source_links_appearance_source_evidence_unique").on(
       table.appearanceId,
       table.sourceId,
       table.evidenceKey,
     ),
+    uniqueIndex("appearance_source_links_one_active_primary")
+      .on(table.appearanceId)
+      .where(sql`${table.active} = true and ${table.isPrimary} = true`),
     index("appearance_source_links_appearance_id_idx").on(table.appearanceId),
     index("appearance_source_links_source_id_idx").on(table.sourceId),
   ],
@@ -369,10 +376,7 @@ export const proposalSourceLinksTable = pgTable(
     sourceId: text("source_id")
       .notNull()
       .references(() => sourceItemsTable.id, { onDelete: "restrict" }),
-    sourceIdentityId: text("source_identity_id").references(
-      () => sourceIdentitiesTable.id,
-      { onDelete: "restrict" },
-    ),
+    sourceIdentityId: text("source_identity_id"),
     evidenceKey: text("evidence_key").notNull(),
     publishedAt: timestamp("published_at", {
       withTimezone: true,
@@ -400,6 +404,11 @@ export const proposalSourceLinksTable = pgTable(
       "proposal_source_links_evidence_key_normalized",
       sql`${table.evidenceKey} ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'`,
     ),
+    foreignKey({
+      name: "proposal_source_links_identity_source_fk",
+      columns: [table.sourceIdentityId, table.sourceId],
+      foreignColumns: [sourceIdentitiesTable.id, sourceIdentitiesTable.sourceId],
+    }).onDelete("restrict"),
     uniqueIndex("proposal_source_links_proposal_source_evidence_unique").on(
       table.proposalId,
       table.sourceId,
