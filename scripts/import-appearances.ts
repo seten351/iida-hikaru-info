@@ -4,12 +4,18 @@ import {
   planAppearanceSeriesImport,
   planAppearanceImport,
 } from "../src/server/appearances/import-service";
+import { closeWriterDb } from "../src/db/client";
+import { assertBootstrapImportIsAllowed } from "../src/server/appearances/source-foundation";
 import { appearanceImportData } from "./appearance-import-data";
 import { appearanceSeriesData } from "./appearance-series-data";
 
 const apply = process.argv.slice(2).includes("--apply");
 
 async function main() {
+  if (apply) {
+    await assertBootstrapImportIsAllowed();
+  }
+
   const seriesPlan = await planAppearanceSeriesImport(appearanceSeriesData);
   const plan = await planAppearanceImport(appearanceImportData, appearanceSeriesData);
   const cardCount = new Set(
@@ -50,13 +56,15 @@ async function main() {
   );
 }
 
-main().catch((error: unknown) => {
-  console.error(
-    JSON.stringify({
-      level: "error",
-      message: "appearance import failed",
-      error: error instanceof Error ? error.message : String(error),
-    }),
-  );
-  process.exitCode = 1;
-});
+main()
+  .catch((error: unknown) => {
+    console.error(
+      JSON.stringify({
+        level: "error",
+        message: "appearance import failed",
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
+    process.exitCode = 1;
+  })
+  .finally(closeWriterDb);

@@ -7,6 +7,10 @@ import {
   type AppearanceImportItem,
   type AppearanceSeries,
 } from "@/domain/appearance";
+import {
+  dualWriteAppearance,
+  withBootstrapImportTransaction,
+} from "@/server/appearances/source-foundation";
 
 type ImportStatus = "insert" | "update" | "unchanged";
 
@@ -189,18 +193,20 @@ export async function applyAppearanceSeriesImport(
     return 0;
   }
 
-  const appliedRows = await getDb()
-    .insert(appearanceSeriesTable)
-    .values(changedSeries)
-    .onConflictDoUpdate({
-      target: appearanceSeriesTable.id,
-      set: {
-        displayName: sql`excluded.display_name`,
-        updatedAt: sql`now()`,
-      },
-      setWhere: sql`${appearanceSeriesTable.displayName} is distinct from excluded.display_name`,
-    })
-    .returning({ id: appearanceSeriesTable.id });
+  const appliedRows = await withBootstrapImportTransaction((tx) =>
+    tx
+      .insert(appearanceSeriesTable)
+      .values(changedSeries)
+      .onConflictDoUpdate({
+        target: appearanceSeriesTable.id,
+        set: {
+          displayName: sql`excluded.display_name`,
+          updatedAt: sql`now()`,
+        },
+        setWhere: sql`${appearanceSeriesTable.displayName} is distinct from excluded.display_name`,
+      })
+      .returning({ id: appearanceSeriesTable.id }),
+  );
 
   return appliedRows.length;
 }
@@ -220,57 +226,9 @@ export async function applyAppearanceImport(
     return 0;
   }
 
-  const rows = changedItems.map((item) => ({
-    id: item.id,
-    startsAt: new Date(item.startsAt),
-    title: item.title,
-    seriesId: item.seriesId,
-    eventGroupId: item.eventGroupId,
-    eventTitle: item.eventTitle,
-    sessionLabel: item.sessionLabel,
-    category: item.category,
-    sourceUrl: item.sourceUrl,
-    publishedAt:
-      item.publishedAt === null ? null : new Date(item.publishedAt),
-    publishedOn: item.publishedOn,
-    publishedAtPrecision: item.publishedAtPrecision,
-    sourceName: item.sourceName,
-    sourceItemId: item.sourceItemId,
-  }));
+  for (const item of changedItems) {
+    await dualWriteAppearance(item);
+  }
 
-  const appliedRows = await getDb()
-    .insert(appearancesTable)
-    .values(rows)
-    .onConflictDoUpdate({
-      target: [appearancesTable.sourceName, appearancesTable.sourceItemId],
-      targetWhere: sql`${appearancesTable.sourceName} is not null and ${appearancesTable.sourceItemId} is not null`,
-      set: {
-        startsAt: sql`excluded.starts_at`,
-        title: sql`excluded.title`,
-        seriesId: sql`excluded.series_id`,
-        eventGroupId: sql`excluded.event_group_id`,
-        eventTitle: sql`excluded.event_title`,
-        sessionLabel: sql`excluded.session_label`,
-        category: sql`excluded.category`,
-        sourceUrl: sql`excluded.source_url`,
-        publishedAt: sql`excluded.published_at`,
-        publishedOn: sql`excluded.published_on`,
-        publishedAtPrecision: sql`excluded.published_at_precision`,
-        updatedAt: sql`now()`,
-      },
-      setWhere: sql`${appearancesTable.startsAt} is distinct from excluded.starts_at
-        or ${appearancesTable.title} is distinct from excluded.title
-        or ${appearancesTable.seriesId} is distinct from excluded.series_id
-        or ${appearancesTable.eventGroupId} is distinct from excluded.event_group_id
-        or ${appearancesTable.eventTitle} is distinct from excluded.event_title
-        or ${appearancesTable.sessionLabel} is distinct from excluded.session_label
-        or ${appearancesTable.category} is distinct from excluded.category
-        or ${appearancesTable.sourceUrl} is distinct from excluded.source_url
-        or ${appearancesTable.publishedAt} is distinct from excluded.published_at
-        or ${appearancesTable.publishedOn} is distinct from excluded.published_on
-        or ${appearancesTable.publishedAtPrecision} is distinct from excluded.published_at_precision`,
-    })
-    .returning({ id: appearancesTable.id });
-
-  return appliedRows.length;
+  return changedItems.length;
 }

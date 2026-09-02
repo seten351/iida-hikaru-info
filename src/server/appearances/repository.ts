@@ -5,6 +5,7 @@ import { asc, eq } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { appearanceSeriesTable, appearancesTable } from "@/db/schema";
 import type { Appearance } from "@/domain/appearance";
+import { publicAppearanceCondition } from "@/server/appearances/visibility";
 
 export async function getAppearancePageData(): Promise<{
   appearances: Appearance[];
@@ -33,6 +34,7 @@ export async function getAppearancePageData(): Promise<{
       appearanceSeriesTable,
       eq(appearancesTable.seriesId, appearanceSeriesTable.id),
     )
+    .where(publicAppearanceCondition)
     .orderBy(asc(appearancesTable.startsAt), asc(appearancesTable.id));
 
   const lastUpdatedAt = rows.reduce<Date | null>(

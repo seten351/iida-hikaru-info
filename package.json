@@ -12,6 +12,7 @@
     "db:import": "dotenv -e .env.local -- tsx scripts/import-appearances.ts",
     "db:verify": "dotenv -e .env.local -- tsx scripts/verify-appearances.ts",
     "verify:filters": "tsx scripts/verify-appearance-filters.ts",
+    "verify:phase1a": "tsx scripts/verify-phase-1a.ts",
     "db:remove-samples": "dotenv -e .env.local -- tsx scripts/remove-sample-appearances.ts"
   },
   "dependencies": {
