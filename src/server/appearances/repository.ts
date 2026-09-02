@@ -1,9 +1,9 @@
 import "server-only";
 
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
-import { appearancesTable } from "@/db/schema";
+import { appearanceSeriesTable, appearancesTable } from "@/db/schema";
 import type { Appearance } from "@/domain/appearance";
 
 export async function getAppearancePageData(): Promise<{
@@ -15,6 +15,8 @@ export async function getAppearancePageData(): Promise<{
       id: appearancesTable.id,
       startsAt: appearancesTable.startsAt,
       title: appearancesTable.title,
+      seriesId: appearancesTable.seriesId,
+      seriesName: appearanceSeriesTable.displayName,
       eventGroupId: appearancesTable.eventGroupId,
       eventTitle: appearancesTable.eventTitle,
       sessionLabel: appearancesTable.sessionLabel,
@@ -27,6 +29,10 @@ export async function getAppearancePageData(): Promise<{
       updatedAt: appearancesTable.updatedAt,
     })
     .from(appearancesTable)
+    .leftJoin(
+      appearanceSeriesTable,
+      eq(appearancesTable.seriesId, appearanceSeriesTable.id),
+    )
     .orderBy(asc(appearancesTable.startsAt), asc(appearancesTable.id));
 
   const lastUpdatedAt = rows.reduce<Date | null>(
@@ -40,6 +46,8 @@ export async function getAppearancePageData(): Promise<{
       id: row.id,
       startsAt: row.startsAt.toISOString(),
       title: row.title,
+      seriesId: row.seriesId,
+      seriesName: row.seriesName,
       eventGroupId: row.eventGroupId,
       eventTitle: row.eventTitle,
       sessionLabel: row.sessionLabel,

@@ -3,16 +3,20 @@ import assert from "node:assert/strict";
 import { asc, count, eq, inArray } from "drizzle-orm";
 
 import { getDb } from "../src/db/client";
-import { appearancesTable } from "../src/db/schema";
+import { appearanceSeriesTable, appearancesTable } from "../src/db/schema";
 import {
   validateAppearanceImportItems,
   type Appearance,
 } from "../src/domain/appearance";
 import {
+  buildAppearanceCards,
   formatPublication,
   groupAppearances,
 } from "../src/lib/appearances";
 import { appearanceImportData } from "./appearance-import-data";
+import { regularProgramAppearances } from "./appearance-import-data/programs";
+import { appearanceSeriesData } from "./appearance-series-data";
+import { voiceAppearances } from "./appearance-import-data/voice";
 
 const allowSamples = process.argv.slice(2).includes("--allow-samples");
 
@@ -27,6 +31,8 @@ function fixture(
     id,
     startsAt: "2026-10-01T18:00:00+09:00",
     title: id,
+    seriesId: null,
+    seriesName: null,
     eventGroupId: null,
     eventTitle: null,
     sessionLabel: null,
@@ -37,13 +43,14 @@ function fixture(
 }
 
 async function main() {
-  validateAppearanceImportItems(appearanceImportData);
+  validateAppearanceImportItems(appearanceImportData, appearanceSeriesData);
 
   const rows = await getDb()
     .select({
       id: appearancesTable.id,
       startsAt: appearancesTable.startsAt,
       title: appearancesTable.title,
+      seriesId: appearancesTable.seriesId,
       eventGroupId: appearancesTable.eventGroupId,
       eventTitle: appearancesTable.eventTitle,
       sessionLabel: appearancesTable.sessionLabel,
@@ -70,6 +77,7 @@ async function main() {
     id: row.id,
     startsAt: row.startsAt.toISOString(),
     title: row.title,
+    seriesId: row.seriesId,
     eventGroupId: row.eventGroupId,
     eventTitle: row.eventTitle,
     sessionLabel: row.sessionLabel,
@@ -91,6 +99,20 @@ async function main() {
     }));
 
   assert.deepEqual(actual, expected);
+  assert.equal(appearanceSeriesData.length, 31);
+  assert.equal(
+    appearanceImportData.filter((item) => item.seriesId !== null).length,
+    118,
+  );
+  assert.deepEqual(
+    appearanceImportData
+      .filter((item) => item.seriesId === null)
+      .map((item) => item.id),
+    [
+      "uec-seiyu-talk-event-2025",
+      "iida-hikaru-cooking-stream-2026-03-30",
+    ],
+  );
   assert.ok(rows.every((row) => row.collectedAt !== null));
   assert.ok(rows.every((row) => row.createdAt !== null));
   assert.ok(
@@ -99,14 +121,45 @@ async function main() {
     ),
     "Existing records must retain their original first-collection time.",
   );
+
+  const seriesRows = await getDb()
+    .select({
+      id: appearanceSeriesTable.id,
+      displayName: appearanceSeriesTable.displayName,
+    })
+    .from(appearanceSeriesTable)
+    .orderBy(asc(appearanceSeriesTable.id));
+  assert.deepEqual(
+    seriesRows,
+    [...appearanceSeriesData].sort((a, b) => a.id.localeCompare(b.id)),
+  );
+
+  const groupSizes = new Map<string, number>();
+  for (const item of appearanceImportData) {
+    if (item.eventGroupId === null) {
+      continue;
+    }
+    assert.equal(
+      item.category,
+      "イベント",
+      `${item.id}: only event sessions may use eventGroupId.`,
+    );
+    groupSizes.set(
+      item.eventGroupId,
+      (groupSizes.get(item.eventGroupId) ?? 0) + 1,
+    );
+  }
   assert.ok(
-    rows.every(
-      (row) =>
-        row.publishedAtPrecision === "exact" &&
-        row.publishedAt !== null &&
-        row.publishedOn === null,
-    ),
-    "Existing records must migrate as exact publication timestamps.",
+    [...groupSizes.values()].every((size) => size >= 2),
+    "Every event group must contain multiple DAY/part/session records.",
+  );
+  assert.ok(
+    regularProgramAppearances.every((item) => item.eventGroupId === null),
+    "Regular-program episodes must remain independent cards.",
+  );
+  assert.ok(
+    voiceAppearances.every((item) => item.eventGroupId === null),
+    "Voice appearances must remain independent work/season cards.",
   );
 
   const [sampleRows] = await getDb()
@@ -121,6 +174,12 @@ async function main() {
     id: row.id,
     startsAt: row.startsAt.toISOString(),
     title: row.title,
+    seriesId: row.seriesId,
+    seriesName:
+      row.seriesId === null
+        ? null
+        : appearanceSeriesData.find((series) => series.id === row.seriesId)
+            ?.displayName ?? null,
     eventGroupId: row.eventGroupId,
     eventTitle: row.eventTitle,
     sessionLabel: row.sessionLabel,
@@ -135,13 +194,11 @@ async function main() {
     appearances,
     new Date("2026-09-01T00:00:00+09:00"),
   );
+  const cards = buildAppearanceCards(appearances);
 
-  assert.deepEqual(grouped.latest.map((item) => item.id), [
-    "hagoromo6-geisho-ui-2",
-    "hikaroom-birthday-party-2026",
-  ]);
-  assert.equal(grouped.upcoming.length, 1);
-  assert.equal(grouped.past.length, 1);
+  assert.equal(cards.length, 97);
+  assert.equal(grouped.latest.length, Math.min(3, cards.length));
+  assert.equal(grouped.upcoming.length + grouped.past.length, cards.length);
 
   const sameDayFixtures = [
     fixture("unknown", {
@@ -216,7 +273,7 @@ async function main() {
   );
 
   console.log(
-    `Verified ${rows.length} real records: ${grouped.latest.length} latest, ${grouped.upcoming.length} upcoming, ${grouped.past.length} past, ${sampleRows.value} samples.`,
+    `Verified ${rows.length} real records / ${cards.length} cards / ${seriesRows.length} series: ${grouped.latest.length} latest, ${grouped.upcoming.length} upcoming, ${grouped.past.length} past, ${sampleRows.value} samples.`,
   );
 }
 

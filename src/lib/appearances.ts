@@ -72,6 +72,8 @@ export type AppearanceCardSession = {
 export type AppearanceCard = {
   id: string;
   title: string;
+  seriesId: string | null;
+  seriesName: string | null;
   category: AppearanceCategory;
   sessions: AppearanceCardSession[];
   sourceUrls: string[];
@@ -174,6 +176,12 @@ export function buildAppearanceCards(items: Appearance[]): AppearanceCard[] {
     };
 
     if (existing) {
+      if (
+        existing.seriesId !== item.seriesId ||
+        existing.seriesName !== item.seriesName
+      ) {
+        throw new Error(`Event group ${existing.id} has inconsistent series metadata.`);
+      }
       existing.sessions.push(session);
       if (!existing.sourceUrls.includes(item.sourceUrl)) {
         existing.sourceUrls.push(item.sourceUrl);
@@ -187,6 +195,8 @@ export function buildAppearanceCards(items: Appearance[]): AppearanceCard[] {
     cardsById.set(cardId, {
       id: cardId,
       title: item.eventTitle ?? item.title,
+      seriesId: item.seriesId,
+      seriesName: item.seriesName,
       category: item.category,
       sessions: [session],
       sourceUrls: [item.sourceUrl],

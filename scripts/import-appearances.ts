@@ -1,19 +1,35 @@
 import {
+  applyAppearanceSeriesImport,
   applyAppearanceImport,
+  planAppearanceSeriesImport,
   planAppearanceImport,
 } from "../src/server/appearances/import-service";
 import { appearanceImportData } from "./appearance-import-data";
+import { appearanceSeriesData } from "./appearance-series-data";
 
 const apply = process.argv.slice(2).includes("--apply");
 
 async function main() {
-  const plan = await planAppearanceImport(appearanceImportData);
+  const seriesPlan = await planAppearanceSeriesImport(appearanceSeriesData);
+  const plan = await planAppearanceImport(appearanceImportData, appearanceSeriesData);
+  const cardCount = new Set(
+    appearanceImportData.map(
+      (item) => item.eventGroupId ?? `appearance:${item.id}`,
+    ),
+  ).size;
 
   console.log(
     JSON.stringify({
       level: "info",
       message: apply ? "appearance import plan" : "appearance import dry-run",
       mode: apply ? "apply" : "dry-run",
+      records: appearanceImportData.length,
+      cards: cardCount,
+      series: {
+        records: appearanceSeriesData.length,
+        counts: seriesPlan.counts,
+        items: seriesPlan.items,
+      },
       counts: plan.counts,
       items: plan.items,
     }),
@@ -24,8 +40,14 @@ async function main() {
     return;
   }
 
+  const appliedSeriesCount = await applyAppearanceSeriesImport(
+    appearanceSeriesData,
+    seriesPlan,
+  );
   const appliedCount = await applyAppearanceImport(appearanceImportData, plan);
-  console.log(`Applied ${appliedCount} appearance records.`);
+  console.log(
+    `Applied ${appliedSeriesCount} series and ${appliedCount} appearance records.`,
+  );
 }
 
 main().catch((error: unknown) => {

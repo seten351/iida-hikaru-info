@@ -1,10 +1,11 @@
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
-import { appearancesTable } from "@/db/schema";
+import { appearanceSeriesTable, appearancesTable } from "@/db/schema";
 import {
   validateAppearanceImportItems,
   type AppearanceImportItem,
+  type AppearanceSeries,
 } from "@/domain/appearance";
 
 type ImportStatus = "insert" | "update" | "unchanged";
@@ -21,6 +22,16 @@ export type AppearanceImportPlan = {
   counts: Record<ImportStatus, number>;
 };
 
+export type AppearanceSeriesImportPlanItem = {
+  id: string;
+  status: ImportStatus;
+};
+
+export type AppearanceSeriesImportPlan = {
+  items: AppearanceSeriesImportPlanItem[];
+  counts: Record<ImportStatus, number>;
+};
+
 type ExistingAppearance = typeof appearancesTable.$inferSelect;
 
 function sourceKey(sourceName: string, sourceItemId: string) {
@@ -34,6 +45,7 @@ function hasContentChanged(
   return (
     existing.startsAt.getTime() !== new Date(incoming.startsAt).getTime() ||
     existing.title !== incoming.title ||
+    existing.seriesId !== incoming.seriesId ||
     existing.eventGroupId !== incoming.eventGroupId ||
     existing.eventTitle !== incoming.eventTitle ||
     existing.sessionLabel !== incoming.sessionLabel ||
@@ -50,8 +62,9 @@ function hasContentChanged(
 
 export async function planAppearanceImport(
   items: readonly AppearanceImportItem[],
+  series: readonly AppearanceSeries[],
 ): Promise<AppearanceImportPlan> {
-  validateAppearanceImportItems(items);
+  validateAppearanceImportItems(items, series);
 
   const sourceConditions = items.map((item) =>
     and(
@@ -131,6 +144,67 @@ export async function planAppearanceImport(
   };
 }
 
+export async function planAppearanceSeriesImport(
+  series: readonly AppearanceSeries[],
+): Promise<AppearanceSeriesImportPlan> {
+  const existingRows = await getDb()
+    .select()
+    .from(appearanceSeriesTable)
+    .where(inArray(appearanceSeriesTable.id, series.map((item) => item.id)));
+  const byId = new Map(existingRows.map((row) => [row.id, row]));
+  const items = series.map((item) => {
+    const existing = byId.get(item.id);
+    return {
+      id: item.id,
+      status: existing
+        ? existing.displayName === item.displayName
+          ? "unchanged"
+          : "update"
+        : "insert",
+    } satisfies AppearanceSeriesImportPlanItem;
+  });
+
+  return {
+    items,
+    counts: {
+      insert: items.filter((item) => item.status === "insert").length,
+      update: items.filter((item) => item.status === "update").length,
+      unchanged: items.filter((item) => item.status === "unchanged").length,
+    },
+  };
+}
+
+export async function applyAppearanceSeriesImport(
+  series: readonly AppearanceSeries[],
+  plan: AppearanceSeriesImportPlan,
+) {
+  const changedIds = new Set(
+    plan.items
+      .filter((item) => item.status !== "unchanged")
+      .map((item) => item.id),
+  );
+  const changedSeries = series.filter((item) => changedIds.has(item.id));
+
+  if (changedSeries.length === 0) {
+    return 0;
+  }
+
+  const appliedRows = await getDb()
+    .insert(appearanceSeriesTable)
+    .values(changedSeries)
+    .onConflictDoUpdate({
+      target: appearanceSeriesTable.id,
+      set: {
+        displayName: sql`excluded.display_name`,
+        updatedAt: sql`now()`,
+      },
+      setWhere: sql`${appearanceSeriesTable.displayName} is distinct from excluded.display_name`,
+    })
+    .returning({ id: appearanceSeriesTable.id });
+
+  return appliedRows.length;
+}
+
 export async function applyAppearanceImport(
   items: readonly AppearanceImportItem[],
   plan: AppearanceImportPlan,
@@ -150,6 +224,7 @@ export async function applyAppearanceImport(
     id: item.id,
     startsAt: new Date(item.startsAt),
     title: item.title,
+    seriesId: item.seriesId,
     eventGroupId: item.eventGroupId,
     eventTitle: item.eventTitle,
     sessionLabel: item.sessionLabel,
@@ -172,6 +247,7 @@ export async function applyAppearanceImport(
       set: {
         startsAt: sql`excluded.starts_at`,
         title: sql`excluded.title`,
+        seriesId: sql`excluded.series_id`,
         eventGroupId: sql`excluded.event_group_id`,
         eventTitle: sql`excluded.event_title`,
         sessionLabel: sql`excluded.session_label`,
@@ -184,6 +260,7 @@ export async function applyAppearanceImport(
       },
       setWhere: sql`${appearancesTable.startsAt} is distinct from excluded.starts_at
         or ${appearancesTable.title} is distinct from excluded.title
+        or ${appearancesTable.seriesId} is distinct from excluded.series_id
         or ${appearancesTable.eventGroupId} is distinct from excluded.event_group_id
         or ${appearancesTable.eventTitle} is distinct from excluded.event_title
         or ${appearancesTable.sessionLabel} is distinct from excluded.session_label

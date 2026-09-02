@@ -25,6 +25,34 @@ export const publishedAtPrecisionEnum = pgEnum(
   publishedAtPrecisions,
 );
 
+export const appearanceSeriesTable = pgTable(
+  "appearance_series",
+  {
+    id: text("id").primaryKey(),
+    displayName: text("display_name").notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    check(
+      "appearance_series_id_normalized",
+      sql`${table.id} ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'`,
+    ),
+    check("appearance_series_display_name_not_empty", sql`length(trim(${table.displayName})) > 0`),
+    uniqueIndex("appearance_series_display_name_unique").on(table.displayName),
+  ],
+);
+
 export const appearancesTable = pgTable(
   "appearances",
   {
@@ -34,6 +62,9 @@ export const appearancesTable = pgTable(
       mode: "date",
     }).notNull(),
     title: text("title").notNull(),
+    seriesId: text("series_id").references(() => appearanceSeriesTable.id, {
+      onDelete: "restrict",
+    }),
     eventGroupId: text("event_group_id"),
     eventTitle: text("event_title"),
     sessionLabel: text("session_label"),
@@ -82,6 +113,7 @@ export const appearancesTable = pgTable(
     ),
     index("appearances_starts_at_idx").on(table.startsAt),
     index("appearances_published_at_idx").on(table.publishedAt),
+    index("appearances_series_id_idx").on(table.seriesId),
     index("appearances_event_group_id_idx").on(table.eventGroupId),
     uniqueIndex("appearances_source_item_unique")
       .on(table.sourceName, table.sourceItemId)

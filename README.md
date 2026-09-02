@@ -42,7 +42,7 @@ npm run db:generate
 npm run db:migrate
 ```
 
-出演情報はGit管理された `scripts/appearance-import-data.ts` から安全に投入します。公式情報元URLと情報元内の識別子は必須です。公式発表は、時刻まで判明した場合・日付のみ判明した場合・不明の場合を区別して記録し、架空の時刻は補完しません。
+出演情報はGit管理された `scripts/appearance-import-data.ts` と `scripts/appearance-series-data.ts` から安全に投入します。シリーズは正規化IDと表示名をマスターで管理し、出演ごとに任意で関連付けます。公式情報元URLと情報元内の識別子は必須です。公式発表は、時刻まで判明した場合・日付のみ判明した場合・不明の場合を区別して記録し、架空の時刻は補完しません。
 
 importは既定でdry-runとなり、追加・更新・変更なしの差分だけを表示します。確認後に `--apply` を付けた場合だけ書き込みます。通常importはレコードを削除しません。
 
@@ -59,7 +59,7 @@ npm run db:remove-samples
 npm run db:remove-samples -- --apply --confirm=remove-sample-appearances
 ```
 
-DBスキーマは `src/db/schema.ts`、画面へ返すデータ取得処理は `src/server/appearances/repository.ts`、実データは `scripts/appearance-import-data.ts` に置いています。将来の自動収集も `src/server/appearances/import-service.ts` の検証・upsert経路を共有できます。
+DBスキーマは `src/db/schema.ts`、画面へ返すデータ取得処理は `src/server/appearances/repository.ts`、実データは `scripts/appearance-import-data.ts`、シリーズマスターは `scripts/appearance-series-data.ts` に置いています。将来の自動収集も `src/server/appearances/import-service.ts` の検証・upsert経路を共有できます。
 
 Vercel Web AnalyticsとSpeed InsightsをRoot Layoutへ組み込み、ページビューとCore Web Vitalsを収集します。利用にはVercel Dashboard側でも各機能を有効にしてください。
 
