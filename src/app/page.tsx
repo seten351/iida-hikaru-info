@@ -1,13 +1,22 @@
+import { Suspense } from "react";
 import { connection } from "next/server";
 
+import { AppearanceFilters } from "@/app/appearance-filters";
 import {
   type AppearanceCard,
   categoryClassNames,
+  buildAppearanceCards,
   formatAppearanceDate,
   formatPublication,
   formatUpdatedAt,
-  groupAppearances,
+  groupAppearanceCards,
 } from "@/lib/appearances";
+import {
+  filterAppearanceCards,
+  getAppearanceFilterOptions,
+  hasAppearanceFilters,
+  parseAppearanceFilters,
+} from "@/lib/appearance-filters";
 import { getAppearancePageData } from "@/server/appearances/repository";
 
 type AppearanceSectionProps = {
@@ -109,12 +118,21 @@ function AppearanceSection({
   );
 }
 
-export default async function Home() {
+export default async function Home(props: PageProps<"/">) {
   await connection();
 
   const now = new Date();
-  const { appearances, lastUpdatedAt } = await getAppearancePageData();
-  const { latest, upcoming, past } = groupAppearances(appearances, now);
+  const [searchParams, { appearances, lastUpdatedAt }] = await Promise.all([
+    props.searchParams,
+    getAppearancePageData(),
+  ]);
+  const cards = buildAppearanceCards(appearances);
+  const filterOptions = getAppearanceFilterOptions(cards);
+  const filters = parseAppearanceFilters(searchParams, filterOptions);
+  const filteredCards = filterAppearanceCards(cards, filters);
+  const { latest, upcoming, past } = groupAppearanceCards(filteredCards, now);
+  const isFiltering = hasAppearanceFilters(filters);
+  const noMatchingMessage = "条件に一致する出演情報はありません。";
 
   return (
     <main>
@@ -157,13 +175,25 @@ export default async function Home() {
           </div>
         </section>
 
+        <Suspense
+          fallback={<div className="appearance-filters appearance-filters--loading" />}
+        >
+          <AppearanceFilters
+            key={[filters.q, filters.series, filters.category, filters.year].join("\u0000")}
+            filters={filters}
+            options={filterOptions}
+            totalCount={cards.length}
+            matchedCount={filteredCards.length}
+          />
+        </Suspense>
+
         <AppearanceSection
           id="latest"
           eyebrow="LATEST NEWS"
           title="新着情報"
           description="最近追加された出演情報をお知らせします。"
           items={latest}
-          emptyMessage="新着情報はまだありません。"
+          emptyMessage={isFiltering ? noMatchingMessage : "新着情報はまだありません。"}
           featured
         />
 
@@ -173,7 +203,11 @@ export default async function Home() {
           title="今後の出演予定"
           description="閲覧時点から近い順に掲載しています。"
           items={upcoming}
-          emptyMessage="現在お知らせできる出演予定はありません。"
+          emptyMessage={
+            isFiltering
+              ? noMatchingMessage
+              : "現在お知らせできる出演予定はありません。"
+          }
         />
 
         <AppearanceSection
@@ -182,7 +216,7 @@ export default async function Home() {
           title="過去の出演履歴"
           description="これまでの出演情報を新しい順に振り返れます。"
           items={past}
-          emptyMessage="過去の出演情報はまだありません。"
+          emptyMessage={isFiltering ? noMatchingMessage : "過去の出演情報はまだありません。"}
         />
       </div>
 

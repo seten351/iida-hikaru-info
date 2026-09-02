@@ -223,8 +223,11 @@ function nextSession(card: AppearanceCard, now: Date) {
 }
 
 export function groupAppearances(items: Appearance[], now: Date) {
+  return groupAppearanceCards(buildAppearanceCards(items), now);
+}
+
+export function groupAppearanceCards(cards: AppearanceCard[], now: Date) {
   const timestamp = now.getTime();
-  const cards = buildAppearanceCards(items);
 
   return {
     latest: [...cards]

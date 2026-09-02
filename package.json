@@ -11,6 +11,7 @@
     "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
     "db:import": "dotenv -e .env.local -- tsx scripts/import-appearances.ts",
     "db:verify": "dotenv -e .env.local -- tsx scripts/verify-appearances.ts",
+    "verify:filters": "tsx scripts/verify-appearance-filters.ts",
     "db:remove-samples": "dotenv -e .env.local -- tsx scripts/remove-sample-appearances.ts"
   },
   "dependencies": {
