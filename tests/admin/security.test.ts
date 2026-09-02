@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { NextRequest } from "next/server";
 
+import { getAdminCacheFailures } from "../../src/lib/admin-cache-policy";
 import { proxy } from "../../src/proxy";
 import {
   AdminConfigurationError,
@@ -118,14 +119,41 @@ test("origin and host must exactly match APP_ORIGIN", () => {
   assert.equal(isTrustedAdminRequest(wrongHost, config), false);
 });
 
-test("Proxy disables Admin without requiring secrets and applies no-store", () => {
+test("Admin cache policy distinguishes GET/RSC from Server Action POST", () => {
+  const privateNoStore = new Headers({
+    "Cache-Control": "private, no-store, max-age=0, must-revalidate",
+  });
+  assert.deepEqual(getAdminCacheFailures(privateNoStore, "get"), []);
+  assert.deepEqual(getAdminCacheFailures(privateNoStore, "rsc"), []);
+
+  const actionNoStore = new Headers({ "Cache-Control": "no-store, max-age=0" });
+  assert.deepEqual(getAdminCacheFailures(actionNoStore, "action"), []);
+  assert.deepEqual(getAdminCacheFailures(actionNoStore, "get"), [
+    "Cache-Control lacks private for an Admin GET/RSC response",
+  ]);
+
+  for (const value of [
+    "private, no-store, public",
+    "private, no-store, s-maxage=0",
+    "private, no-store, max-age=60",
+    "private, no-store, immutable",
+    "private, no-store, stale-while-revalidate=30",
+  ]) {
+    assert.notDeepEqual(getAdminCacheFailures(new Headers({ "Cache-Control": value }), "action"), []);
+  }
+  assert.notDeepEqual(
+    getAdminCacheFailures(new Headers({ "Cache-Control": "private, max-age=0" }), "action"),
+    [],
+  );
+});
+
+test("Proxy disables Admin without requiring secrets and applies the GET policy", () => {
   const previous = process.env.ADMIN_UI_ENABLED;
   try {
     delete process.env.ADMIN_UI_ENABLED;
     const disabled = proxy(new NextRequest("https://example.com/admin"));
     assert.equal(disabled.status, 404);
-    assert.match(disabled.headers.get("cache-control") ?? "", /private/);
-    assert.match(disabled.headers.get("cache-control") ?? "", /no-store/);
+    assert.deepEqual(getAdminCacheFailures(disabled.headers, "get"), []);
 
     process.env.ADMIN_UI_ENABLED = "true";
     const unauthenticated = proxy(
@@ -136,6 +164,7 @@ test("Proxy disables Admin without requiring secrets and applies no-store", () =
       unauthenticated.headers.get("location"),
       "https://example.com/admin/login",
     );
+    assert.deepEqual(getAdminCacheFailures(unauthenticated.headers, "get"), []);
   } finally {
     if (previous === undefined) delete process.env.ADMIN_UI_ENABLED;
     else process.env.ADMIN_UI_ENABLED = previous;
