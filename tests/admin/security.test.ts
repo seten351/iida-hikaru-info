@@ -75,8 +75,20 @@ test("signed Admin sessions reject tampering and expiry", () => {
   const now = new Date("2026-09-02T12:00:00.000Z");
   const { token } = createAdminSessionToken(sessionSecret, now);
   assert.equal(verifyAdminSessionToken(token, sessionSecret, now)?.sub, "admin");
+
+  const [encodedPayload, encodedSignature] = token.split(".");
+  assert.ok(encodedPayload);
+  assert.ok(encodedSignature);
+  const tamperedSignature = Buffer.from(encodedSignature, "base64url");
+  assert.ok(tamperedSignature.length > 0);
+  tamperedSignature[0] ^= 0x01;
+
   assert.equal(
-    verifyAdminSessionToken(`${token.slice(0, -1)}x`, sessionSecret, now),
+    verifyAdminSessionToken(
+      `${encodedPayload}.${tamperedSignature.toString("base64url")}`,
+      sessionSecret,
+      now,
+    ),
     null,
   );
   assert.equal(
