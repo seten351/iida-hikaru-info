@@ -16,6 +16,9 @@
     "verify:phase1a": "tsx scripts/verify-phase-1a.ts",
     "verify:phase1b": "tsx scripts/verify-phase-1b.ts",
     "verify:phase1c": "NODE_OPTIONS=--conditions=react-server tsx scripts/verify-phase-1c.ts",
+    "admin:password-verifier": "tsx scripts/generate-admin-password-verifier.ts",
+    "verify:phase2a": "NODE_OPTIONS=--conditions=react-server tsx scripts/verify-phase-2a.ts",
+    "test:phase2a": "NODE_OPTIONS=--conditions=react-server tsx --test tests/admin/*.test.ts",
     "db:remove-samples": "dotenv -e .env.local -- tsx scripts/remove-sample-appearances.ts"
   },
   "dependencies": {

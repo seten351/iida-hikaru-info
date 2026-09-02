@@ -74,11 +74,22 @@ export const proposalMatchStatusEnum = pgEnum("proposal_match_status", [
 
 export const contentModeEnum = pgEnum("content_mode", ["bootstrap", "admin"]);
 
+export const adminAuthPurposeEnum = pgEnum("admin_auth_purpose", [
+  "login",
+  "activation",
+]);
+
+export const seriesRevisionOperationEnum = pgEnum(
+  "series_revision_operation",
+  ["create", "update"],
+);
+
 export const appearanceSeriesTable = pgTable(
   "appearance_series",
   {
     id: text("id").primaryKey(),
     displayName: text("display_name").notNull(),
+    version: integer("version").default(1).notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "date",
@@ -98,6 +109,7 @@ export const appearanceSeriesTable = pgTable(
       sql`${table.id} ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'`,
     ),
     check("appearance_series_display_name_not_empty", sql`length(trim(${table.displayName})) > 0`),
+    check("appearance_series_version_positive", sql`${table.version} > 0`),
     uniqueIndex("appearance_series_display_name_unique").on(table.displayName),
   ],
 );
@@ -344,6 +356,8 @@ export const appearanceProposalsTable = pgTable(
     collectorKey: text("collector_key"),
     extractionContentHash: text("extraction_content_hash"),
     reviewedContentHash: text("reviewed_content_hash"),
+    reviewNote: text("review_note"),
+    idempotencyKey: text("idempotency_key"),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "date",
@@ -364,6 +378,9 @@ export const appearanceProposalsTable = pgTable(
   (table) => [
     index("appearance_proposals_appearance_id_idx").on(table.appearanceId),
     index("appearance_proposals_status_idx").on(table.status),
+    uniqueIndex("appearance_proposals_idempotency_key_unique")
+      .on(table.idempotencyKey)
+      .where(sql`${table.idempotencyKey} is not null`),
   ],
 );
 
@@ -378,6 +395,7 @@ export const proposalSourceLinksTable = pgTable(
       .references(() => sourceItemsTable.id, { onDelete: "restrict" }),
     sourceIdentityId: text("source_identity_id"),
     evidenceKey: text("evidence_key").notNull(),
+    isPrimary: boolean("is_primary").default(false).notNull(),
     publishedAt: timestamp("published_at", {
       withTimezone: true,
       mode: "date",
@@ -448,6 +466,69 @@ export const appearanceRevisionsTable = pgTable(
       "appearance_revisions_snapshot_schema_version_positive",
       sql`${table.snapshotSchemaVersion} > 0`,
     ),
+  ],
+);
+
+export const appearanceSeriesRevisionsTable = pgTable(
+  "appearance_series_revisions",
+  {
+    seriesId: text("series_id")
+      .notNull()
+      .references(() => appearanceSeriesTable.id, { onDelete: "restrict" }),
+    version: integer("version").notNull(),
+    operation: seriesRevisionOperationEnum("operation").notNull(),
+    snapshotSchemaVersion: integer("snapshot_schema_version").notNull(),
+    snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull(),
+    actorType: text("actor_type").notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      name: "appearance_series_revisions_series_version_pk",
+      columns: [table.seriesId, table.version],
+    }),
+    check("appearance_series_revisions_version_positive", sql`${table.version} > 0`),
+    check(
+      "appearance_series_revisions_snapshot_schema_version_positive",
+      sql`${table.snapshotSchemaVersion} > 0`,
+    ),
+  ],
+);
+
+export const adminAuthAttemptsTable = pgTable(
+  "admin_auth_attempts",
+  {
+    purpose: adminAuthPurposeEnum("purpose").notNull(),
+    ipHash: text("ip_hash").notNull(),
+    windowStartedAt: timestamp("window_started_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    failedCount: integer("failed_count").default(0).notNull(),
+    blockedUntil: timestamp("blocked_until", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      name: "admin_auth_attempts_purpose_ip_hash_pk",
+      columns: [table.purpose, table.ipHash],
+    }),
+    check("admin_auth_attempts_ip_hash_not_empty", sql`length(${table.ipHash}) > 0`),
+    check("admin_auth_attempts_failed_count_nonnegative", sql`${table.failedCount} >= 0`),
+    index("admin_auth_attempts_blocked_until_idx").on(table.blockedUntil),
   ],
 );
 
