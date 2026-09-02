@@ -5,6 +5,7 @@ import { and, count, eq, inArray, like, sql } from "drizzle-orm";
 import { closeWriterDb, getDb, getWriterDb } from "../src/db/client";
 import {
   appearanceSeriesTable,
+  appearanceRevisionsTable,
   appearanceSourceLinksTable,
   appearancesTable,
   contentManagementStateTable,
@@ -69,6 +70,9 @@ function fixture(
 
 async function cleanup() {
   const writer = getWriterDb();
+  await writer
+    .delete(appearanceRevisionsTable)
+    .where(inArray(appearanceRevisionsTable.appearanceId, testAppearanceIds));
   await writer.delete(appearancesTable).where(inArray(appearancesTable.id, testAppearanceIds));
 
   const sources = await writer

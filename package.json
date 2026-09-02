@@ -10,9 +10,11 @@
     "db:generate": "dotenv -e .env.local -- drizzle-kit generate",
     "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
     "db:import": "dotenv -e .env.local -- tsx scripts/import-appearances.ts",
+    "db:backfill": "dotenv -e .env.local -- tsx scripts/backfill-appearances.ts",
     "db:verify": "dotenv -e .env.local -- tsx scripts/verify-appearances.ts",
     "verify:filters": "tsx scripts/verify-appearance-filters.ts",
     "verify:phase1a": "tsx scripts/verify-phase-1a.ts",
+    "verify:phase1b": "tsx scripts/verify-phase-1b.ts",
     "db:remove-samples": "dotenv -e .env.local -- tsx scripts/remove-sample-appearances.ts"
   },
   "dependencies": {

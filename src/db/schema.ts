@@ -466,3 +466,37 @@ export const contentManagementStateTable = pgTable(
     check("content_management_state_singleton", sql`${table.id} = 'singleton'`),
   ],
 );
+
+export const appearanceBackfillCheckpointsTable = pgTable(
+  "appearance_backfill_checkpoints",
+  {
+    id: text("id").primaryKey(),
+    lastAppearanceId: text("last_appearance_id"),
+    processedCount: integer("processed_count").default(0).notNull(),
+    startedAt: timestamp("started_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    completedAt: timestamp("completed_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    dualWriteConfirmedAt: timestamp("dual_write_confirmed_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    check("appearance_backfill_checkpoints_singleton", sql`${table.id} = 'phase-1b'`),
+    check(
+      "appearance_backfill_checkpoints_processed_count_nonnegative",
+      sql`${table.processedCount} >= 0`,
+    ),
+  ],
+);

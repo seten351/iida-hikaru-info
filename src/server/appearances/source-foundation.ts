@@ -13,8 +13,13 @@ import {
   sourceItemsTable,
 } from "@/db/schema";
 import type { AppearanceImportItem } from "@/domain/appearance";
+import { ensureInitialAppearanceRevision } from "@/server/appearances/revisions";
 
 export type SourceType = "web" | "youtube" | "niconico" | "x" | "other";
+
+export type WriterTransaction = Parameters<
+  Parameters<ReturnType<typeof getWriterDb>["transaction"]>[0]
+>[0];
 
 function stableId(prefix: string, value: string) {
   return `${prefix}_${createHash("sha256").update(value).digest("hex").slice(0, 32)}`;
@@ -170,8 +175,123 @@ export function deriveCanonicalIdentity(
   };
 }
 
+export async function upsertSourceFoundation(
+  tx: WriterTransaction,
+  item: AppearanceImportItem,
+  collectedAt: Date,
+) {
+  const canonicalUrl = canonicalizeSourceUrl(item.sourceUrl);
+  const sourceType = inferSourceType(canonicalUrl);
+  const sourceId = stableId("src", canonicalUrl);
+
+  await tx
+    .insert(sourceItemsTable)
+    .values({
+      id: sourceId,
+      canonicalUrl,
+      sourceType,
+      firstCollectedAt: collectedAt,
+      lastCollectedAt: collectedAt,
+    })
+    .onConflictDoUpdate({
+      target: sourceItemsTable.canonicalUrl,
+      set: {
+        firstCollectedAt: sql`least(${sourceItemsTable.firstCollectedAt}, excluded.first_collected_at)`,
+        lastCollectedAt: sql`greatest(${sourceItemsTable.lastCollectedAt}, excluded.last_collected_at)`,
+        updatedAt: sql`now()`,
+      },
+    });
+
+  const [source] = await tx
+    .select({ id: sourceItemsTable.id })
+    .from(sourceItemsTable)
+    .where(eq(sourceItemsTable.canonicalUrl, canonicalUrl))
+    .for("update");
+
+  if (!source) {
+    throw new Error(`${item.id}: failed to upsert source item.`);
+  }
+
+  const ensureIdentity = async (sourceName: string, externalItemId: string) => {
+    const identityId = stableId("sid", `${sourceName}\u0000${externalItemId}`);
+    await tx
+      .insert(sourceIdentitiesTable)
+      .values({
+        id: identityId,
+        sourceId: source.id,
+        sourceName,
+        externalItemId,
+        isCanonical: false,
+      })
+      .onConflictDoNothing({
+        target: [
+          sourceIdentitiesTable.sourceName,
+          sourceIdentitiesTable.externalItemId,
+        ],
+      });
+
+    const [identity] = await tx
+      .select({
+        id: sourceIdentitiesTable.id,
+        sourceId: sourceIdentitiesTable.sourceId,
+      })
+      .from(sourceIdentitiesTable)
+      .where(
+        and(
+          eq(sourceIdentitiesTable.sourceName, sourceName),
+          eq(sourceIdentitiesTable.externalItemId, externalItemId),
+        ),
+      );
+
+    if (!identity || identity.sourceId !== source.id) {
+      throw new Error(
+        `${item.id}: source identity belongs to a different canonical source.`,
+      );
+    }
+
+    return identity.id;
+  };
+
+  const aliasIdentityId = await ensureIdentity(
+    item.sourceName,
+    item.sourceItemId,
+  );
+  const [currentCanonicalIdentity] = await tx
+    .select({ id: sourceIdentitiesTable.id })
+    .from(sourceIdentitiesTable)
+    .where(
+      and(
+        eq(sourceIdentitiesTable.sourceId, source.id),
+        eq(sourceIdentitiesTable.isCanonical, true),
+      ),
+    )
+    .limit(1);
+
+  if (!currentCanonicalIdentity) {
+    const canonicalIdentity = deriveCanonicalIdentity(
+      item,
+      canonicalUrl,
+      sourceType,
+    );
+    const canonicalIdentityId = await ensureIdentity(
+      canonicalIdentity.sourceName,
+      canonicalIdentity.externalItemId,
+    );
+    await tx
+      .update(sourceIdentitiesTable)
+      .set({ isCanonical: true })
+      .where(eq(sourceIdentitiesTable.id, canonicalIdentityId));
+  }
+
+  return {
+    sourceId: source.id,
+    sourceIdentityId: aliasIdentityId,
+    canonicalUrl,
+  };
+}
+
 async function assertBootstrapImportAllowed(
-  tx: Parameters<Parameters<ReturnType<typeof getWriterDb>["transaction"]>[0]>[0],
+  tx: WriterTransaction,
 ) {
   const [state] = await tx
     .select({
@@ -208,9 +328,7 @@ async function assertBootstrapImportAllowed(
 }
 
 export async function withBootstrapImportTransaction<T>(
-  callback: (
-    tx: Parameters<Parameters<ReturnType<typeof getWriterDb>["transaction"]>[0]>[0],
-  ) => Promise<T>,
+  callback: (tx: WriterTransaction) => Promise<T>,
 ) {
   return getWriterDb().transaction(async (tx) => {
     await assertBootstrapImportAllowed(tx);
@@ -233,114 +351,8 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
       .where(eq(appearancesTable.id, item.id))
       .for("update");
 
-    const canonicalUrl = canonicalizeSourceUrl(item.sourceUrl);
-    const sourceType = inferSourceType(canonicalUrl);
-    const sourceId = stableId("src", canonicalUrl);
     const collectedAt = existingAppearance?.collectedAt ?? new Date();
-
-    await tx
-      .insert(sourceItemsTable)
-      .values({
-        id: sourceId,
-        canonicalUrl,
-        sourceType,
-        firstCollectedAt: collectedAt,
-        lastCollectedAt: collectedAt,
-      })
-      .onConflictDoUpdate({
-        target: sourceItemsTable.canonicalUrl,
-        set: {
-          lastCollectedAt: sql`greatest(${sourceItemsTable.lastCollectedAt}, excluded.last_collected_at)`,
-          updatedAt: sql`now()`,
-        },
-      });
-
-    const [source] = await tx
-      .select({ id: sourceItemsTable.id })
-      .from(sourceItemsTable)
-      .where(eq(sourceItemsTable.canonicalUrl, canonicalUrl))
-      .for("update");
-
-    if (!source) {
-      throw new Error(`${item.id}: failed to upsert source item.`);
-    }
-
-    const ensureIdentity = async (
-      sourceName: string,
-      externalItemId: string,
-    ) => {
-      const identityId = stableId(
-        "sid",
-        `${sourceName}\u0000${externalItemId}`,
-      );
-      await tx
-        .insert(sourceIdentitiesTable)
-        .values({
-          id: identityId,
-          sourceId: source.id,
-          sourceName,
-          externalItemId,
-          isCanonical: false,
-        })
-        .onConflictDoNothing({
-          target: [
-            sourceIdentitiesTable.sourceName,
-            sourceIdentitiesTable.externalItemId,
-          ],
-        });
-
-      const [identity] = await tx
-        .select({
-          id: sourceIdentitiesTable.id,
-          sourceId: sourceIdentitiesTable.sourceId,
-        })
-        .from(sourceIdentitiesTable)
-        .where(
-          and(
-            eq(sourceIdentitiesTable.sourceName, sourceName),
-            eq(sourceIdentitiesTable.externalItemId, externalItemId),
-          ),
-        );
-
-      if (!identity || identity.sourceId !== source.id) {
-        throw new Error(
-          `${item.id}: source identity belongs to a different canonical source.`,
-        );
-      }
-
-      return identity.id;
-    };
-
-    const aliasIdentityId = await ensureIdentity(
-      item.sourceName,
-      item.sourceItemId,
-    );
-    const [currentCanonicalIdentity] = await tx
-      .select({ id: sourceIdentitiesTable.id })
-      .from(sourceIdentitiesTable)
-      .where(
-        and(
-          eq(sourceIdentitiesTable.sourceId, source.id),
-          eq(sourceIdentitiesTable.isCanonical, true),
-        ),
-      )
-      .limit(1);
-
-    if (!currentCanonicalIdentity) {
-      const canonicalIdentity = deriveCanonicalIdentity(
-        item,
-        canonicalUrl,
-        sourceType,
-      );
-      const canonicalIdentityId = await ensureIdentity(
-        canonicalIdentity.sourceName,
-        canonicalIdentity.externalItemId,
-      );
-      await tx
-        .update(sourceIdentitiesTable)
-        .set({ isCanonical: true })
-        .where(eq(sourceIdentitiesTable.id, canonicalIdentityId));
-    }
+    const source = await upsertSourceFoundation(tx, item, collectedAt);
 
     await tx
       .insert(appearancesTable)
@@ -353,7 +365,7 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
         eventTitle: item.eventTitle,
         sessionLabel: item.sessionLabel,
         category: item.category,
-        sourceUrl: canonicalUrl,
+        sourceUrl: source.canonicalUrl,
         publishedAt:
           item.publishedAt === null ? null : new Date(item.publishedAt),
         publishedOn: item.publishedOn,
@@ -376,7 +388,7 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
           eventTitle: item.eventTitle,
           sessionLabel: item.sessionLabel,
           category: item.category,
-          sourceUrl: canonicalUrl,
+          sourceUrl: source.canonicalUrl,
           publishedAt:
             item.publishedAt === null ? null : new Date(item.publishedAt),
           publishedOn: item.publishedOn,
@@ -401,7 +413,7 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
       .where(
         and(
           eq(appearanceSourceLinksTable.appearanceId, item.id),
-          ne(appearanceSourceLinksTable.sourceId, source.id),
+          ne(appearanceSourceLinksTable.sourceId, source.sourceId),
         ),
       );
 
@@ -410,8 +422,8 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
       .insert(appearanceSourceLinksTable)
       .values({
         appearanceId: item.id,
-        sourceId: source.id,
-        sourceIdentityId: aliasIdentityId,
+        sourceId: source.sourceId,
+        sourceIdentityId: source.sourceIdentityId,
         evidenceKey,
         active: true,
         isPrimary: true,
@@ -428,7 +440,7 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
           appearanceSourceLinksTable.evidenceKey,
         ],
         set: {
-          sourceIdentityId: aliasIdentityId,
+          sourceIdentityId: source.sourceIdentityId,
           active: true,
           isPrimary: true,
           publishedAt:
@@ -440,10 +452,12 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
         },
       });
 
+    await ensureInitialAppearanceRevision(tx, item.id, "bootstrap");
+
     return {
       appearanceId: item.id,
-      sourceId: source.id,
-      sourceIdentityId: aliasIdentityId,
+      sourceId: source.sourceId,
+      sourceIdentityId: source.sourceIdentityId,
       evidenceKey,
     };
   });
