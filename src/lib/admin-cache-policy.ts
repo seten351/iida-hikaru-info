@@ -8,6 +8,12 @@ export const adminNoStoreHeaders = {
 
 export type AdminResponseCacheKind = "get" | "rsc" | "action";
 
+const deploymentProtectionSsoRscHeaders = {
+  "x-matched-path": "/[teamSlug]/[project].rsc",
+  "x-nextjs-rewritten-path": "/api/sso",
+  "x-nextjs-prerender": "1",
+} as const;
+
 function parseDirectives(cacheControl: string) {
   return cacheControl.split(",").map((directive) => {
     const [rawName, ...rawValue] = directive.trim().toLowerCase().split("=");
@@ -55,4 +61,24 @@ export function getAdminCacheFailures(
   }
 
   return failures;
+}
+
+/**
+ * A Vercel Deployment Protection SSO/RSC wrapper can expose its own cached
+ * response metadata on a freshly executed Admin Server Action redirect.
+ * A HIT is therefore acceptable only when this complete, platform-specific
+ * signature identifies that wrapper; any other HIT remains a rollout stop.
+ */
+export function getAdminVercelCacheFailures(headers: Headers): string[] {
+  if (headers.get("x-vercel-cache")?.trim().toUpperCase() !== "HIT") return [];
+
+  const isDeploymentProtectionSsoRsc = Object.entries(
+    deploymentProtectionSsoRscHeaders,
+  ).every(([name, expected]) => headers.get(name) === expected);
+
+  return isDeploymentProtectionSsoRsc
+    ? []
+    : [
+        "x-vercel-cache HIT is not identified as a Deployment Protection SSO/RSC rewrite",
+      ];
 }

@@ -3,7 +3,10 @@ import test from "node:test";
 
 import { NextRequest } from "next/server";
 
-import { getAdminCacheFailures } from "../../src/lib/admin-cache-policy";
+import {
+  getAdminCacheFailures,
+  getAdminVercelCacheFailures,
+} from "../../src/lib/admin-cache-policy";
 import { proxy } from "../../src/proxy";
 import {
   AdminConfigurationError,
@@ -156,6 +159,36 @@ test("Admin cache policy distinguishes GET/RSC from Server Action POST", () => {
   assert.notDeepEqual(
     getAdminCacheFailures(new Headers({ "Cache-Control": "private, max-age=0" }), "action"),
     [],
+  );
+});
+
+test("Admin cache policy permits HIT only for the Deployment Protection SSO/RSC wrapper", () => {
+  assert.deepEqual(
+    getAdminVercelCacheFailures(new Headers({ "x-vercel-cache": "MISS" })),
+    [],
+  );
+  assert.deepEqual(
+    getAdminVercelCacheFailures(
+      new Headers({
+        "x-vercel-cache": "HIT",
+        "x-matched-path": "/[teamSlug]/[project].rsc",
+        "x-nextjs-rewritten-path": "/api/sso",
+        "x-nextjs-prerender": "1",
+      }),
+    ),
+    [],
+  );
+
+  assert.deepEqual(
+    getAdminVercelCacheFailures(
+      new Headers({
+        "x-vercel-cache": "HIT",
+        "x-matched-path": "/admin/proposals",
+      }),
+    ),
+    [
+      "x-vercel-cache HIT is not identified as a Deployment Protection SSO/RSC rewrite",
+    ],
   );
 });
 

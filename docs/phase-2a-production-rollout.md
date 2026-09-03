@@ -324,7 +324,19 @@ Vercelは`Vercel-CDN-Cache-Control`を外部responseから消費する場合が�
 
 login / logout / Server Action POSTは、`Cache-Control`に`no-store`があることを必須とする。Next.jsのServer Action redirect responseでは`private`が欠落し得るため、POSTの`private`欠落だけでは停止しない。
 
-GET/RSCとPOSTの区別なく、`public`、`s-maxage`、正数または不正な`max-age`、`immutable`、`stale-*`など共有または再利用可能なcache directiveが付く場合は停止する。login、protected一覧、detail、redirect、error responseを対象にし、Vercel Cache headerがHITになっていないことも確認する。
+GET/RSCとPOSTの区別なく、`public`、`s-maxage`、正数または不正な`max-age`、`immutable`、`stale-*`など共有または再利用可能なcache directiveが付く場合は停止する。login、protected一覧、detail、redirect、error responseを対象にする。
+
+`x-vercel-cache: HIT`単独では停止しない。Deployment Protectionを通る成功Server Action redirectでは、Vercel内部SSO/RSC wrapperのcache metadataが外側responseへ現れることがある。HITを許容できるのは、同じresponseで次の識別子がすべて確認できる場合だけである。
+
+```text
+x-matched-path: /[teamSlug]/[project].rsc
+x-nextjs-rewritten-path: /api/sso
+x-nextjs-prerender: 1
+```
+
+このsignatureがないHIT、または`x-vercel-cache`の値にかかわらずAdmin Action本体のresponse再利用が疑われる場合は停止する。具体的には、同じ正常loginを少なくとも2回行い、各POSTがruntime logの別request IDとして記録され、毎回新しいrandom session Cookie / session IDが発行されることを確認する。response body、redirect、Set-Cookieを比較し、以前の成功responseが再利用されていないことを確認する。Cookie値、password、secretは記録しない。
+
+Deployment Protectionをautomation bypassして同じ成功loginを確認した場合は、`x-vercel-cache: MISS`および`Age: 0`であることもfresh rehearsalの必須証跡とする。bypass経由でMISSにならない場合、または通常経路のHITが上記SSO/RSC signatureと一致しない場合は停止する。
 
 origin検証は次で確認する。
 
@@ -543,6 +555,7 @@ staged unique URLではAPP_ORIGINがProduction originと一致しない。次だ
 - login GETは`private`と`no-store`を含む
 - login submit（Server Action POST）は`no-store`を含む。`private`欠落だけでは停止しない
 - GET/RSC/POSTのいずれにも`public`、`s-maxage`、cacheableな`max-age`等がない
+- `x-vercel-cache: HIT`は単独では停止条件にせず、発生時はR6のDeployment Protection SSO/RSC signatureとServer Action再実行条件で判定する
 - unique URLからのlogin submitがorigin mismatchとして拒否される
 - build / runtime errorなし
 
@@ -569,6 +582,7 @@ npx vercel@<PINNED_VERSION> promote <UI_ENABLED_STAGED_DEPLOYMENT_URL> --yes
 - Admin GET/RSC responseが`private`と`no-store`を含む
 - login / logout / Server Action POSTが`no-store`を含む（POSTの`private`欠落だけでは停止しない）
 - GET/RSC/POSTのいずれにも`public`、`s-maxage`、cacheableな`max-age`等がない
+- `x-vercel-cache: HIT`があれば、Deployment Protection SSO/RSC signatureと正常loginごとの新規session発行を確認する。signatureのないHITまたはresponse再利用の兆候は停止する
 - Vercel shared cacheへ認証済みHTMLやAdmin dataが載っていない
 - unique deployment URLまたは別originからのlogin submitが拒否される
 - public `/`、DB verify、import dry-runが120 / 97 / 31、120 unchanged
@@ -600,7 +614,9 @@ Productionでrate-limitの上限試験を繰り返さない。永続rate-limit�
 - Admin GET/RSC responseに`private`または`no-store`がない
 - login / logout / Server Action POSTに`no-store`がない
 - Admin responseに`public`、`s-maxage`、cacheableな`max-age`、`immutable`、`stale-*`がある
-- 認証済みAdmin dataにcache HITの兆候がある
+- `x-vercel-cache: HIT`がDeployment Protection SSO/RSC signatureなしで発生する、またはAdmin Action本体のresponse再利用が疑われる
+- fresh rehearsalのautomation bypass経由の成功loginが`x-vercel-cache: MISS` / `Age: 0`にならない
+- 正常loginごとに別のruntime-log request、new session Cookie / session IDを確認できない
 - scrypt verifierが固定parameter形式ではない
 - login session Cookieのsecurity属性不足
 - public routeの5xx、表示差分、runtime error増加
@@ -635,7 +651,7 @@ rollbackはVercel deploymentの切替とfeature flag停止を基本とする。`
 - disabled staged / disabled Current / UI-enabled staged / UI-enabled Currentのdeployment ID
 - main push時のold / new SHA
 - lint / build / typecheck / existing verify / Phase 2A test結果
-- public、Admin（GET/RSCとPOSTを区別したcache判定）、origin、Cookie、no-store、runtime logの確認結果
+- public、Admin（GET/RSCとPOSTを区別したcache判定、Deployment Protection HIT signature、automation-bypass MISS）、origin、Cookie、no-store、runtime logの確認結果
 - 最終`ADMIN_UI_ENABLED=true`
 - 最終`ADMIN_WRITE_ENABLED=false`
 - 最終`contentMode=bootstrap`
