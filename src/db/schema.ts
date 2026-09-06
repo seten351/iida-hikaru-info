@@ -358,6 +358,7 @@ export const appearanceProposalsTable = pgTable(
     reviewedContentHash: text("reviewed_content_hash"),
     reviewNote: text("review_note"),
     idempotencyKey: text("idempotency_key"),
+    adminBatchId: text("admin_batch_id"),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "date",
@@ -378,9 +379,59 @@ export const appearanceProposalsTable = pgTable(
   (table) => [
     index("appearance_proposals_appearance_id_idx").on(table.appearanceId),
     index("appearance_proposals_status_idx").on(table.status),
+    index("appearance_proposals_admin_batch_id_idx").on(table.adminBatchId),
     uniqueIndex("appearance_proposals_idempotency_key_unique")
       .on(table.idempotencyKey)
       .where(sql`${table.idempotencyKey} is not null`),
+  ],
+);
+
+export const appearanceSeriesProposalsTable = pgTable(
+  "appearance_series_proposals",
+  {
+    id: text("id").primaryKey(),
+    operation: seriesRevisionOperationEnum("operation").notNull(),
+    status: proposalStatusEnum("status").notNull(),
+    seriesId: text("series_id").references(() => appearanceSeriesTable.id, {
+      onDelete: "set null",
+    }),
+    targetSeriesId: text("target_series_id").notNull(),
+    expectedSeriesVersion: integer("expected_series_version"),
+    displayName: text("display_name").notNull(),
+    reviewedContentHash: text("reviewed_content_hash").notNull(),
+    reviewNote: text("review_note"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .defaultNow()
+      .notNull(),
+    reviewedAt: timestamp("reviewed_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+  },
+  (table) => [
+    check(
+      "appearance_series_proposals_target_id_normalized",
+      sql`${table.targetSeriesId} ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'`,
+    ),
+    check(
+      "appearance_series_proposals_display_name_not_empty",
+      sql`length(trim(${table.displayName})) > 0`,
+    ),
+    uniqueIndex("appearance_series_proposals_idempotency_key_unique").on(
+      table.idempotencyKey,
+    ),
+    index("appearance_series_proposals_status_idx").on(table.status),
+    index("appearance_series_proposals_series_id_idx").on(table.seriesId),
   ],
 );
 
@@ -479,6 +530,10 @@ export const appearanceSeriesRevisionsTable = pgTable(
     operation: seriesRevisionOperationEnum("operation").notNull(),
     snapshotSchemaVersion: integer("snapshot_schema_version").notNull(),
     snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull(),
+    proposalId: text("proposal_id").references(
+      () => appearanceSeriesProposalsTable.id,
+      { onDelete: "set null" },
+    ),
     actorType: text("actor_type").notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,

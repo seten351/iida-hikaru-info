@@ -19,6 +19,29 @@ export default async function AdminProposalDetailPage({
   const { id } = await params;
   const result = await getAdminProposal(id);
   if (!result) notFound();
+  if (result.kind === "series") {
+    const { proposal } = result;
+    return (
+      <>
+        <BackLink href="/admin/proposals">提案一覧</BackLink>
+        <AdminPageHeader eyebrow="SERIES PROPOSAL" title={proposal.displayName} description="series変更proposalをread-onlyで表示しています。" />
+        <section className="admin-panel">
+          <h2>基本情報</h2>
+          <DetailList rows={[
+            ["ID", proposal.id],
+            ["operation", proposal.operation],
+            ["status", proposal.status],
+            ["series ID", proposal.seriesId],
+            ["target series ID", proposal.targetSeriesId],
+            ["expected version", proposal.expectedSeriesVersion],
+            ["review note", proposal.reviewNote],
+            ["reviewed at", formatAdminDate(proposal.reviewedAt)],
+            ["updated at", formatAdminDate(proposal.updatedAt)],
+          ]} />
+        </section>
+      </>
+    );
+  }
   const { proposal, sourceLinks } = result;
 
   return (

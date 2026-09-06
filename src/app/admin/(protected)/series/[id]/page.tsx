@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getAdminSeries } from "@/server/admin/repository";
+import { requireAdminSession } from "@/server/admin/auth";
 
 import {
   AdminPageHeader,
@@ -10,6 +11,7 @@ import {
   JsonSnapshot,
   formatAdminDate,
 } from "../../_components";
+import { SeriesEditor } from "../../write-flow";
 
 export default async function AdminSeriesDetailPage({
   params,
@@ -17,7 +19,10 @@ export default async function AdminSeriesDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const result = await getAdminSeries(id);
+  const [{ config }, result] = await Promise.all([
+    requireAdminSession(),
+    getAdminSeries(id),
+  ]);
   if (!result) notFound();
   const { series, appearances, revisions } = result;
 
@@ -38,6 +43,12 @@ export default async function AdminSeriesDetailPage({
           ["updated", formatAdminDate(series.updatedAt)],
         ]} />
       </section>
+      {config.writeEnabled ? (
+        <section className="admin-panel">
+          <h2>Rename</h2>
+          <SeriesEditor series={series} />
+        </section>
+      ) : null}
       <section className="admin-panel">
         <h2>Appearances ({appearances.length})</h2>
         <ul className="admin-link-list">

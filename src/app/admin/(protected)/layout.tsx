@@ -28,7 +28,7 @@ export default async function ProtectedAdminLayout({
             飯田ヒカル出演情報 Admin
           </Link>
           <span className="admin-mode-badge">
-            {config.writeEnabled ? "WRITE FLAG ON / UI READ-ONLY" : "READ-ONLY"}
+            {config.writeEnabled ? "WRITE ENABLED" : "READ-ONLY"}
           </span>
         </div>
         <nav aria-label="管理画面">

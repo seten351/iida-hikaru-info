@@ -4,6 +4,10 @@ import test from "node:test";
 import { NextRequest } from "next/server";
 
 import {
+  AdminWriteAuthorizationError,
+  assertAdminWriteEnabled,
+} from "../../src/server/admin/config";
+import {
   getAdminCacheFailures,
   getAdminVercelCacheFailures,
 } from "../../src/lib/admin-cache-policy";
@@ -72,6 +76,11 @@ test("Admin config is lazy, strict, and fail-closed", async () => {
   });
   assert.equal(config?.appOrigin.origin, "https://admin.example.com");
   assert.equal(config?.writeEnabled, false);
+});
+
+test("Admin write flag fails closed", () => {
+  assert.throws(() => assertAdminWriteEnabled(false), AdminWriteAuthorizationError);
+  assert.doesNotThrow(() => assertAdminWriteEnabled(true));
 });
 
 test("signed Admin sessions reject tampering and expiry", () => {

@@ -18,7 +18,7 @@ export default async function AdminProposalsPage() {
       <AdminPageHeader
         eyebrow="PROPOSALS"
         title="提案"
-        description="提案内容と判定状態を閲覧します。承認・却下はPhase 2Aでは行えません。"
+        description="Admin変更proposalと判定状態を閲覧します。public_submissionの承認は対象外です。"
       />
       <section className="admin-stats" aria-label="データ件数">
         {[
@@ -45,6 +45,7 @@ export default async function AdminProposalsPage() {
             <thead>
               <tr>
                 <th>ID / title</th>
+                <th>kind</th>
                 <th>origin</th>
                 <th>operation</th>
                 <th>status</th>
@@ -62,6 +63,7 @@ export default async function AdminProposalsPage() {
                     </Link>
                     {proposal.title ? <small>{proposal.id}</small> : null}
                   </td>
+                  <td>{proposal.kind}</td>
                   <td>{proposal.origin}</td>
                   <td>{proposal.operation}</td>
                   <td>{proposal.status}</td>

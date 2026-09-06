@@ -6,6 +6,7 @@ import { getDb } from "@/db/client";
 import {
   appearanceProposalsTable,
   appearanceRevisionsTable,
+  appearanceSeriesProposalsTable,
   appearanceSeriesRevisionsTable,
   appearanceSeriesTable,
   appearanceSourceLinksTable,
@@ -23,7 +24,12 @@ export async function getAdminOverview() {
   const [appearances, proposals, sources, series, revisions, state] =
     await Promise.all([
       db.select({ value: count() }).from(appearancesTable),
-      db.select({ value: count() }).from(appearanceProposalsTable),
+      db.execute<{ value: number }>(sql`
+        select (
+          (select count(*) from appearance_proposals) +
+          (select count(*) from appearance_series_proposals)
+        )::int as value
+      `),
       db.select({ value: count() }).from(sourceItemsTable),
       db.select({ value: count() }).from(appearanceSeriesTable),
       db.select({ value: count() }).from(appearanceRevisionsTable),
@@ -32,7 +38,7 @@ export async function getAdminOverview() {
 
   return {
     appearances: appearances[0].value,
-    proposals: proposals[0].value,
+    proposals: proposals.rows[0]?.value ?? 0,
     sources: sources[0].value,
     series: series[0].value,
     revisions: revisions[0].value,
@@ -42,8 +48,10 @@ export async function getAdminOverview() {
 
 export async function listAdminProposals() {
   await requireAdminSession();
-  return getDb()
+  const db = getDb();
+  const [appearances, series] = await Promise.all([db
     .select({
+      kind: sql<"appearance">`'appearance'`,
       id: appearanceProposalsTable.id,
       origin: appearanceProposalsTable.origin,
       operation: appearanceProposalsTable.operation,
@@ -59,7 +67,26 @@ export async function listAdminProposals() {
       )`.mapWith(Number),
     })
     .from(appearanceProposalsTable)
-    .orderBy(desc(appearanceProposalsTable.updatedAt), asc(appearanceProposalsTable.id));
+    .orderBy(desc(appearanceProposalsTable.updatedAt), asc(appearanceProposalsTable.id)),
+  db
+    .select({
+      kind: sql<"series">`'series'`,
+      id: appearanceSeriesProposalsTable.id,
+      origin: sql<"admin">`'admin'`,
+      operation: appearanceSeriesProposalsTable.operation,
+      status: appearanceSeriesProposalsTable.status,
+      matchStatus: sql<"targeted_update">`'targeted_update'`,
+      title: appearanceSeriesProposalsTable.displayName,
+      appearanceId: sql<string | null>`null`,
+      expectedAppearanceVersion: appearanceSeriesProposalsTable.expectedSeriesVersion,
+      updatedAt: appearanceSeriesProposalsTable.updatedAt,
+      sourceCount: sql<number>`0`,
+    })
+    .from(appearanceSeriesProposalsTable)
+    .orderBy(desc(appearanceSeriesProposalsTable.updatedAt), asc(appearanceSeriesProposalsTable.id))]);
+  return [...appearances, ...series].sort(
+    (left, right) => right.updatedAt.getTime() - left.updatedAt.getTime(),
+  );
 }
 
 export async function getAdminProposal(proposalId: string) {
@@ -69,7 +96,13 @@ export async function getAdminProposal(proposalId: string) {
     .select()
     .from(appearanceProposalsTable)
     .where(eq(appearanceProposalsTable.id, proposalId));
-  if (!proposal) return null;
+  if (!proposal) {
+    const [seriesProposal] = await db
+      .select()
+      .from(appearanceSeriesProposalsTable)
+      .where(eq(appearanceSeriesProposalsTable.id, proposalId));
+    return seriesProposal ? { kind: "series" as const, proposal: seriesProposal } : null;
+  }
 
   const sourceLinks = await db
     .select({
@@ -99,7 +132,7 @@ export async function getAdminProposal(proposalId: string) {
     .where(eq(proposalSourceLinksTable.proposalId, proposalId))
     .orderBy(asc(proposalSourceLinksTable.evidenceKey));
 
-  return { proposal, sourceLinks };
+  return { kind: "appearance" as const, proposal, sourceLinks };
 }
 
 export async function listAdminAppearances() {

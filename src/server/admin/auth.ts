@@ -1,13 +1,17 @@
 import "server-only";
 
 import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 import {
   AdminConfigurationError,
+  AdminWriteAuthorizationError,
+  assertAdminWriteEnabled,
   readAdminConfig,
   readAdminUiEnabled,
 } from "@/server/admin/config";
 import { readAdminSession } from "@/server/admin/session";
+import { isTrustedAdminRequest } from "@/server/admin/origin";
 
 export async function requireAdminSession() {
   let enabled: boolean;
@@ -24,6 +28,15 @@ export async function requireAdminSession() {
   if (!session) redirect("/admin/login");
 
   return { config, session };
+}
+
+export async function requireAdminWriteRequest() {
+  const authenticated = await requireAdminSession();
+  assertAdminWriteEnabled(authenticated.config.writeEnabled);
+  if (!isTrustedAdminRequest(await headers(), authenticated.config)) {
+    throw new AdminWriteAuthorizationError("Admin requestのoriginを確認できません。");
+  }
+  return authenticated;
 }
 
 export async function readOptionalAdminSession() {

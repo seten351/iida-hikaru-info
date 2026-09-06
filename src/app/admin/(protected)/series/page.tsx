@@ -1,11 +1,12 @@
 import Link from "next/link";
 
 import { listAdminSeries } from "@/server/admin/repository";
+import { requireAdminSession } from "@/server/admin/auth";
 
 import { AdminPageHeader, formatAdminDate } from "../_components";
 
 export default async function AdminSeriesPage() {
-  const series = await listAdminSeries();
+  const [{ config }, series] = await Promise.all([requireAdminSession(), listAdminSeries()]);
 
   return (
     <>
@@ -14,6 +15,11 @@ export default async function AdminSeriesPage() {
         title={`シリーズ (${series.length})`}
         description="シリーズとversion、初期revision、所属appearanceを確認します。"
       />
+      {config.writeEnabled ? (
+        <div className="admin-page-actions">
+          <Link href="/admin/series/new" prefetch={false}>シリーズを新規作成</Link>
+        </div>
+      ) : null}
       <div className="admin-table-wrap">
         <table>
           <thead>

@@ -1,11 +1,15 @@
 import Link from "next/link";
 
 import { listAdminAppearances } from "@/server/admin/repository";
+import { requireAdminSession } from "@/server/admin/auth";
 
 import { AdminPageHeader, formatAdminDate } from "../_components";
 
 export default async function AdminAppearancesPage() {
-  const appearances = await listAdminAppearances();
+  const [{ config }, appearances] = await Promise.all([
+    requireAdminSession(),
+    listAdminAppearances(),
+  ]);
 
   return (
     <>
@@ -14,6 +18,12 @@ export default async function AdminAppearancesPage() {
         title={`出演 (${appearances.length})`}
         description="hiddenを含む個別appearanceとversion・revisionを確認します。"
       />
+      {config.writeEnabled ? (
+        <div className="admin-page-actions">
+          <Link href="/admin/appearances/new" prefetch={false}>出演を新規作成</Link>
+          <Link href="/admin/sources/link" prefetch={false}>同じ情報源を複数出演へ追加</Link>
+        </div>
+      ) : null}
       <div className="admin-table-wrap">
         <table>
           <thead>

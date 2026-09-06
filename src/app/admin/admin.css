@@ -139,6 +139,79 @@
 .admin-login-form input:focus { border-color: #823d50; outline: 3px solid rgba(130, 61, 80, 0.14); }
 .admin-form-error { margin: 0; color: #9d263b; font-size: 0.8rem; }
 
+.admin-page-actions,
+.admin-confirm-actions,
+.admin-inline-write {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  margin: 0.8rem 0;
+}
+
+.admin-page-actions a,
+.admin-write-form button,
+.admin-inline-write button,
+.admin-confirm-actions button {
+  border: 0;
+  border-radius: 0.55rem;
+  background: #823d50;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 750;
+  padding: 0.65rem 1rem;
+  text-decoration: none;
+}
+
+.admin-write-form button:disabled,
+.admin-inline-write button:disabled,
+.admin-confirm-actions button:disabled { cursor: wait; opacity: 0.65; }
+.admin-confirm-actions .admin-danger-button { background: #8f2435; }
+
+.admin-write-form,
+.admin-confirm-panel {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #dde1e7;
+  border-radius: 0.85rem;
+  background: white;
+}
+
+.admin-write-form label,
+.admin-fieldset {
+  display: grid;
+  gap: 0.4rem;
+  color: #4c5563;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.admin-write-form input,
+.admin-write-form select,
+.admin-write-form textarea {
+  width: 100%;
+  border: 1px solid #bdc3cc;
+  border-radius: 0.5rem;
+  padding: 0.7rem;
+  background: white;
+  color: #20242b;
+  font: inherit;
+}
+
+.admin-write-form input:disabled { background: #eef0f3; color: #626b78; }
+.admin-fieldset { padding: 1rem; border: 1px solid #dde1e7; border-radius: 0.65rem; }
+.admin-fieldset legend { padding-inline: 0.4rem; color: #20242b; }
+.admin-write-result { display: grid; gap: 0.35rem; padding: 0.8rem; border-radius: 0.5rem; background: #edf8f1; }
+.admin-write-result p { margin: 0; }
+.admin-write-result a { color: #823d50; font-size: 0.75rem; overflow-wrap: anywhere; }
+.admin-write-result-rejected,
+.admin-write-result-superseded { background: #fff1f2; }
+.admin-form-note { color: #717986; font-size: 0.75rem; }
+
 @media (max-width: 900px) {
   .admin-header { position: static; grid-template-columns: 1fr auto; }
   .admin-header nav { grid-column: 1 / -1; order: 3; }

@@ -2,6 +2,7 @@ import { and, asc, eq } from "drizzle-orm";
 
 import {
   appearanceRevisionsTable,
+  appearanceSeriesTable,
   appearanceSourceLinksTable,
   appearancesTable,
   sourceIdentitiesTable,
@@ -10,6 +11,7 @@ import {
 import type { WriterTransaction } from "@/server/appearances/source-foundation";
 
 export const appearanceSnapshotSchemaVersion = 1;
+export const currentAppearanceSnapshotSchemaVersion = 2;
 
 export type AppearanceRevisionSnapshotV1 = {
   appearance: {
@@ -50,11 +52,23 @@ export type AppearanceRevisionSnapshotV1 = {
   }>;
 };
 
+export type AppearanceRevisionSnapshotV2 = AppearanceRevisionSnapshotV1 & {
+  series: { id: string; displayName: string } | null;
+  sourceLinks: Array<AppearanceRevisionSnapshotV1["sourceLinks"][number] & {
+    sourceType: string;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+};
+
 export function decodeAppearanceRevisionSnapshot(
   snapshotSchemaVersion: number,
   snapshot: unknown,
 ) {
-  if (snapshotSchemaVersion !== appearanceSnapshotSchemaVersion) {
+  if (
+    snapshotSchemaVersion !== appearanceSnapshotSchemaVersion &&
+    snapshotSchemaVersion !== currentAppearanceSnapshotSchemaVersion
+  ) {
     throw new Error(
       `Unsupported appearance revision snapshot schema version: ${snapshotSchemaVersion}.`,
     );
@@ -63,7 +77,74 @@ export function decodeAppearanceRevisionSnapshot(
     throw new Error("Appearance revision snapshot must be an object.");
   }
 
-  return snapshot as AppearanceRevisionSnapshotV1;
+  return snapshot as AppearanceRevisionSnapshotV1 | AppearanceRevisionSnapshotV2;
+}
+
+export async function buildAppearanceRevisionSnapshotV2(
+  tx: WriterTransaction,
+  appearanceId: string,
+): Promise<AppearanceRevisionSnapshotV2> {
+  const base = await buildAppearanceRevisionSnapshot(tx, appearanceId);
+  const [appearance] = await tx
+    .select({
+      seriesId: appearancesTable.seriesId,
+      seriesName: appearanceSeriesTable.displayName,
+    })
+    .from(appearancesTable)
+    .leftJoin(
+      appearanceSeriesTable,
+      eq(appearancesTable.seriesId, appearanceSeriesTable.id),
+    )
+    .where(eq(appearancesTable.id, appearanceId));
+
+  if (!appearance) {
+    throw new Error(`${appearanceId}: appearance is missing while creating a revision.`);
+  }
+
+  const links = await tx
+    .select({
+      sourceId: appearanceSourceLinksTable.sourceId,
+      sourceIdentityId: appearanceSourceLinksTable.sourceIdentityId,
+      sourceName: sourceIdentitiesTable.sourceName,
+      externalItemId: sourceIdentitiesTable.externalItemId,
+      canonicalUrl: sourceItemsTable.canonicalUrl,
+      sourceType: sourceItemsTable.sourceType,
+      evidenceKey: appearanceSourceLinksTable.evidenceKey,
+      active: appearanceSourceLinksTable.active,
+      isPrimary: appearanceSourceLinksTable.isPrimary,
+      publishedAt: appearanceSourceLinksTable.publishedAt,
+      publishedOn: appearanceSourceLinksTable.publishedOn,
+      publishedAtPrecision: appearanceSourceLinksTable.publishedAtPrecision,
+      collectedAt: appearanceSourceLinksTable.collectedAt,
+      createdAt: appearanceSourceLinksTable.createdAt,
+      updatedAt: appearanceSourceLinksTable.updatedAt,
+    })
+    .from(appearanceSourceLinksTable)
+    .innerJoin(sourceItemsTable, eq(appearanceSourceLinksTable.sourceId, sourceItemsTable.id))
+    .leftJoin(
+      sourceIdentitiesTable,
+      eq(appearanceSourceLinksTable.sourceIdentityId, sourceIdentitiesTable.id),
+    )
+    .where(eq(appearanceSourceLinksTable.appearanceId, appearanceId))
+    .orderBy(
+      asc(appearanceSourceLinksTable.sourceId),
+      asc(appearanceSourceLinksTable.evidenceKey),
+    );
+
+  return {
+    ...base,
+    series:
+      appearance.seriesId && appearance.seriesName
+        ? { id: appearance.seriesId, displayName: appearance.seriesName }
+        : null,
+    sourceLinks: links.map((link) => ({
+      ...link,
+      publishedAt: link.publishedAt?.toISOString() ?? null,
+      collectedAt: link.collectedAt?.toISOString() ?? null,
+      createdAt: link.createdAt.toISOString(),
+      updatedAt: link.updatedAt.toISOString(),
+    })),
+  };
 }
 
 export async function buildAppearanceRevisionSnapshot(

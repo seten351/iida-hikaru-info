@@ -20,6 +20,19 @@ export class AdminConfigurationError extends Error {
   }
 }
 
+export class AdminWriteAuthorizationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AdminWriteAuthorizationError";
+  }
+}
+
+export function assertAdminWriteEnabled(writeEnabled: boolean) {
+  if (!writeEnabled) {
+    throw new AdminWriteAuthorizationError("Admin writeは無効です。");
+  }
+}
+
 function parseBooleanFlag(name: string, value: string | undefined, fallback: boolean) {
   if (value === undefined || value === "") return fallback;
   if (value === "true") return true;
