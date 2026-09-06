@@ -35,6 +35,11 @@ import {
   createAdminSessionToken,
   verifyAdminSessionToken,
 } from "../../src/server/admin/session-token";
+import {
+  createAdminActivationReauthProof,
+  verifyAdminActivationReauthProof,
+} from "../../src/server/admin/reauth-proof";
+import { classifyAdminActivationState } from "../../src/server/admin/activation-service";
 
 const sessionSecret = "session-secret-with-at-least-thirty-two-bytes";
 const rateLimitSecret = "rate-limit-secret-with-at-least-thirty-two-bytes";
@@ -185,6 +190,84 @@ test("signed Admin sessions reject tampering and expiry", () => {
     ),
     null,
   );
+});
+
+test("activation reauth proof is short-lived, signed, purpose-bound, and session-bound", () => {
+  const now = new Date("2026-09-06T12:00:00.000Z");
+  const sessionId = "6c16b8d7-8288-46b4-a575-7c3256b951a2";
+  const proof = createAdminActivationReauthProof(sessionSecret, sessionId, now);
+  assert.equal(
+    verifyAdminActivationReauthProof(proof, sessionSecret, sessionId, now),
+    true,
+  );
+  const { token: wrongPurposeToken } = createAdminSessionToken(sessionSecret, now);
+  assert.equal(
+    verifyAdminActivationReauthProof(
+      wrongPurposeToken,
+      sessionSecret,
+      sessionId,
+      now,
+    ),
+    false,
+  );
+  assert.equal(
+    verifyAdminActivationReauthProof(
+      proof,
+      sessionSecret,
+      "991f411a-e40f-4fab-af19-2c3f7b37dc26",
+      now,
+    ),
+    false,
+  );
+  assert.equal(
+    verifyAdminActivationReauthProof(
+      proof,
+      sessionSecret,
+      sessionId,
+      new Date("2026-09-06T12:05:01.000Z"),
+    ),
+    false,
+  );
+
+  const [payload, signature] = proof.split(".");
+  const tampered = Buffer.from(signature, "base64url");
+  tampered[0] ^= 0x01;
+  assert.equal(
+    verifyAdminActivationReauthProof(
+      `${payload}.${tampered.toString("base64url")}`,
+      sessionSecret,
+      sessionId,
+      now,
+    ),
+    false,
+  );
+});
+
+test("activation state accepts only the two complete states", () => {
+  const activatedAt = new Date("2026-09-06T12:00:00.000Z");
+  assert.equal(
+    classifyAdminActivationState({
+      contentMode: "bootstrap",
+      adminActivatedAt: null,
+      legacyImportLockedAt: null,
+    }),
+    "ready",
+  );
+  assert.equal(
+    classifyAdminActivationState({
+      contentMode: "admin",
+      adminActivatedAt: activatedAt,
+      legacyImportLockedAt: new Date(activatedAt),
+    }),
+    "activated",
+  );
+  for (const state of [
+    { contentMode: "bootstrap" as const, adminActivatedAt: activatedAt, legacyImportLockedAt: null },
+    { contentMode: "admin" as const, adminActivatedAt: null, legacyImportLockedAt: null },
+    { contentMode: "admin" as const, adminActivatedAt: activatedAt, legacyImportLockedAt: new Date(activatedAt.getTime() + 1) },
+  ]) {
+    assert.equal(classifyAdminActivationState(state), "inconsistent");
+  }
 });
 
 test("origin and host must exactly match APP_ORIGIN", () => {

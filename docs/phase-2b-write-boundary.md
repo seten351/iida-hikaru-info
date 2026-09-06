@@ -2,13 +2,15 @@
 
 Admin Server ActionはPhase 2Aのsession、origin、write flagを検証する。
 confirmおよびpreview破棄は、さらにtransaction内でsingleton content stateを
-FOR UPDATEで取得し、contentModeがadminの場合だけ処理する。
+FOR UPDATEで取得し、contentModeがadminかつadmin activation／legacy lockの
+両timestampが存在して完全一致する場合だけ処理する。
 bootstrapではproposal（rejected/supersededを含む）、revision、contentを作成しない。
 idempotency再送にも同じ境界を適用する。previewはbootstrapでも検証・表示できるが、
 confirmの許可を保証しない。
 
-activationやlegacy import lockを変更するアプリケーション機能は含まない。
-今回の境界修正には追加migrationは不要。0008は既存Phase 2Bのadditive migration。
+正式activation機能は追加migrationなしで別途実装される。不完全なactivation状態や
+timestamp不一致はfail closedとする。不可逆境界とrolloutは
+`docs/phase-2-admin-activation-rollout.md`を参照する。
 
 ## Production rollout: write-disabled Server Action契約
 

@@ -112,24 +112,37 @@ async function main() {
       { kind: "source", operation: "primary", targets: [{ appearanceId: "missing", expectedVersion: 1 }], source: { sourceId: "missing", evidenceKey: "default" } },
     ];
     for (const input of refusedInputs) {
-      await assert.rejects(confirmAdminWrite(input, key()), /contentMode/);
-      await assert.rejects(rejectAdminWrite(input, key()), /contentMode/);
+      await assert.rejects(confirmAdminWrite(input, key()), /activation/);
+      await assert.rejects(rejectAdminWrite(input, key()), /activation/);
     }
     assert.deepEqual(await fingerprint(), beforeRefusal);
-    // Only this ephemeral integration fixture changes mode; no activation or lock.
-    await db.update(contentManagementStateTable).set({ contentMode: "admin" })
+    // Only this ephemeral integration fixture simulates a completed activation.
+    const fixtureActivatedAt = new Date();
+    await db.update(contentManagementStateTable).set({
+      contentMode: "admin",
+      adminActivatedAt: fixtureActivatedAt,
+      legacyImportLockedAt: fixtureActivatedAt,
+    })
       .where(eq(contentManagementStateTable.id, "singleton"));
     await validateAdminWritePreview(createSeries);
     let confirmAfterTransition: Promise<unknown> | undefined;
     await db.transaction(async (tx) => {
-      await tx.update(contentManagementStateTable).set({ contentMode: "bootstrap" })
+      await tx.update(contentManagementStateTable).set({
+        contentMode: "bootstrap",
+        adminActivatedAt: null,
+        legacyImportLockedAt: null,
+      })
         .where(eq(contentManagementStateTable.id, "singleton"));
       // Confirm races a transaction holding the state lock and must see its committed mode.
-      confirmAfterTransition = assert.rejects(confirmAdminWrite(createSeries, key()), /contentMode/);
+      confirmAfterTransition = assert.rejects(confirmAdminWrite(createSeries, key()), /activation/);
     });
     await confirmAfterTransition;
     assert.deepEqual(await fingerprint(), beforeRefusal);
-    await db.update(contentManagementStateTable).set({ contentMode: "admin" })
+    await db.update(contentManagementStateTable).set({
+      contentMode: "admin",
+      adminActivatedAt: fixtureActivatedAt,
+      legacyImportLockedAt: fixtureActivatedAt,
+    })
       .where(eq(contentManagementStateTable.id, "singleton"));
     const seriesKey = key();
     const seriesCreated = approved(remember(await confirmAdminWrite(createSeries, seriesKey)));
@@ -326,8 +339,8 @@ async function main() {
       .from(contentManagementStateTable)
       .where(eq(contentManagementStateTable.id, "singleton"));
     assert.equal(state.contentMode, "admin");
-    assert.equal(state.adminActivatedAt, null);
-    assert.equal(state.legacyImportLockedAt, null);
+    assert.equal(state.adminActivatedAt?.getTime(), fixtureActivatedAt.getTime());
+    assert.equal(state.legacyImportLockedAt?.getTime(), fixtureActivatedAt.getTime());
 
     const [invariants] = await db.execute<{
       primary_violations: number;
@@ -398,7 +411,11 @@ async function main() {
     assert.ok(statuses.includes("rejected"));
     assert.ok(statuses.includes("superseded"));
   } finally {
-    await db.update(contentManagementStateTable).set({ contentMode: originalState.contentMode })
+    await db.update(contentManagementStateTable).set({
+      contentMode: originalState.contentMode,
+      adminActivatedAt: originalState.adminActivatedAt,
+      legacyImportLockedAt: originalState.legacyImportLockedAt,
+    })
       .where(eq(contentManagementStateTable.id, "singleton"));
     const appearanceIds = [appearanceA, appearanceB];
     const sourceRows = await db

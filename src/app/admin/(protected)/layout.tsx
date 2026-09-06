@@ -37,6 +37,11 @@ export default async function ProtectedAdminLayout({
               {label}
             </Link>
           ))}
+          {config.writeEnabled ? (
+            <Link href="/admin/activation" prefetch={false}>
+              Activation
+            </Link>
+          ) : null}
         </nav>
         <form action={logoutAction}>
           <button className="admin-secondary-button" type="submit">

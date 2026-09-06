@@ -76,14 +76,28 @@ async function assertContentState(tx: WriterTransaction, requireWriteMode = fals
     .where(eq(contentManagementStateTable.id, "singleton"))
     .for("update");
   if (!state) throw new AdminWriteValidationError("content management stateがありません。");
-  if (requireWriteMode && state.contentMode !== "admin") {
-    throw new AdminWriteValidationError("contentModeがadminではないため変更を確定できません。");
+  if (
+    requireWriteMode &&
+    (state.contentMode !== "admin" ||
+      state.adminActivatedAt === null ||
+      state.legacyImportLockedAt === null ||
+      state.adminActivatedAt.getTime() !== state.legacyImportLockedAt.getTime())
+  ) {
+    throw new AdminWriteValidationError("Admin activationが完了していないため変更を確定できません。");
   }
   if (
     state.contentMode === "bootstrap" &&
     (state.adminActivatedAt !== null || state.legacyImportLockedAt !== null)
   ) {
     throw new AdminWriteValidationError("bootstrap状態とactivation状態が矛盾しています。");
+  }
+  if (
+    state.contentMode === "admin" &&
+    (state.adminActivatedAt === null ||
+      state.legacyImportLockedAt === null ||
+      state.adminActivatedAt.getTime() !== state.legacyImportLockedAt.getTime())
+  ) {
+    throw new AdminWriteValidationError("Admin activation状態が矛盾しています。");
   }
   return state;
 }

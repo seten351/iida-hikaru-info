@@ -7,9 +7,14 @@ import { adminAuthAttemptsTable } from "@/db/schema";
 
 const windowMilliseconds = 15 * 60 * 1000;
 const blockMilliseconds = 15 * 60 * 1000;
-const maximumAttempts = 5;
+const loginMaximumAttempts = 5;
+const activationMaximumAttempts = 3;
 
-export async function reserveAdminLoginAttempt(
+type AdminAuthPurpose = "login" | "activation";
+
+async function reserveAdminAuthAttempt(
+  purpose: AdminAuthPurpose,
+  maximumAttempts: number,
   ipHash: string,
   now: Date = new Date(),
 ) {
@@ -17,7 +22,7 @@ export async function reserveAdminLoginAttempt(
     await tx
       .insert(adminAuthAttemptsTable)
       .values({
-        purpose: "login",
+        purpose,
         ipHash,
         windowStartedAt: now,
         failedCount: 0,
@@ -30,7 +35,7 @@ export async function reserveAdminLoginAttempt(
       .from(adminAuthAttemptsTable)
       .where(
         and(
-          eq(adminAuthAttemptsTable.purpose, "login"),
+          eq(adminAuthAttemptsTable.purpose, purpose),
           eq(adminAuthAttemptsTable.ipHash, ipHash),
         ),
       )
@@ -59,7 +64,7 @@ export async function reserveAdminLoginAttempt(
       })
       .where(
         and(
-          eq(adminAuthAttemptsTable.purpose, "login"),
+          eq(adminAuthAttemptsTable.purpose, purpose),
           eq(adminAuthAttemptsTable.ipHash, ipHash),
         ),
       );
@@ -71,13 +76,37 @@ export async function reserveAdminLoginAttempt(
   });
 }
 
-export async function clearAdminLoginAttempts(ipHash: string) {
+async function clearAdminAuthAttempts(purpose: AdminAuthPurpose, ipHash: string) {
   await getWriterDb()
     .delete(adminAuthAttemptsTable)
     .where(
       and(
-        eq(adminAuthAttemptsTable.purpose, "login"),
+        eq(adminAuthAttemptsTable.purpose, purpose),
         eq(adminAuthAttemptsTable.ipHash, ipHash),
       ),
     );
+}
+
+export function reserveAdminLoginAttempt(ipHash: string, now: Date = new Date()) {
+  return reserveAdminAuthAttempt("login", loginMaximumAttempts, ipHash, now);
+}
+
+export function clearAdminLoginAttempts(ipHash: string) {
+  return clearAdminAuthAttempts("login", ipHash);
+}
+
+export function reserveAdminActivationAttempt(
+  ipHash: string,
+  now: Date = new Date(),
+) {
+  return reserveAdminAuthAttempt(
+    "activation",
+    activationMaximumAttempts,
+    ipHash,
+    now,
+  );
+}
+
+export function clearAdminActivationAttempts(ipHash: string) {
+  return clearAdminAuthAttempts("activation", ipHash);
 }

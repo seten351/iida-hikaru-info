@@ -140,7 +140,8 @@ async function assertBackfillMode(tx: WriterTransaction) {
       legacyImportLockedAt: contentManagementStateTable.legacyImportLockedAt,
     })
     .from(contentManagementStateTable)
-    .where(eq(contentManagementStateTable.id, "singleton"));
+    .where(eq(contentManagementStateTable.id, "singleton"))
+    .for("update");
 
   if (!state) {
     throw new Error("Content management state is not initialized.");

@@ -6,6 +6,8 @@ import { getWriterDb } from "@/db/client";
 import {
   appearanceProposalsTable,
   appearanceRevisionsTable,
+  appearanceSeriesProposalsTable,
+  appearanceSeriesRevisionsTable,
   appearanceSourceLinksTable,
   appearancesTable,
   contentManagementStateTable,
@@ -319,8 +321,17 @@ async function assertBootstrapImportAllowed(
     .from(appearanceRevisionsTable)
     .where(eq(appearanceRevisionsTable.actorType, "admin"))
     .limit(1);
+  const [seriesProposal] = await tx
+    .select({ id: appearanceSeriesProposalsTable.id })
+    .from(appearanceSeriesProposalsTable)
+    .limit(1);
+  const [seriesRevision] = await tx
+    .select({ seriesId: appearanceSeriesRevisionsTable.seriesId })
+    .from(appearanceSeriesRevisionsTable)
+    .where(eq(appearanceSeriesRevisionsTable.actorType, "admin"))
+    .limit(1);
 
-  if (proposal || revision) {
+  if (proposal || revision || seriesProposal || seriesRevision) {
     throw new Error(
       "Legacy appearance import is disabled after proposals or revisions exist.",
     );

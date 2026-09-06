@@ -212,6 +212,25 @@
 .admin-write-result-superseded { background: #fff1f2; }
 .admin-form-note { color: #717986; font-size: 0.75rem; }
 
+.admin-activation-warning {
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  border: 2px solid #9d263b;
+  border-radius: 0.85rem;
+  background: #fff1f2;
+  color: #661827;
+}
+.admin-activation-warning h2,
+.admin-activation-warning p,
+.admin-activation-flow h2,
+.admin-activation-flow p { margin: 0; }
+.admin-activation-warning p + p { margin-top: 0.65rem; }
+.admin-activation-flow { display: grid; gap: 1rem; }
+.admin-activation-confirm { border-color: #9d263b; }
+.admin-activation-confirm code { display: inline-block; margin-left: 0.4rem; font-weight: 850; }
+.admin-activation-confirm .admin-danger-button { background: #8f2435; }
+.admin-activation-complete { padding: 1rem; border-radius: 0.65rem; background: #e5f5eb; color: #17653a; font-weight: 750; }
+
 @media (max-width: 900px) {
   .admin-header { position: static; grid-template-columns: 1fr auto; }
   .admin-header nav { grid-column: 1 / -1; order: 3; }
