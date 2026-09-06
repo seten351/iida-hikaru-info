@@ -10,6 +10,25 @@ confirmの許可を保証しない。
 activationやlegacy import lockを変更するアプリケーション機能は含まない。
 今回の境界修正には追加migrationは不要。0008は既存Phase 2Bのadditive migration。
 
+## Production rollout: write-disabled Server Action契約
+
+`ADMIN_WRITE_ENABLED=false`では、write UI route（new / edit / link）は404を維持する。
+ただしServer ActionはPOSTされた現在のpage routeで実行されるため、HTTP 404を
+契約にしない。write flag拒否はHTTP 200のRSC responseでもよく、次をすべて満たす
+fail-closed error stateであることを必須とする。
+
+- Action returnが`stage: "error"`であり、approved / rejected / supersededなどの成功結果ではない
+- proposal、revision、appearance、source、seriesのmutationを一切作成しない
+- `content_management_state`を変更しない
+- revalidation、redirect、Set-Cookieなどの副作用を行わない
+- POST responseに`no-store`があり、`public`、`s-maxage`、cacheableな`max-age`、`immutable`、`stale-*`がない
+- authorization / configurationの詳細、secret、internal errorをreturn payloadへ含めない
+
+write-disabled Actionが成功結果を返す、DB/content stateを変更する、revalidation・redirect
+などの副作用を起こす、または上記cache / response制約を満たさない場合は停止条件とする。
+Productionではfingerprintの前後比較でDB不変を確認し、write flagをtrueへ変更してこの
+契約を確認してはならない。
+
 ## Integration test
 
 ephemeral Neon branchだけでcontentModeをadminにするfixtureを使用する。

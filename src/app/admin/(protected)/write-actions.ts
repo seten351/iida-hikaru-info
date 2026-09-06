@@ -12,18 +12,13 @@ import {
   rejectAdminWrite,
   validateAdminWritePreview,
 } from "@/server/admin/write-service";
+import { createAdminWriteActionErrorState } from "@/server/admin/write-action-response";
 import {
   AdminWriteValidationError,
   parseAdminWriteInput,
 } from "@/server/admin/write-input";
 
 import type { AdminWriteActionState } from "./write-action-state";
-
-function safeMessage(error: unknown) {
-  return error instanceof AdminWriteValidationError
-    ? error.message
-    : "変更を処理できませんでした。内容を再確認してください。";
-}
 
 function decodeInput(formData: FormData) {
   const serialized = formData.get("input");
@@ -51,7 +46,7 @@ export async function previewAdminWriteAction(
       token: createAdminPreviewToken(input, config.sessionSecret),
     };
   } catch (error) {
-    return { stage: "error", message: safeMessage(error) };
+    return createAdminWriteActionErrorState(error);
   }
 }
 
@@ -96,6 +91,6 @@ export async function finalizeAdminWriteAction(
       proposalIds: result.proposalIds,
     };
   } catch (error) {
-    return { stage: "error", message: safeMessage(error) };
+    return createAdminWriteActionErrorState(error);
   }
 }

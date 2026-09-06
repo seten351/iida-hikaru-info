@@ -30,6 +30,7 @@ import {
   parseAdminPasswordVerifier,
   verifyAdminPassword,
 } from "../../src/server/admin/password";
+import { createAdminWriteActionErrorState } from "../../src/server/admin/write-action-response";
 import {
   createAdminSessionToken,
   verifyAdminSessionToken,
@@ -140,6 +141,20 @@ test("Admin config is lazy, strict, and fail-closed", async () => {
 test("Admin write flag fails closed", () => {
   assert.throws(() => assertAdminWriteEnabled(false), AdminWriteAuthorizationError);
   assert.doesNotThrow(() => assertAdminWriteEnabled(true));
+});
+
+test("write-disabled Server Action rejection is generic and never a success result", () => {
+  const state = createAdminWriteActionErrorState(
+    new AdminWriteAuthorizationError("Admin writeは無効です。"),
+  );
+
+  assert.deepEqual(state, {
+    stage: "error",
+    message: "変更を処理できませんでした。内容を再確認してください。",
+  });
+  assert.equal("status" in state, false);
+  assert.equal("proposalIds" in state, false);
+  assert.doesNotMatch(state.message, /無効/);
 });
 
 test("signed Admin sessions reject tampering and expiry", () => {
