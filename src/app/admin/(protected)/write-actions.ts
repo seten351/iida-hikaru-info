@@ -15,21 +15,9 @@ import {
 import {
   AdminWriteValidationError,
   parseAdminWriteInput,
-  type AdminWriteInput,
 } from "@/server/admin/write-input";
 
-export type AdminWriteActionState =
-  | { stage: "idle" }
-  | { stage: "preview"; token: string; input: AdminWriteInput }
-  | {
-      stage: "complete";
-      status: "approved" | "rejected" | "superseded";
-      message: string;
-      proposalIds: string[];
-    }
-  | { stage: "error"; message: string };
-
-export const initialAdminWriteState: AdminWriteActionState = { stage: "idle" };
+import type { AdminWriteActionState } from "./write-action-state";
 
 function safeMessage(error: unknown) {
   return error instanceof AdminWriteValidationError

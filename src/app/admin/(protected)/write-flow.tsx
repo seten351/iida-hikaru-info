@@ -11,10 +11,12 @@ import type {
 
 import {
   finalizeAdminWriteAction,
-  initialAdminWriteState,
   previewAdminWriteAction,
-  type AdminWriteActionState,
 } from "./write-actions";
+import {
+  initialAdminWriteState,
+  type AdminWriteActionState,
+} from "./write-action-state";
 
 function Result({ state }: { state: AdminWriteActionState }) {
   if (state.stage === "idle") return null;

@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 import test from "node:test";
 
 import { NextRequest } from "next/server";
+import ts from "typescript";
 
 import {
   AdminWriteAuthorizationError,
@@ -34,6 +37,62 @@ import {
 
 const sessionSecret = "session-secret-with-at-least-thirty-two-bytes";
 const rateLimitSecret = "rate-limit-secret-with-at-least-thirty-two-bytes";
+
+function sourceFiles(directory: string): string[] {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) return sourceFiles(path);
+    return /\.[jt]sx?$/.test(entry.name) ? [path] : [];
+  });
+}
+
+function isExported(node: ts.Node) {
+  return Boolean(ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Export);
+}
+
+function isAsyncFunctionExport(statement: ts.Statement) {
+  if (ts.isFunctionDeclaration(statement)) {
+    return Boolean(
+      statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword),
+    );
+  }
+  if (!ts.isVariableStatement(statement)) return false;
+  return statement.declarationList.declarations.every((declaration) => {
+    const initializer = declaration.initializer;
+    return Boolean(
+      initializer &&
+        (ts.isArrowFunction(initializer) || ts.isFunctionExpression(initializer)) &&
+        initializer.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword),
+    );
+  });
+}
+
+test('"use server" modules export only async runtime functions', () => {
+  const sourceRoot = resolve(process.cwd(), "src");
+  const failures: string[] = [];
+  for (const file of sourceFiles(sourceRoot)) {
+    const source = readFileSync(file, "utf8");
+    const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
+    const directive = sourceFile.statements[0];
+    if (
+      !directive ||
+      !ts.isExpressionStatement(directive) ||
+      !ts.isStringLiteral(directive.expression) ||
+      directive.expression.text !== "use server"
+    ) {
+      continue;
+    }
+    for (const statement of sourceFile.statements) {
+      if (ts.isTypeAliasDeclaration(statement) || ts.isInterfaceDeclaration(statement)) continue;
+      if (ts.isExportDeclaration(statement) && statement.isTypeOnly) continue;
+      if (!isExported(statement)) continue;
+      if (!isAsyncFunctionExport(statement)) {
+        failures.push(`${relative(sourceRoot, file)}:${sourceFile.getLineAndCharacterOfPosition(statement.getStart()).line + 1}`);
+      }
+    }
+  }
+  assert.deepEqual(failures, []);
+});
 
 test("scrypt verifier accepts the password and rejects another password", async () => {
   const verifier = await createAdminPasswordVerifier("correct horse battery staple");
