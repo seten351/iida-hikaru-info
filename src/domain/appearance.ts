@@ -9,6 +9,15 @@ export const appearanceCategories = [
 
 export type AppearanceCategory = (typeof appearanceCategories)[number];
 
+export const appearanceCategoryDisplayOrder = [
+  "テレビ",
+  "ラジオ",
+  "配信",
+  "イベント",
+  "ゲーム",
+  "その他",
+] as const satisfies readonly AppearanceCategory[];
+
 export const publishedAtPrecisions = ["exact", "date", "unknown"] as const;
 
 export type PublishedAtPrecision = (typeof publishedAtPrecisions)[number];

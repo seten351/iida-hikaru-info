@@ -49,8 +49,18 @@ const gameAppearance: Appearance = {
   sessionLabel: null,
   category: "ゲーム",
 };
-const cardsWithGame = buildAppearanceCards([...appearances, gameAppearance]);
-const optionsWithGame = getAppearanceFilterOptions(cardsWithGame);
+const otherAppearance: Appearance = {
+  ...gameAppearance,
+  id: "other-category-verification",
+  title: "その他出演検証",
+  category: "その他",
+};
+const cardsWithAllCategories = buildAppearanceCards([
+  ...appearances,
+  gameAppearance,
+  otherAppearance,
+]);
+const optionsWithAllCategories = getAppearanceFilterOptions(cardsWithAllCategories);
 
 validateAppearanceImportItems(
   [{
@@ -65,17 +75,24 @@ validateAppearanceImportItems(
   }],
   appearanceSeriesData,
 );
-assert.ok(optionsWithGame.categories.includes("ゲーム"));
+assert.deepEqual(optionsWithAllCategories.categories, [
+  "テレビ",
+  "ラジオ",
+  "配信",
+  "イベント",
+  "ゲーム",
+  "その他",
+]);
 const game = filterAppearanceCards(
-  cardsWithGame,
-  parseAppearanceFilters({ category: "ゲーム" }, optionsWithGame),
+  cardsWithAllCategories,
+  parseAppearanceFilters({ category: "ゲーム" }, optionsWithAllCategories),
 );
 assert.equal(game.length, 1);
 assert.equal(game[0].category, "ゲーム");
 assert.equal(
   filterAppearanceCards(
-    cardsWithGame,
-    parseAppearanceFilters({ q: "ゲーム出演" }, optionsWithGame),
+    cardsWithAllCategories,
+    parseAppearanceFilters({ q: "ゲーム出演" }, optionsWithAllCategories),
   )[0]?.id,
   "appearance:game-category-verification",
 );

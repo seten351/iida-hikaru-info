@@ -1,5 +1,5 @@
 import {
-  appearanceCategories,
+  appearanceCategoryDisplayOrder,
   type AppearanceCategory,
 } from "@/domain/appearance";
 import type { AppearanceCard } from "@/lib/appearances";
@@ -82,7 +82,7 @@ export function getAppearanceFilterOptions(
 
   return {
     series,
-    categories: appearanceCategories.filter((category) => categories.has(category)),
+    categories: appearanceCategoryDisplayOrder.filter((category) => categories.has(category)),
     years: [...years].sort((a, b) => b.localeCompare(a)),
   };
 }

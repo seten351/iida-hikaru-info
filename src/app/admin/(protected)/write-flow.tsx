@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
-import { appearanceCategories } from "@/domain/appearance";
+import { appearanceCategoryDisplayOrder } from "@/domain/appearance";
 import type {
   AdminAppearanceFields,
   AdminSourceInput,
@@ -129,7 +129,7 @@ export function AppearanceEditor({
       <label>appearance ID<input disabled={Boolean(appearance)} required value={fields.id} onChange={(event) => update("id", event.target.value)} /></label>
       <label>開始日時 (ISO 8601)<input required value={fields.startsAt} onChange={(event) => update("startsAt", event.target.value)} placeholder="2026-09-06T18:00:00+09:00" /></label>
       <label>タイトル<input required value={fields.title} onChange={(event) => update("title", event.target.value)} /></label>
-      <label>カテゴリ<select value={fields.category} onChange={(event) => update("category", event.target.value)}>{appearanceCategories.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label>カテゴリ<select value={fields.category} onChange={(event) => update("category", event.target.value)}>{appearanceCategoryDisplayOrder.map((item) => <option key={item}>{item}</option>)}</select></label>
       <label>シリーズ<select value={fields.seriesId ?? ""} onChange={(event) => update("seriesId", event.target.value)}><option value="">なし</option>{series.map((item) => <option key={item.id} value={item.id}>{item.displayName}</option>)}</select></label>
       <label>event group ID<input value={fields.eventGroupId ?? ""} onChange={(event) => update("eventGroupId", event.target.value)} /></label>
       <label>event title<input value={fields.eventTitle ?? ""} onChange={(event) => update("eventTitle", event.target.value)} /></label>
