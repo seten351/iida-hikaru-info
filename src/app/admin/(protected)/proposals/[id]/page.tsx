@@ -8,6 +8,7 @@ import {
   DetailList,
   ExternalSourceLink,
   JsonSnapshot,
+  formatAdminAppearanceStart,
   formatAdminDate,
 } from "../../_components";
 
@@ -63,7 +64,8 @@ export default async function AdminProposalDetailPage({
             ["match status", proposal.matchStatus],
             ["appearance ID", proposal.appearanceId],
             ["expected version", proposal.expectedAppearanceVersion],
-            ["starts at", formatAdminDate(proposal.startsAt)],
+            ["start", formatAdminAppearanceStart(proposal)],
+            ["start precision", proposal.startsAtPrecision],
             ["series ID", proposal.seriesId],
             ["category", proposal.category],
             ["visibility", proposal.visibilityStatus],

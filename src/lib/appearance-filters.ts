@@ -43,6 +43,20 @@ function formatTokyoYear(value: string) {
   }).format(new Date(value));
 }
 
+function appearanceStartYear(
+  session: AppearanceCard["sessions"][number],
+) {
+  if (session.startsAtPrecision === "exact") {
+    return formatTokyoYear(session.startsAt!);
+  }
+
+  if (session.startsAtPrecision === "date") {
+    return session.startsOn!.slice(0, 4);
+  }
+
+  return null;
+}
+
 function normalizeSearchText(value: string) {
   return value.normalize("NFKC").toLocaleLowerCase("ja-JP");
 }
@@ -68,7 +82,10 @@ export function getAppearanceFilterOptions(
 
     categories.add(card.category);
     for (const session of card.sessions) {
-      years.add(formatTokyoYear(session.startsAt));
+      const year = appearanceStartYear(session);
+      if (year !== null) {
+        years.add(year);
+      }
     }
   }
 
@@ -139,7 +156,7 @@ export function filterAppearanceCards(
     if (
       filters.year !== null &&
       !card.sessions.some(
-        (session) => formatTokyoYear(session.startsAt) === filters.year,
+        (session) => appearanceStartYear(session) === filters.year,
       )
     ) {
       return false;

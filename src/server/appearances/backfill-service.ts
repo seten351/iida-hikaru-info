@@ -39,7 +39,9 @@ function legacyAppearanceToImportItem(
 
   return {
     id: appearance.id,
-    startsAt: appearance.startsAt.toISOString(),
+    startsAtPrecision: appearance.startsAtPrecision,
+    startsAt: appearance.startsAt?.toISOString() ?? null,
+    startsOn: appearance.startsOn,
     title: appearance.title,
     seriesId: appearance.seriesId,
     eventGroupId: appearance.eventGroupId,

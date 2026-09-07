@@ -19,7 +19,9 @@ export type AdminSourceInput = Publication & {
 
 export type AdminAppearanceFields = {
   id: string;
-  startsAt: string;
+  startsAtPrecision: "exact" | "date" | "unknown";
+  startsAt: string | null;
+  startsOn: string | null;
   title: string;
   seriesId: string | null;
   eventGroupId: string | null;
@@ -222,6 +224,31 @@ function parseSource(value: unknown): AdminSourceInput {
 
 function parseAppearanceFields(value: unknown): AdminAppearanceFields {
   const input = record(value, "出演情報");
+  const startsAtPrecision = input.startsAtPrecision;
+  if (
+    startsAtPrecision !== "exact" &&
+    startsAtPrecision !== "date" &&
+    startsAtPrecision !== "unknown"
+  ) {
+    throw new AdminWriteValidationError("開始日時の精度が不正です。");
+  }
+  let startsAt: string | null = null;
+  let startsOn: string | null = null;
+  if (startsAtPrecision === "exact") {
+    if (!isBlank(input.startsOn)) {
+      throw new AdminWriteValidationError("精度exactには開始日を指定できません。");
+    }
+    startsAt = dateTime(input.startsAt, "開始日時");
+  } else if (startsAtPrecision === "date") {
+    if (!isBlank(input.startsAt)) {
+      throw new AdminWriteValidationError("精度dateには開始日時を指定できません。");
+    }
+    startsOn = calendarDate(input.startsOn, "開始日");
+  } else if (!isBlank(input.startsAt) || !isBlank(input.startsOn)) {
+    throw new AdminWriteValidationError(
+      "精度unknownには開始日時・開始日を指定できません。",
+    );
+  }
   const category = input.category;
   if (!appearanceCategories.includes(category as AdminAppearanceFields["category"])) {
     throw new AdminWriteValidationError("カテゴリが不正です。");
@@ -237,7 +264,9 @@ function parseAppearanceFields(value: unknown): AdminAppearanceFields {
   }
   return {
     id: normalizedId(input.id, "appearance ID"),
-    startsAt: dateTime(input.startsAt, "開始日時"),
+    startsAtPrecision,
+    startsAt,
+    startsOn,
     title: requiredString(input.title, "タイトル", 500),
     seriesId: isBlank(input.seriesId)
       ? null

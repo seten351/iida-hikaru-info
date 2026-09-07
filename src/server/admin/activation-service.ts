@@ -80,11 +80,24 @@ function assertRevisionSnapshots(
     const sourceLinks = isRecord(snapshot) && Array.isArray(snapshot.sourceLinks)
       ? snapshot.sourceLinks
       : null;
+    const validStart = row.snapshotSchemaVersion < 3
+      ? typeof appearance?.startsAt === "string"
+      : appearance !== null &&
+        ["exact", "date", "unknown"].includes(String(appearance.startsAtPrecision)) &&
+        ((appearance.startsAtPrecision === "exact" &&
+          typeof appearance.startsAt === "string" &&
+          appearance.startsOn === null) ||
+          (appearance.startsAtPrecision === "date" &&
+            appearance.startsAt === null &&
+            typeof appearance.startsOn === "string") ||
+          (appearance.startsAtPrecision === "unknown" &&
+            appearance.startsAt === null &&
+            appearance.startsOn === null));
     if (
       !isRecord(snapshot) ||
       !appearance ||
       appearance.id !== row.appearanceId ||
-      typeof appearance.startsAt !== "string" ||
+      !validStart ||
       typeof appearance.title !== "string" ||
       typeof appearance.category !== "string" ||
       typeof appearance.publishedAtPrecision !== "string" ||
@@ -100,15 +113,15 @@ function assertRevisionSnapshots(
           typeof link.evidenceKey !== "string" ||
           typeof link.active !== "boolean" ||
           typeof link.isPrimary !== "boolean" ||
-          (row.snapshotSchemaVersion === 2 &&
+          (row.snapshotSchemaVersion >= 2 &&
             (typeof link.sourceType !== "string" ||
               typeof link.createdAt !== "string" ||
               typeof link.updatedAt !== "string")),
       ) ||
-      ![1, 2].includes(row.snapshotSchemaVersion) ||
-      (row.snapshotSchemaVersion === 2 && !("series" in snapshot)) ||
+      ![1, 2, 3].includes(row.snapshotSchemaVersion) ||
+      (row.snapshotSchemaVersion >= 2 && !("series" in snapshot)) ||
       (row.actorType === "admin" &&
-        (row.snapshotSchemaVersion !== 2 || row.proposalId === null))
+        (![2, 3].includes(row.snapshotSchemaVersion) || row.proposalId === null))
     ) {
       throw new AdminActivationError("appearance revision invariant failed.");
     }

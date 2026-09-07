@@ -2,6 +2,7 @@ import type {
   Appearance,
   AppearanceCategory,
   PublishedAtPrecision,
+  StartsAtPrecision,
 } from "@/domain/appearance";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
@@ -47,6 +48,24 @@ function formatCalendarDate(value: string) {
   return `${year}年${month}月${day}日`;
 }
 
+export type AppearanceStart = {
+  startsAtPrecision: StartsAtPrecision;
+  startsAt: string | null;
+  startsOn: string | null;
+};
+
+export function formatAppearanceStart(start: AppearanceStart) {
+  if (start.startsAtPrecision === "exact") {
+    return formatAppearanceDate(start.startsAt!);
+  }
+
+  if (start.startsAtPrecision === "date") {
+    return formatCalendarDate(start.startsOn!);
+  }
+
+  return "日時未定";
+}
+
 export type Publication = Pick<
   Appearance,
   "publishedAtPrecision" | "publishedAt" | "publishedOn" | "collectedAt"
@@ -66,7 +85,9 @@ export function formatPublication(publication: Publication) {
 
 export type AppearanceCardSession = {
   id: string;
-  startsAt: string;
+  startsAtPrecision: StartsAtPrecision;
+  startsAt: string | null;
+  startsOn: string | null;
   sessionLabel: string | null;
 };
 
@@ -89,8 +110,10 @@ const referenceDayFormatter = new Intl.DateTimeFormat("en-US", {
   day: "2-digit",
 });
 
-function formatReferenceDay(value: string) {
-  const parts = referenceDayFormatter.formatToParts(new Date(value));
+function formatReferenceDay(value: string | Date) {
+  const parts = referenceDayFormatter.formatToParts(
+    typeof value === "string" ? new Date(value) : value,
+  );
   const values = Object.fromEntries(
     parts
       .filter((part) => part.type !== "literal")
@@ -146,21 +169,72 @@ function publicationOf(item: Appearance): Publication {
   };
 }
 
-function compareStartsAtAscending(
-  a: Pick<AppearanceCardSession, "id" | "startsAt">,
-  b: Pick<AppearanceCardSession, "id" | "startsAt">,
-) {
-  return (
-    new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime() ||
-    a.id.localeCompare(b.id)
-  );
+function startReferenceDay(start: AppearanceStart) {
+  if (start.startsAtPrecision === "exact") {
+    return formatReferenceDay(start.startsAt!);
+  }
+
+  if (start.startsAtPrecision === "date") {
+    return start.startsOn!;
+  }
+
+  return null;
 }
 
-function compareStartsAtDescending(
-  a: Pick<AppearanceCardSession, "id" | "startsAt">,
-  b: Pick<AppearanceCardSession, "id" | "startsAt">,
+function startPrecisionRank(precision: StartsAtPrecision) {
+  return { date: 0, exact: 1, unknown: 2 }[precision];
+}
+
+export function compareAppearanceStartsAscending(
+  a: AppearanceCardSession,
+  b: AppearanceCardSession,
 ) {
-  return -compareStartsAtAscending(a, b);
+  const aDay = startReferenceDay(a);
+  const bDay = startReferenceDay(b);
+
+  if (aDay === null || bDay === null) {
+    if (aDay === null && bDay === null) {
+      return a.id.localeCompare(b.id);
+    }
+    return aDay === null ? 1 : -1;
+  }
+
+  const dayComparison = aDay.localeCompare(bDay);
+  if (dayComparison !== 0) {
+    return dayComparison;
+  }
+
+  const precisionComparison =
+    startPrecisionRank(a.startsAtPrecision) -
+    startPrecisionRank(b.startsAtPrecision);
+  if (precisionComparison !== 0) {
+    return precisionComparison;
+  }
+
+  if (a.startsAtPrecision === "exact" && b.startsAtPrecision === "exact") {
+    const timeComparison =
+      new Date(a.startsAt!).getTime() - new Date(b.startsAt!).getTime();
+    if (timeComparison !== 0) {
+      return timeComparison;
+    }
+  }
+
+  return a.id.localeCompare(b.id);
+}
+
+export function isAppearanceStartUpcoming(
+  start: AppearanceStart,
+  now: Date,
+) {
+  if (start.startsAtPrecision === "unknown") {
+    return true;
+  }
+
+  if (start.startsAtPrecision === "date") {
+    return start.startsOn! >= formatReferenceDay(now);
+  }
+
+  return new Date(start.startsAt!).getTime() >= now.getTime();
 }
 
 export function buildAppearanceCards(items: Appearance[]): AppearanceCard[] {
@@ -172,7 +246,9 @@ export function buildAppearanceCards(items: Appearance[]): AppearanceCard[] {
     const existing = cardsById.get(cardId);
     const session = {
       id: item.id,
+      startsAtPrecision: item.startsAtPrecision,
       startsAt: item.startsAt,
+      startsOn: item.startsOn,
       sessionLabel: item.sessionLabel,
     };
 
@@ -208,18 +284,36 @@ export function buildAppearanceCards(items: Appearance[]): AppearanceCard[] {
 
   return [...cardsById.values()].map((card) => ({
     ...card,
-    sessions: [...card.sessions].sort(compareStartsAtAscending),
+    sessions: [...card.sessions].sort(compareAppearanceStartsAscending),
   }));
 }
 
-function latestSession(card: AppearanceCard) {
-  return [...card.sessions].sort(compareStartsAtDescending)[0];
+function earliestKnownSession(card: AppearanceCard) {
+  return card.sessions.find(
+    (session) => session.startsAtPrecision !== "unknown",
+  );
 }
 
-function nextSession(card: AppearanceCard, now: Date) {
-  const nowTimestamp = now.getTime();
-  return card.sessions.find(
-    (session) => new Date(session.startsAt).getTime() >= nowTimestamp,
+function latestKnownSession(card: AppearanceCard) {
+  return card.sessions.findLast(
+    (session) => session.startsAtPrecision !== "unknown",
+  );
+}
+
+function compareCardsByStartAscending(a: AppearanceCard, b: AppearanceCard) {
+  const aStart = earliestKnownSession(a);
+  const bStart = earliestKnownSession(b);
+
+  if (aStart === undefined || bStart === undefined) {
+    if (aStart === undefined && bStart === undefined) {
+      return a.id.localeCompare(b.id);
+    }
+    return aStart === undefined ? 1 : -1;
+  }
+
+  return (
+    compareAppearanceStartsAscending(aStart, bStart) ||
+    a.id.localeCompare(b.id)
   );
 }
 
@@ -228,8 +322,6 @@ export function groupAppearances(items: Appearance[], now: Date) {
 }
 
 export function groupAppearanceCards(cards: AppearanceCard[], now: Date) {
-  const timestamp = now.getTime();
-
   return {
     latest: [...cards]
       .sort((a, b) =>
@@ -237,22 +329,25 @@ export function groupAppearanceCards(cards: AppearanceCard[], now: Date) {
       )
       .slice(0, 3),
     upcoming: cards
-      .filter((card) => nextSession(card, now) !== undefined)
-      .sort(
-        (a, b) =>
-          compareStartsAtAscending(nextSession(a, now)!, nextSession(b, now)!) ||
-          a.id.localeCompare(b.id),
-      ),
+      .filter((card) =>
+        card.sessions.some((session) => isAppearanceStartUpcoming(session, now)),
+      )
+      .sort(compareCardsByStartAscending),
     past: cards
       .filter((card) =>
         card.sessions.every(
-          (session) => new Date(session.startsAt).getTime() < timestamp,
+          (session) => !isAppearanceStartUpcoming(session, now),
         ),
       )
       .sort(
-        (a, b) =>
-          compareStartsAtDescending(latestSession(a), latestSession(b)) ||
-          a.id.localeCompare(b.id),
+        (a, b) => {
+          const aStart = latestKnownSession(a)!;
+          const bStart = latestKnownSession(b)!;
+          return (
+            -compareAppearanceStartsAscending(aStart, bStart) ||
+            a.id.localeCompare(b.id)
+          );
+        },
       ),
   };
 }

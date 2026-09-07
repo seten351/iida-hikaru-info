@@ -18,7 +18,9 @@ const appearanceInput = {
   expectedVersion: null,
   fields: {
     id: "phase2b-test",
+    startsAtPrecision: "exact",
     startsAt: "2026-09-06T18:00:00+09:00",
+    startsOn: null,
     title: " Phase 2B test ",
     seriesId: null,
     eventGroupId: null,
@@ -37,15 +39,80 @@ const appearanceInput = {
   },
 } as const;
 
-test("Admin write input normalizes valid values and preserves publication precision", () => {
+test("Admin write input normalizes exact startsAt and preserves publication precision", () => {
   const parsed = parseAdminWriteInput(appearanceInput);
   assert.equal(parsed.kind, "appearance");
   assert.equal(parsed.operation, "create");
   assert.equal(parsed.fields.title, "Phase 2B test");
+  assert.equal(parsed.fields.startsAtPrecision, "exact");
   assert.equal(parsed.fields.startsAt, "2026-09-06T09:00:00.000Z");
+  assert.equal(parsed.fields.startsOn, null);
   assert.equal(parsed.source.precision, "date");
   assert.equal(parsed.source.publishedAt, null);
   assert.equal(parsed.source.publishedOn, "2026-09-05");
+});
+
+test("Admin write input accepts date and unknown start precision without invented times", () => {
+  const dateParsed = parseAdminWriteInput({
+    ...appearanceInput,
+    fields: {
+      ...appearanceInput.fields,
+      startsAtPrecision: "date",
+      startsAt: null,
+      startsOn: "2026-09-17",
+    },
+  });
+  assert.equal(dateParsed.kind, "appearance");
+  assert.equal(dateParsed.operation, "create");
+  assert.deepEqual(
+    {
+      startsAtPrecision: dateParsed.fields.startsAtPrecision,
+      startsAt: dateParsed.fields.startsAt,
+      startsOn: dateParsed.fields.startsOn,
+    },
+    { startsAtPrecision: "date", startsAt: null, startsOn: "2026-09-17" },
+  );
+
+  const unknownParsed = parseAdminWriteInput({
+    ...appearanceInput,
+    fields: {
+      ...appearanceInput.fields,
+      startsAtPrecision: "unknown",
+      startsAt: null,
+      startsOn: null,
+    },
+  });
+  assert.equal(unknownParsed.kind, "appearance");
+  assert.equal(unknownParsed.operation, "create");
+  assert.deepEqual(
+    {
+      startsAtPrecision: unknownParsed.fields.startsAtPrecision,
+      startsAt: unknownParsed.fields.startsAt,
+      startsOn: unknownParsed.fields.startsOn,
+    },
+    { startsAtPrecision: "unknown", startsAt: null, startsOn: null },
+  );
+});
+
+test("Admin write input rejects mismatched start precision fields", () => {
+  const invalidFields = [
+    { startsAtPrecision: "exact", startsAt: null, startsOn: null },
+    { startsAtPrecision: "exact", startsAt: appearanceInput.fields.startsAt, startsOn: "2026-09-06" },
+    { startsAtPrecision: "date", startsAt: null, startsOn: null },
+    { startsAtPrecision: "date", startsAt: appearanceInput.fields.startsAt, startsOn: "2026-09-06" },
+    { startsAtPrecision: "unknown", startsAt: appearanceInput.fields.startsAt, startsOn: null },
+    { startsAtPrecision: "unknown", startsAt: null, startsOn: "2026-09-06" },
+  ] as const;
+
+  for (const fields of invalidFields) {
+    assert.throws(
+      () => parseAdminWriteInput({
+        ...appearanceInput,
+        fields: { ...appearanceInput.fields, ...fields },
+      }),
+      AdminWriteValidationError,
+    );
+  }
 });
 
 test("Admin write input accepts the game category", () => {
@@ -150,6 +217,28 @@ test("Preview token is signed, expiring, and contains revalidated input", () => 
   );
 });
 
+test("Preview token preserves date and unknown start precision", () => {
+  const now = new Date("2026-09-06T00:00:00.000Z");
+  for (const fields of [
+    {
+      ...appearanceInput.fields,
+      startsAtPrecision: "date" as const,
+      startsAt: null,
+      startsOn: "2026-09-17",
+    },
+    {
+      ...appearanceInput.fields,
+      startsAtPrecision: "unknown" as const,
+      startsAt: null,
+      startsOn: null,
+    },
+  ]) {
+    const parsed = parseAdminWriteInput({ ...appearanceInput, fields });
+    const token = createAdminPreviewToken(parsed, secret, now);
+    assert.deepEqual(verifyAdminPreviewToken(token, secret, now)?.input, parsed);
+  }
+});
+
 test("Preview token preserves the complete event group batch", () => {
   const now = new Date("2026-09-06T00:00:00.000Z");
   const parsed = parseAdminWriteInput(groupUpdateInput);
@@ -157,9 +246,10 @@ test("Preview token preserves the complete event group batch", () => {
   assert.deepEqual(verifyAdminPreviewToken(token, secret, now)?.input, parsed);
 });
 
-test("Appearance revision decoder keeps v1 compatibility and accepts v2", () => {
+test("Appearance revision decoder keeps v1/v2 compatibility and accepts v3", () => {
   const snapshot = { appearance: { id: "phase2b-test" }, sourceLinks: [] };
   assert.equal(decodeAppearanceRevisionSnapshot(1, snapshot), snapshot);
   assert.equal(decodeAppearanceRevisionSnapshot(2, snapshot), snapshot);
-  assert.throws(() => decodeAppearanceRevisionSnapshot(3, snapshot));
+  assert.equal(decodeAppearanceRevisionSnapshot(3, snapshot), snapshot);
+  assert.throws(() => decodeAppearanceRevisionSnapshot(4, snapshot));
 });

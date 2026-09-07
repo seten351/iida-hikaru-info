@@ -23,7 +23,9 @@ export default async function EditAppearancePage({ params }: { params: Promise<{
       <AppearanceEditor
           appearance={{
             id: item.id,
-            startsAt: item.startsAt.toISOString(),
+            startsAtPrecision: item.startsAtPrecision,
+            startsAt: item.startsAt?.toISOString() ?? null,
+            startsOn: item.startsOn,
             title: item.title,
             seriesId: item.seriesId,
             eventGroupId: item.eventGroupId,

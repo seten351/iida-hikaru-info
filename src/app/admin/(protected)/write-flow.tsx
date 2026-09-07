@@ -95,7 +95,9 @@ export function AppearanceEditor({
   const [fields, setFields] = useState<AdminAppearanceFields>(
     appearance ?? {
       id: "",
-      startsAt: "",
+      startsAtPrecision: "exact",
+      startsAt: null,
+      startsOn: null,
       title: "",
       seriesId: null,
       eventGroupId: null,
@@ -121,13 +123,58 @@ export function AppearanceEditor({
   const update = (name: keyof AdminAppearanceFields, value: string) => {
     setFields((current) => ({ ...current, [name]: value === "" ? null : value }));
   };
+  const updateStartsAtPrecision = (
+    startsAtPrecision: AdminAppearanceFields["startsAtPrecision"],
+  ) => {
+    setFields((current) => ({
+      ...current,
+      startsAtPrecision,
+      startsAt: startsAtPrecision === "exact" ? current.startsAt : null,
+      startsOn: startsAtPrecision === "date" ? current.startsOn : null,
+    }));
+  };
   const updateSource = (name: keyof AdminSourceInput, value: string) => {
     setSource((current) => ({ ...current, [name]: value === "" ? null : value }));
   };
   return (
     <form action={dispatch} className="admin-write-form">
       <label>appearance ID<input disabled={Boolean(appearance)} required value={fields.id} onChange={(event) => update("id", event.target.value)} /></label>
-      <label>開始日時 (ISO 8601)<input required value={fields.startsAt} onChange={(event) => update("startsAt", event.target.value)} placeholder="2026-09-06T18:00:00+09:00" /></label>
+      <label>
+        開始日時の精度
+        <select
+          value={fields.startsAtPrecision}
+          onChange={(event) => updateStartsAtPrecision(event.target.value as AdminAppearanceFields["startsAtPrecision"])}
+        >
+          <option value="exact">exact（日時確定）</option>
+          <option value="date">date（日付のみ確定）</option>
+          <option value="unknown">unknown（日付未定）</option>
+        </select>
+      </label>
+      {fields.startsAtPrecision === "exact" ? (
+        <label>
+          開始日時 (ISO 8601)
+          <input
+            required
+            value={fields.startsAt ?? ""}
+            onChange={(event) => update("startsAt", event.target.value)}
+            placeholder="2026-09-06T18:00:00+09:00"
+          />
+        </label>
+      ) : null}
+      {fields.startsAtPrecision === "date" ? (
+        <label>
+          開始日
+          <input
+            required
+            type="date"
+            value={fields.startsOn ?? ""}
+            onChange={(event) => update("startsOn", event.target.value)}
+          />
+        </label>
+      ) : null}
+      {fields.startsAtPrecision === "unknown" ? (
+        <p className="admin-form-note">開始日時は「日時未定」として登録されます。</p>
+      ) : null}
       <label>タイトル<input required value={fields.title} onChange={(event) => update("title", event.target.value)} /></label>
       <label>カテゴリ<select value={fields.category} onChange={(event) => update("category", event.target.value)}>{appearanceCategoryDisplayOrder.map((item) => <option key={item}>{item}</option>)}</select></label>
       <label>シリーズ<select value={fields.seriesId ?? ""} onChange={(event) => update("seriesId", event.target.value)}><option value="">なし</option>{series.map((item) => <option key={item.id} value={item.id}>{item.displayName}</option>)}</select></label>

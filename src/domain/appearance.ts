@@ -22,6 +22,10 @@ export const publishedAtPrecisions = ["exact", "date", "unknown"] as const;
 
 export type PublishedAtPrecision = (typeof publishedAtPrecisions)[number];
 
+export const startsAtPrecisions = ["exact", "date", "unknown"] as const;
+
+export type StartsAtPrecision = (typeof startsAtPrecisions)[number];
+
 export type AppearanceSeries = {
   id: string;
   displayName: string;
@@ -29,7 +33,9 @@ export type AppearanceSeries = {
 
 export type Appearance = {
   id: string;
-  startsAt: string;
+  startsAtPrecision: StartsAtPrecision;
+  startsAt: string | null;
+  startsOn: string | null;
   title: string;
   seriesId: string | null;
   seriesName: string | null;
@@ -244,6 +250,34 @@ function validatePublication(item: AppearanceImportItem) {
   }
 }
 
+function validateAppearanceStart(item: AppearanceImportItem) {
+  switch (item.startsAtPrecision) {
+    case "exact":
+      if (item.startsAt === null || item.startsOn !== null) {
+        throw new Error(
+          `${item.id}: exact startsAtPrecision requires startsAt only.`,
+        );
+      }
+      assertDateTime(item.startsAt, "startsAt", item.id);
+      return;
+    case "date":
+      if (item.startsAt !== null || item.startsOn === null) {
+        throw new Error(
+          `${item.id}: date startsAtPrecision requires startsOn only.`,
+        );
+      }
+      assertCalendarDate(item.startsOn, "startsOn", item.id);
+      return;
+    case "unknown":
+      if (item.startsAt !== null || item.startsOn !== null) {
+        throw new Error(
+          `${item.id}: unknown startsAtPrecision cannot include a start date.`,
+        );
+      }
+      return;
+  }
+}
+
 export function validateAppearanceImportItems(
   items: readonly AppearanceImportItem[],
   series: readonly AppearanceSeries[],
@@ -289,7 +323,7 @@ export function validateAppearanceImportItems(
       throw new Error(`${item.id}: unsupported category ${item.category}.`);
     }
 
-    assertDateTime(item.startsAt, "startsAt", item.id);
+    validateAppearanceStart(item);
     validatePublication(item);
 
     if (item.seriesId !== null && !seriesIds.has(item.seriesId)) {

@@ -18,6 +18,26 @@ import {
 } from "@/db/schema";
 import { requireAdminSession } from "@/server/admin/auth";
 
+const appearanceStartDayOrder = sql`case
+  when ${appearancesTable.startsAtPrecision} = 'date' then ${appearancesTable.startsOn}
+  when ${appearancesTable.startsAtPrecision} = 'exact'
+    then (${appearancesTable.startsAt} at time zone 'Asia/Tokyo')::date
+  else null
+end asc nulls last`;
+
+const appearanceStartPrecisionOrder = sql`case ${appearancesTable.startsAtPrecision}
+  when 'date' then 0
+  when 'exact' then 1
+  else 2
+end asc`;
+
+const appearanceStartOrder = [
+  appearanceStartDayOrder,
+  appearanceStartPrecisionOrder,
+  asc(appearancesTable.startsAt),
+  asc(appearancesTable.id),
+] as const;
+
 export async function getAdminOverview() {
   await requireAdminSession();
   const db = getDb();
@@ -142,6 +162,8 @@ export async function listAdminAppearances() {
       id: appearancesTable.id,
       title: appearancesTable.title,
       startsAt: appearancesTable.startsAt,
+      startsOn: appearancesTable.startsOn,
+      startsAtPrecision: appearancesTable.startsAtPrecision,
       category: appearancesTable.category,
       visibilityStatus: appearancesTable.visibilityStatus,
       version: appearancesTable.version,
@@ -160,7 +182,7 @@ export async function listAdminAppearances() {
       appearanceSeriesTable,
       eq(appearancesTable.seriesId, appearanceSeriesTable.id),
     )
-    .orderBy(desc(appearancesTable.startsAt), asc(appearancesTable.id));
+    .orderBy(...appearanceStartOrder);
 }
 
 export async function getAdminAppearance(appearanceId: string) {
@@ -227,13 +249,15 @@ export async function getAdminEventGroup(eventGroupId: string) {
       eventTitle: appearancesTable.eventTitle,
       sessionLabel: appearancesTable.sessionLabel,
       startsAt: appearancesTable.startsAt,
+      startsOn: appearancesTable.startsOn,
+      startsAtPrecision: appearancesTable.startsAtPrecision,
       seriesId: appearancesTable.seriesId,
       category: appearancesTable.category,
       version: appearancesTable.version,
     })
     .from(appearancesTable)
     .where(eq(appearancesTable.eventGroupId, eventGroupId))
-    .orderBy(asc(appearancesTable.id));
+    .orderBy(...appearanceStartOrder);
 }
 
 export async function listAdminSources() {
@@ -346,12 +370,14 @@ export async function getAdminSeries(seriesId: string) {
         id: appearancesTable.id,
         title: appearancesTable.title,
         startsAt: appearancesTable.startsAt,
+        startsOn: appearancesTable.startsOn,
+        startsAtPrecision: appearancesTable.startsAtPrecision,
         visibilityStatus: appearancesTable.visibilityStatus,
         version: appearancesTable.version,
       })
       .from(appearancesTable)
       .where(eq(appearancesTable.seriesId, seriesId))
-      .orderBy(desc(appearancesTable.startsAt)),
+      .orderBy(...appearanceStartOrder),
     db
       .select()
       .from(appearanceSeriesRevisionsTable)

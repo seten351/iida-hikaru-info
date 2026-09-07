@@ -11,7 +11,7 @@ import {
 import type { WriterTransaction } from "@/server/appearances/source-foundation";
 
 export const appearanceSnapshotSchemaVersion = 1;
-export const currentAppearanceSnapshotSchemaVersion = 2;
+export const currentAppearanceSnapshotSchemaVersion = 3;
 
 export type AppearanceRevisionSnapshotV1 = {
   appearance: {
@@ -61,12 +61,24 @@ export type AppearanceRevisionSnapshotV2 = AppearanceRevisionSnapshotV1 & {
   }>;
 };
 
+export type AppearanceRevisionSnapshotV3 = Omit<
+  AppearanceRevisionSnapshotV2,
+  "appearance"
+> & {
+  appearance: Omit<AppearanceRevisionSnapshotV2["appearance"], "startsAt"> & {
+    startsAtPrecision: "exact" | "date" | "unknown";
+    startsAt: string | null;
+    startsOn: string | null;
+  };
+};
+
 export function decodeAppearanceRevisionSnapshot(
   snapshotSchemaVersion: number,
   snapshot: unknown,
 ) {
   if (
     snapshotSchemaVersion !== appearanceSnapshotSchemaVersion &&
+    snapshotSchemaVersion !== 2 &&
     snapshotSchemaVersion !== currentAppearanceSnapshotSchemaVersion
   ) {
     throw new Error(
@@ -77,7 +89,100 @@ export function decodeAppearanceRevisionSnapshot(
     throw new Error("Appearance revision snapshot must be an object.");
   }
 
-  return snapshot as AppearanceRevisionSnapshotV1 | AppearanceRevisionSnapshotV2;
+  return snapshot as
+    | AppearanceRevisionSnapshotV1
+    | AppearanceRevisionSnapshotV2
+    | AppearanceRevisionSnapshotV3;
+}
+
+export async function buildAppearanceRevisionSnapshotV3(
+  tx: WriterTransaction,
+  appearanceId: string,
+): Promise<AppearanceRevisionSnapshotV3> {
+  const [appearance] = await tx
+    .select({
+      appearance: appearancesTable,
+      seriesName: appearanceSeriesTable.displayName,
+    })
+    .from(appearancesTable)
+    .leftJoin(
+      appearanceSeriesTable,
+      eq(appearancesTable.seriesId, appearanceSeriesTable.id),
+    )
+    .where(eq(appearancesTable.id, appearanceId));
+
+  if (!appearance) {
+    throw new Error(`${appearanceId}: appearance is missing while creating a revision.`);
+  }
+
+  const links = await tx
+    .select({
+      sourceId: appearanceSourceLinksTable.sourceId,
+      sourceIdentityId: appearanceSourceLinksTable.sourceIdentityId,
+      sourceName: sourceIdentitiesTable.sourceName,
+      externalItemId: sourceIdentitiesTable.externalItemId,
+      canonicalUrl: sourceItemsTable.canonicalUrl,
+      sourceType: sourceItemsTable.sourceType,
+      evidenceKey: appearanceSourceLinksTable.evidenceKey,
+      active: appearanceSourceLinksTable.active,
+      isPrimary: appearanceSourceLinksTable.isPrimary,
+      publishedAt: appearanceSourceLinksTable.publishedAt,
+      publishedOn: appearanceSourceLinksTable.publishedOn,
+      publishedAtPrecision: appearanceSourceLinksTable.publishedAtPrecision,
+      collectedAt: appearanceSourceLinksTable.collectedAt,
+      createdAt: appearanceSourceLinksTable.createdAt,
+      updatedAt: appearanceSourceLinksTable.updatedAt,
+    })
+    .from(appearanceSourceLinksTable)
+    .innerJoin(sourceItemsTable, eq(appearanceSourceLinksTable.sourceId, sourceItemsTable.id))
+    .leftJoin(
+      sourceIdentitiesTable,
+      eq(appearanceSourceLinksTable.sourceIdentityId, sourceIdentitiesTable.id),
+    )
+    .where(eq(appearanceSourceLinksTable.appearanceId, appearanceId))
+    .orderBy(
+      asc(appearanceSourceLinksTable.sourceId),
+      asc(appearanceSourceLinksTable.evidenceKey),
+    );
+
+  const item = appearance.appearance;
+  return {
+    appearance: {
+      id: item.id,
+      startsAtPrecision: item.startsAtPrecision,
+      startsAt: item.startsAt?.toISOString() ?? null,
+      startsOn: item.startsOn,
+      title: item.title,
+      seriesId: item.seriesId,
+      eventGroupId: item.eventGroupId,
+      eventTitle: item.eventTitle,
+      sessionLabel: item.sessionLabel,
+      category: item.category,
+      publishedAt: item.publishedAt?.toISOString() ?? null,
+      publishedOn: item.publishedOn,
+      publishedAtPrecision: item.publishedAtPrecision,
+      collectedAt: item.collectedAt.toISOString(),
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
+    },
+    visibility: {
+      status: item.visibilityStatus,
+      firstVisibleAt: item.firstVisibleAt.toISOString(),
+      visibilityChangedAt: item.visibilityChangedAt.toISOString(),
+      version: item.version,
+    },
+    series:
+      item.seriesId && appearance.seriesName
+        ? { id: item.seriesId, displayName: appearance.seriesName }
+        : null,
+    sourceLinks: links.map((link) => ({
+      ...link,
+      publishedAt: link.publishedAt?.toISOString() ?? null,
+      collectedAt: link.collectedAt?.toISOString() ?? null,
+      createdAt: link.createdAt.toISOString(),
+      updatedAt: link.updatedAt.toISOString(),
+    })),
+  };
 }
 
 export async function buildAppearanceRevisionSnapshotV2(
@@ -204,7 +309,12 @@ export async function buildAppearanceRevisionSnapshot(
   return {
     appearance: {
       id: appearance.id,
-      startsAt: appearance.startsAt.toISOString(),
+      startsAt: (() => {
+        if (!appearance.startsAt) {
+          throw new Error(`${appearanceId}: legacy revision requires an exact start.`);
+        }
+        return appearance.startsAt.toISOString();
+      })(),
       title: appearance.title,
       seriesId: appearance.seriesId,
       eventGroupId: appearance.eventGroupId,

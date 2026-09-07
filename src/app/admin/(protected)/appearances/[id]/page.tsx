@@ -11,6 +11,7 @@ import {
   DetailList,
   ExternalSourceLink,
   JsonSnapshot,
+  formatAdminAppearanceStart,
   formatAdminDate,
 } from "../../_components";
 import {
@@ -55,7 +56,8 @@ export default async function AdminAppearanceDetailPage({
         <DetailList
           rows={[
             ["ID", appearance.id],
-            ["starts at", formatAdminDate(appearance.startsAt)],
+            ["start", formatAdminAppearanceStart(appearance)],
+            ["start precision", appearance.startsAtPrecision],
             ["category", appearance.category],
             ["series", seriesName ?? appearance.seriesId],
             ["event group", appearance.eventGroupId],

@@ -57,6 +57,19 @@ export function formatAdminDate(value: Date | string | null | undefined) {
   }).format(typeof value === "string" ? new Date(value) : value);
 }
 
+export function formatAdminAppearanceStart(value: {
+  startsAtPrecision: "exact" | "date" | "unknown" | null;
+  startsAt: Date | string | null;
+  startsOn: string | null;
+}) {
+  if (value.startsAtPrecision === "date" && value.startsOn) {
+    const [year, month, day] = value.startsOn.split("-").map(Number);
+    return `${year}年${month}月${day}日（日付のみ）`;
+  }
+  if (value.startsAtPrecision === "unknown") return "日時未定";
+  return formatAdminDate(value.startsAt);
+}
+
 export function ExternalSourceLink({ url }: { url: string }) {
   let safe = false;
   try {

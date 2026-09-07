@@ -13,6 +13,7 @@ import {
 import { appearanceSeriesSearchAliases } from "../src/lib/appearance-series-search-aliases";
 import {
   buildAppearanceCards,
+  formatAppearanceStart,
   groupAppearanceCards,
 } from "../src/lib/appearances";
 import { appearanceImportData } from "./appearance-import-data";
@@ -24,6 +25,8 @@ const seriesNames = new Map<string, string>(
 
 const appearances: Appearance[] = appearanceImportData.map((item) => ({
   ...item,
+  startsAtPrecision: "exact",
+  startsOn: null,
   seriesName: item.seriesId === null ? null : seriesNames.get(item.seriesId) ?? null,
   collectedAt: "2026-09-02T00:00:00+09:00",
 }));
@@ -72,6 +75,8 @@ validateAppearanceImportItems(
     eventTitle: null,
     sessionLabel: null,
     category: "ゲーム",
+    startsAtPrecision: "exact",
+    startsOn: null,
   }],
   appearanceSeriesData,
 );
@@ -155,8 +160,9 @@ assert.ok(year2027.length > 0);
 assert.ok(
   year2027.every((card) =>
     card.sessions.some((session) =>
+      session.startsAtPrecision === "exact" &&
       new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Tokyo", year: "numeric" }).format(
-        new Date(session.startsAt),
+        new Date(session.startsAt!),
       ) === "2027",
     ),
   ),
@@ -198,6 +204,224 @@ assert.equal(crossYearMatches[0].sessions.length, 2);
 
 const grouped = groupAppearanceCards(filterAppearanceCards(cards, noFilters), new Date("2026-09-02T12:00:00+09:00"));
 assert.equal(grouped.latest.length, 3);
+
+const precisionAppearances: Appearance[] = [
+  {
+    ...appearances[0],
+    id: "same-day-exact-late",
+    startsAtPrecision: "exact",
+    startsAt: "2026-09-17T18:00:00+09:00",
+    startsOn: null,
+    eventGroupId: null,
+    eventTitle: null,
+    sessionLabel: null,
+  },
+  {
+    ...appearances[0],
+    id: "same-day-date",
+    startsAtPrecision: "date",
+    startsAt: null,
+    startsOn: "2026-09-17",
+    eventGroupId: null,
+    eventTitle: null,
+    sessionLabel: null,
+  },
+  {
+    ...appearances[0],
+    id: "same-day-exact-early",
+    startsAtPrecision: "exact",
+    startsAt: "2026-09-17T09:00:00+09:00",
+    startsOn: null,
+    eventGroupId: null,
+    eventTitle: null,
+    sessionLabel: null,
+  },
+  {
+    ...appearances[0],
+    id: "unknown-b",
+    startsAtPrecision: "unknown",
+    startsAt: null,
+    startsOn: null,
+    eventGroupId: null,
+    eventTitle: null,
+    sessionLabel: null,
+  },
+  {
+    ...appearances[0],
+    id: "unknown-a",
+    startsAtPrecision: "unknown",
+    startsAt: null,
+    startsOn: null,
+    eventGroupId: null,
+    eventTitle: null,
+    sessionLabel: null,
+  },
+];
+const precisionCards = buildAppearanceCards(precisionAppearances);
+const precisionGrouped = groupAppearanceCards(
+  precisionCards,
+  new Date("2026-09-17T12:00:00+09:00"),
+);
+assert.deepEqual(
+  precisionGrouped.upcoming.map((card) => card.sessions[0].id),
+  [
+    "same-day-date",
+    "same-day-exact-late",
+    "unknown-a",
+    "unknown-b",
+  ],
+);
+assert.deepEqual(
+  precisionGrouped.past.map((card) => card.sessions[0].id),
+  ["same-day-exact-early"],
+);
+const nextDayGrouped = groupAppearanceCards(
+  precisionCards,
+  new Date("2026-09-18T00:00:00+09:00"),
+);
+assert.ok(
+  nextDayGrouped.past.some(
+    (card) => card.sessions[0].id === "same-day-date",
+  ),
+);
+assert.deepEqual(
+  nextDayGrouped.upcoming.map((card) => card.sessions[0].id),
+  ["unknown-a", "unknown-b"],
+);
+assert.equal(formatAppearanceStart(precisionAppearances[0]), "2026年9月17日(木) 18:00");
+assert.equal(formatAppearanceStart(precisionAppearances[1]), "2026年9月17日");
+assert.equal(formatAppearanceStart(precisionAppearances[3]), "日時未定");
+
+const mixedGroupCards = buildAppearanceCards([
+  {
+    ...precisionAppearances[0],
+    id: "mixed-exact-late",
+    eventGroupId: "mixed-group",
+    eventTitle: "精度混在イベント",
+    sessionLabel: "夜公演",
+  },
+  {
+    ...precisionAppearances[1],
+    id: "mixed-date",
+    eventGroupId: "mixed-group",
+    eventTitle: "精度混在イベント",
+    sessionLabel: "日付のみ",
+  },
+  {
+    ...precisionAppearances[2],
+    id: "mixed-exact-early",
+    eventGroupId: "mixed-group",
+    eventTitle: "精度混在イベント",
+    sessionLabel: "朝公演",
+  },
+  {
+    ...precisionAppearances[3],
+    id: "mixed-unknown",
+    eventGroupId: "mixed-group",
+    eventTitle: "精度混在イベント",
+    sessionLabel: "詳細未定",
+  },
+]);
+assert.deepEqual(
+  mixedGroupCards[0].sessions.map((session) => session.id),
+  ["mixed-date", "mixed-exact-early", "mixed-exact-late", "mixed-unknown"],
+);
+
+const groupSortCards = buildAppearanceCards([
+  {
+    ...precisionAppearances[3],
+    id: "all-unknown-b",
+    eventGroupId: "all-unknown-group",
+    eventTitle: "全公演未定イベント",
+    sessionLabel: "公演B",
+  },
+  {
+    ...precisionAppearances[3],
+    id: "all-unknown-a",
+    eventGroupId: "all-unknown-group",
+    eventTitle: "全公演未定イベント",
+    sessionLabel: "公演A",
+  },
+  ...mixedGroupCards.flatMap((card) =>
+    card.sessions.map((session) => ({
+      ...precisionAppearances[0],
+      ...session,
+      eventGroupId: "mixed-group-copy",
+      eventTitle: "精度混在イベントのコピー",
+    })),
+  ),
+]);
+const groupSortUpcoming = groupAppearanceCards(
+  groupSortCards,
+  new Date("2026-09-17T12:00:00+09:00"),
+).upcoming;
+assert.deepEqual(
+  groupSortUpcoming.map((card) => card.id),
+  ["mixed-group-copy", "all-unknown-group"],
+);
+assert.deepEqual(
+  groupSortUpcoming[1].sessions.map((session) => session.id),
+  ["all-unknown-a", "all-unknown-b"],
+);
+
+const precisionYearCards = buildAppearanceCards([
+  {
+    ...precisionAppearances[0],
+    id: "tokyo-2027",
+    startsAt: "2026-12-31T16:00:00Z",
+  },
+  {
+    ...precisionAppearances[1],
+    id: "date-2026",
+    startsOn: "2026-12-31",
+  },
+  precisionAppearances[3],
+]);
+const precisionYearOptions = getAppearanceFilterOptions(precisionYearCards);
+assert.deepEqual(precisionYearOptions.years, ["2027", "2026"]);
+assert.deepEqual(
+  filterAppearanceCards(
+    precisionYearCards,
+    filtersFor(precisionYearCards, { year: "2026" }),
+  ).map((card) => card.sessions[0].id),
+  ["date-2026"],
+);
+assert.equal(
+  filterAppearanceCards(
+    precisionYearCards,
+    filtersFor(precisionYearCards, { year: "2027" }),
+  )[0]?.sessions[0].id,
+  "tokyo-2027",
+);
+assert.equal(
+  filterAppearanceCards(precisionYearCards, filtersFor(precisionYearCards, {}))
+    .length,
+  3,
+);
+
+validateAppearanceImportItems(
+  precisionAppearances.map((item, index) => ({
+    ...item,
+    sourceName: appearanceImportData[0].sourceName,
+    sourceItemId: `precision-${index}`,
+    seriesId: null,
+  })),
+  appearanceSeriesData,
+);
+assert.throws(
+  () =>
+    validateAppearanceImportItems(
+      [{
+        ...appearanceImportData[0],
+        id: "invalid-date-precision",
+        startsAtPrecision: "date",
+        startsAt: appearanceImportData[0].startsAt,
+        startsOn: "2026-09-17",
+      }],
+      appearanceSeriesData,
+    ),
+  /date startsAtPrecision requires startsOn only/,
+);
 
 assert.equal(
   createAppearanceFilterHref("/", "utm_source=test&year=2025", {

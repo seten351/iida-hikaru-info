@@ -8,14 +8,16 @@ export type Publication = Pick<
 type CommonInput = Pick<
   AppearanceImportItem,
   | "id"
-  | "startsAt"
   | "title"
   | "seriesId"
   | "category"
   | "sourceUrl"
   | "sourceName"
   | "sourceItemId"
-> & { publication?: Publication };
+> & {
+  startsAt: string;
+  publication?: Publication;
+};
 
 type SessionInput = CommonInput & {
   eventGroupId: string;
@@ -49,6 +51,8 @@ export function single(input: CommonInput): AppearanceImportItem {
   const { publication = unknownPublication, ...item } = input;
   return {
     ...item,
+    startsAtPrecision: "exact",
+    startsOn: null,
     eventGroupId: null,
     eventTitle: null,
     sessionLabel: null,
@@ -58,5 +62,10 @@ export function single(input: CommonInput): AppearanceImportItem {
 
 export function session(input: SessionInput): AppearanceImportItem {
   const { publication = unknownPublication, ...item } = input;
-  return { ...item, ...publication };
+  return {
+    ...item,
+    startsAtPrecision: "exact",
+    startsOn: null,
+    ...publication,
+  };
 }

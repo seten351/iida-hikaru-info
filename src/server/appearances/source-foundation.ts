@@ -369,7 +369,9 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
       .insert(appearancesTable)
       .values({
         id: item.id,
-        startsAt: new Date(item.startsAt),
+        startsAt: item.startsAt ? new Date(item.startsAt) : null,
+        startsOn: item.startsOn,
+        startsAtPrecision: item.startsAtPrecision,
         title: item.title,
         seriesId: item.seriesId,
         eventGroupId: item.eventGroupId,
@@ -392,7 +394,9 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
       .onConflictDoUpdate({
         target: appearancesTable.id,
         set: {
-          startsAt: new Date(item.startsAt),
+          startsAt: item.startsAt ? new Date(item.startsAt) : null,
+          startsOn: item.startsOn,
+          startsAtPrecision: item.startsAtPrecision,
           title: item.title,
           seriesId: item.seriesId,
           eventGroupId: item.eventGroupId,

@@ -6,7 +6,7 @@ import {
   type AppearanceCard,
   categoryClassNames,
   buildAppearanceCards,
-  formatAppearanceDate,
+  formatAppearanceStart,
   formatPublication,
   formatUpdatedAt,
   groupAppearanceCards,
@@ -29,6 +29,24 @@ type AppearanceSectionProps = {
   featured?: boolean;
 };
 
+function AppearanceStart({
+  session,
+}: {
+  session: AppearanceCard["sessions"][number];
+}) {
+  const label = formatAppearanceStart(session);
+
+  if (session.startsAtPrecision === "unknown") {
+    return <span>{label}</span>;
+  }
+
+  return (
+    <time dateTime={session.startsAt ?? session.startsOn!}>
+      {label}
+    </time>
+  );
+}
+
 function AppearanceCard({ item }: { item: AppearanceCard }) {
   const hasMultipleSources = item.sourceUrls.length > 1;
 
@@ -41,9 +59,7 @@ function AppearanceCard({ item }: { item: AppearanceCard }) {
           {item.category}
         </span>
         {!item.isGrouped && (
-          <time dateTime={item.sessions[0].startsAt}>
-            {formatAppearanceDate(item.sessions[0].startsAt)}
-          </time>
+          <AppearanceStart session={item.sessions[0]} />
         )}
       </div>
       <h3>{item.title}</h3>
@@ -52,9 +68,7 @@ function AppearanceCard({ item }: { item: AppearanceCard }) {
           {item.sessions.map((session) => (
             <li key={session.id}>
               <span>{session.sessionLabel}</span>
-              <time dateTime={session.startsAt}>
-                {formatAppearanceDate(session.startsAt)}
-              </time>
+              <AppearanceStart session={session} />
             </li>
           ))}
         </ul>

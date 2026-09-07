@@ -9,6 +9,7 @@ import {
   BackLink,
   DetailList,
   JsonSnapshot,
+  formatAdminAppearanceStart,
   formatAdminDate,
 } from "../../_components";
 import { SeriesEditor } from "../../write-flow";
@@ -57,7 +58,7 @@ export default async function AdminSeriesDetailPage({
               <Link href={`/admin/appearances/${appearance.id}`} prefetch={false}>
                 {appearance.title}
               </Link>
-              <span>{formatAdminDate(appearance.startsAt)} · {appearance.visibilityStatus} · v{appearance.version}</span>
+              <span>{formatAdminAppearanceStart(appearance)} · {appearance.visibilityStatus} · v{appearance.version}</span>
             </li>
           ))}
         </ul>

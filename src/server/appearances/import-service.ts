@@ -46,7 +46,9 @@ export type AppearanceSeriesImportPlan = {
 type ExistingAppearance = Pick<
   typeof appearancesTable.$inferSelect,
   | "id"
+  | "startsAtPrecision"
   | "startsAt"
+  | "startsOn"
   | "title"
   | "seriesId"
   | "eventGroupId"
@@ -67,7 +69,10 @@ function hasContentChanged(
   incoming: AppearanceImportItem,
 ) {
   return (
-    existing.startsAt.getTime() !== new Date(incoming.startsAt).getTime() ||
+    existing.startsAtPrecision !== incoming.startsAtPrecision ||
+    (existing.startsAt?.getTime() ?? null) !==
+      (incoming.startsAt === null ? null : new Date(incoming.startsAt).getTime()) ||
+    existing.startsOn !== incoming.startsOn ||
     existing.title !== incoming.title ||
     existing.seriesId !== incoming.seriesId ||
     existing.eventGroupId !== incoming.eventGroupId ||
@@ -95,7 +100,9 @@ export async function planAppearanceImport(
   const existingRows = await getDb()
     .select({
       id: appearancesTable.id,
+      startsAtPrecision: appearancesTable.startsAtPrecision,
       startsAt: appearancesTable.startsAt,
+      startsOn: appearancesTable.startsOn,
       title: appearancesTable.title,
       seriesId: appearancesTable.seriesId,
       eventGroupId: appearancesTable.eventGroupId,

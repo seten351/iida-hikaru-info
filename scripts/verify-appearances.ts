@@ -29,7 +29,9 @@ function fixture(
 ): Appearance {
   return {
     id,
+    startsAtPrecision: "exact",
     startsAt: "2026-10-01T18:00:00+09:00",
+    startsOn: null,
     title: id,
     seriesId: null,
     seriesName: null,
@@ -48,7 +50,9 @@ async function main() {
   const rows = await getDb()
     .select({
       id: appearancesTable.id,
+      startsAtPrecision: appearancesTable.startsAtPrecision,
       startsAt: appearancesTable.startsAt,
+      startsOn: appearancesTable.startsOn,
       title: appearancesTable.title,
       seriesId: appearancesTable.seriesId,
       eventGroupId: appearancesTable.eventGroupId,
@@ -75,7 +79,9 @@ async function main() {
 
   const actual = rows.map((row) => ({
     id: row.id,
-    startsAt: row.startsAt.toISOString(),
+    startsAtPrecision: row.startsAtPrecision,
+    startsAt: row.startsAt?.toISOString() ?? null,
+    startsOn: row.startsOn,
     title: row.title,
     seriesId: row.seriesId,
     eventGroupId: row.eventGroupId,
@@ -93,7 +99,8 @@ async function main() {
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((item) => ({
       ...item,
-      startsAt: new Date(item.startsAt).toISOString(),
+      startsAt:
+        item.startsAt === null ? null : new Date(item.startsAt).toISOString(),
       publishedAt:
         item.publishedAt === null ? null : new Date(item.publishedAt).toISOString(),
     }));
@@ -172,7 +179,9 @@ async function main() {
 
   const appearances: Appearance[] = rows.map((row) => ({
     id: row.id,
-    startsAt: row.startsAt.toISOString(),
+    startsAtPrecision: row.startsAtPrecision,
+    startsAt: row.startsAt?.toISOString() ?? null,
+    startsOn: row.startsOn,
     title: row.title,
     seriesId: row.seriesId,
     seriesName:

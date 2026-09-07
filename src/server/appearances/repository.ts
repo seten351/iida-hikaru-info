@@ -20,6 +20,8 @@ export async function getAppearancePageData(): Promise<{
     .select({
       id: appearancesTable.id,
       startsAt: appearancesTable.startsAt,
+      startsOn: appearancesTable.startsOn,
+      startsAtPrecision: appearancesTable.startsAtPrecision,
       title: appearancesTable.title,
       seriesId: appearancesTable.seriesId,
       seriesName: appearanceSeriesTable.displayName,
@@ -56,7 +58,7 @@ export async function getAppearancePageData(): Promise<{
       eq(appearancesTable.seriesId, appearanceSeriesTable.id),
     )
     .where(publicAppearanceCondition)
-    .orderBy(asc(appearancesTable.startsAt), asc(appearancesTable.id));
+    .orderBy(asc(appearancesTable.id));
 
   const lastUpdatedAt = rows.reduce<Date | null>(
     (latest, row) =>
@@ -67,7 +69,9 @@ export async function getAppearancePageData(): Promise<{
   return {
     appearances: rows.map((row) => ({
       id: row.id,
-      startsAt: row.startsAt.toISOString(),
+      startsAt: row.startsAt?.toISOString() ?? null,
+      startsOn: row.startsOn,
+      startsAtPrecision: row.startsAtPrecision,
       title: row.title,
       seriesId: row.seriesId,
       seriesName: row.seriesName,

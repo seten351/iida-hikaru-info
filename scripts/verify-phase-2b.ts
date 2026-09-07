@@ -53,7 +53,16 @@ async function main() {
   const db = getWriterDb();
   const [originalState] = await db.select().from(contentManagementStateTable)
     .where(eq(contentManagementStateTable.id, "singleton"));
-  assert.equal(originalState.contentMode, "bootstrap");
+  assert.ok(originalState);
+  assert.ok(
+    originalState.contentMode === "bootstrap" ||
+      (originalState.contentMode === "admin" &&
+        originalState.adminActivatedAt !== null &&
+        originalState.legacyImportLockedAt !== null &&
+        originalState.adminActivatedAt.getTime() ===
+          originalState.legacyImportLockedAt.getTime()),
+    "The isolated branch must have a valid bootstrap or activated state.",
+  );
   const fingerprint = async () => {
     const result = await db.execute(sql`select md5(jsonb_build_array(
       (select jsonb_agg(to_jsonb(t) order by id) from appearances t),
@@ -105,45 +114,47 @@ async function main() {
       displayName: `Phase 2B ${suffix}`,
     };
     await validateAdminWritePreview(createSeries);
-    const beforeRefusal = await fingerprint();
-    const refusedInputs: AdminWriteInput[] = [
-      createSeries,
-      { kind: "appearance", operation: "hide", appearanceId: "missing", expectedVersion: 1 },
-      { kind: "source", operation: "primary", targets: [{ appearanceId: "missing", expectedVersion: 1 }], source: { sourceId: "missing", evidenceKey: "default" } },
-    ];
-    for (const input of refusedInputs) {
-      await assert.rejects(confirmAdminWrite(input, key()), /activation/);
-      await assert.rejects(rejectAdminWrite(input, key()), /activation/);
-    }
-    assert.deepEqual(await fingerprint(), beforeRefusal);
-    // Only this ephemeral integration fixture simulates a completed activation.
-    const fixtureActivatedAt = new Date();
-    await db.update(contentManagementStateTable).set({
-      contentMode: "admin",
-      adminActivatedAt: fixtureActivatedAt,
-      legacyImportLockedAt: fixtureActivatedAt,
-    })
-      .where(eq(contentManagementStateTable.id, "singleton"));
-    await validateAdminWritePreview(createSeries);
-    let confirmAfterTransition: Promise<unknown> | undefined;
-    await db.transaction(async (tx) => {
-      await tx.update(contentManagementStateTable).set({
-        contentMode: "bootstrap",
-        adminActivatedAt: null,
-        legacyImportLockedAt: null,
+    if (originalState.contentMode === "bootstrap") {
+      const beforeRefusal = await fingerprint();
+      const refusedInputs: AdminWriteInput[] = [
+        createSeries,
+        { kind: "appearance", operation: "hide", appearanceId: "missing", expectedVersion: 1 },
+        { kind: "source", operation: "primary", targets: [{ appearanceId: "missing", expectedVersion: 1 }], source: { sourceId: "missing", evidenceKey: "default" } },
+      ];
+      for (const input of refusedInputs) {
+        await assert.rejects(confirmAdminWrite(input, key()), /activation/);
+        await assert.rejects(rejectAdminWrite(input, key()), /activation/);
+      }
+      assert.deepEqual(await fingerprint(), beforeRefusal);
+      // Only an ephemeral bootstrap fixture simulates the activation boundary.
+      const fixtureActivatedAt = new Date();
+      await db.update(contentManagementStateTable).set({
+        contentMode: "admin",
+        adminActivatedAt: fixtureActivatedAt,
+        legacyImportLockedAt: fixtureActivatedAt,
       })
         .where(eq(contentManagementStateTable.id, "singleton"));
-      // Confirm races a transaction holding the state lock and must see its committed mode.
-      confirmAfterTransition = assert.rejects(confirmAdminWrite(createSeries, key()), /activation/);
-    });
-    await confirmAfterTransition;
-    assert.deepEqual(await fingerprint(), beforeRefusal);
-    await db.update(contentManagementStateTable).set({
-      contentMode: "admin",
-      adminActivatedAt: fixtureActivatedAt,
-      legacyImportLockedAt: fixtureActivatedAt,
-    })
-      .where(eq(contentManagementStateTable.id, "singleton"));
+      await validateAdminWritePreview(createSeries);
+      let confirmAfterTransition: Promise<unknown> | undefined;
+      await db.transaction(async (tx) => {
+        await tx.update(contentManagementStateTable).set({
+          contentMode: "bootstrap",
+          adminActivatedAt: null,
+          legacyImportLockedAt: null,
+        })
+          .where(eq(contentManagementStateTable.id, "singleton"));
+        // Confirm waits for the state row lock and must see the committed mode.
+        confirmAfterTransition = assert.rejects(confirmAdminWrite(createSeries, key()), /activation/);
+      });
+      await confirmAfterTransition;
+      assert.deepEqual(await fingerprint(), beforeRefusal);
+      await db.update(contentManagementStateTable).set({
+        contentMode: "admin",
+        adminActivatedAt: fixtureActivatedAt,
+        legacyImportLockedAt: fixtureActivatedAt,
+      })
+        .where(eq(contentManagementStateTable.id, "singleton"));
+    }
     const seriesKey = key();
     const seriesCreated = approved(remember(await confirmAdminWrite(createSeries, seriesKey)));
     assert.deepEqual(seriesCreated.targets, [{ id: seriesId, version: 1 }]);
@@ -170,7 +181,9 @@ async function main() {
       expectedVersion: null,
       fields: {
         id,
-        startsAt: "2027-01-02T12:00:00+09:00",
+        startsAtPrecision: id.endsWith("-a") ? "date" : "unknown",
+        startsAt: null,
+        startsOn: id.endsWith("-a") ? "2027-01-02" : null,
         title,
         seriesId,
         eventGroupId: `${prefix}-group`,
@@ -191,6 +204,87 @@ async function main() {
       await validateAdminWritePreview(input);
       approved(remember(await confirmAdminWrite(input, key())));
     }
+
+    const createdStarts = await db
+      .select({
+        id: appearancesTable.id,
+        startsAtPrecision: appearancesTable.startsAtPrecision,
+        startsAt: appearancesTable.startsAt,
+        startsOn: appearancesTable.startsOn,
+      })
+      .from(appearancesTable)
+      .where(inArray(appearancesTable.id, [appearanceA, appearanceB]));
+    assert.deepEqual(
+      createdStarts.sort((left, right) => left.id.localeCompare(right.id)),
+      [
+        {
+          id: appearanceA,
+          startsAtPrecision: "date",
+          startsAt: null,
+          startsOn: "2027-01-02",
+        },
+        {
+          id: appearanceB,
+          startsAtPrecision: "unknown",
+          startsAt: null,
+          startsOn: null,
+        },
+      ],
+    );
+
+    const createdProposals = await db
+      .select({
+        appearanceId: appearanceProposalsTable.appearanceId,
+        startsAtPrecision: appearanceProposalsTable.startsAtPrecision,
+        startsAt: appearanceProposalsTable.startsAt,
+        startsOn: appearanceProposalsTable.startsOn,
+      })
+      .from(appearanceProposalsTable)
+      .where(inArray(appearanceProposalsTable.appearanceId, [appearanceA, appearanceB]));
+    assert.ok(createdProposals.some((row) =>
+      row.appearanceId === appearanceA &&
+      row.startsAtPrecision === "date" &&
+      row.startsAt === null &&
+      row.startsOn === "2027-01-02"
+    ));
+    assert.ok(createdProposals.some((row) =>
+      row.appearanceId === appearanceB &&
+      row.startsAtPrecision === "unknown" &&
+      row.startsAt === null &&
+      row.startsOn === null
+    ));
+
+    const initialRevisions = await db
+      .select({
+        appearanceId: appearanceRevisionsTable.appearanceId,
+        snapshotSchemaVersion: appearanceRevisionsTable.snapshotSchemaVersion,
+        snapshot: appearanceRevisionsTable.snapshot,
+      })
+      .from(appearanceRevisionsTable)
+      .where(inArray(appearanceRevisionsTable.appearanceId, [appearanceA, appearanceB]));
+    assert.ok(initialRevisions.every((row) => row.snapshotSchemaVersion === 3));
+    const snapshots = new Map(
+      initialRevisions.map((row) => [
+        row.appearanceId,
+        row.snapshot as { appearance: Record<string, unknown> },
+      ]),
+    );
+    assert.deepEqual(
+      {
+        startsAtPrecision: snapshots.get(appearanceA)?.appearance.startsAtPrecision,
+        startsAt: snapshots.get(appearanceA)?.appearance.startsAt,
+        startsOn: snapshots.get(appearanceA)?.appearance.startsOn,
+      },
+      { startsAtPrecision: "date", startsAt: null, startsOn: "2027-01-02" },
+    );
+    assert.deepEqual(
+      {
+        startsAtPrecision: snapshots.get(appearanceB)?.appearance.startsAtPrecision,
+        startsAt: snapshots.get(appearanceB)?.appearance.startsAt,
+        startsOn: snapshots.get(appearanceB)?.appearance.startsOn,
+      },
+      { startsAtPrecision: "unknown", startsAt: null, startsOn: null },
+    );
 
     const updateA = (title: string): AdminAppearanceMutationInput => ({
       kind: "appearance",
@@ -339,8 +433,17 @@ async function main() {
       .from(contentManagementStateTable)
       .where(eq(contentManagementStateTable.id, "singleton"));
     assert.equal(state.contentMode, "admin");
-    assert.equal(state.adminActivatedAt?.getTime(), fixtureActivatedAt.getTime());
-    assert.equal(state.legacyImportLockedAt?.getTime(), fixtureActivatedAt.getTime());
+    assert.ok(state.adminActivatedAt);
+    assert.equal(
+      state.adminActivatedAt.getTime(),
+      state.legacyImportLockedAt?.getTime(),
+    );
+    if (originalState.contentMode === "admin") {
+      assert.equal(
+        state.adminActivatedAt.getTime(),
+        originalState.adminActivatedAt?.getTime(),
+      );
+    }
 
     const [invariants] = await db.execute<{
       primary_violations: number;
@@ -370,7 +473,7 @@ async function main() {
         (select count(*)::int from appearance_revisions
           where appearance_id in (${appearanceA}, ${appearanceB})
             and actor_type = 'admin'
-            and snapshot_schema_version <> 2
+            and snapshot_schema_version <> 3
         ) as bad_admin_revisions,
         (select count(*)::int from appearance_revisions
           where appearance_id in (${appearanceA}, ${appearanceB})
@@ -411,12 +514,14 @@ async function main() {
     assert.ok(statuses.includes("rejected"));
     assert.ok(statuses.includes("superseded"));
   } finally {
-    await db.update(contentManagementStateTable).set({
-      contentMode: originalState.contentMode,
-      adminActivatedAt: originalState.adminActivatedAt,
-      legacyImportLockedAt: originalState.legacyImportLockedAt,
-    })
-      .where(eq(contentManagementStateTable.id, "singleton"));
+    if (originalState.contentMode === "bootstrap") {
+      await db.update(contentManagementStateTable).set({
+        contentMode: originalState.contentMode,
+        adminActivatedAt: originalState.adminActivatedAt,
+        legacyImportLockedAt: originalState.legacyImportLockedAt,
+      })
+        .where(eq(contentManagementStateTable.id, "singleton"));
+    }
     const appearanceIds = [appearanceA, appearanceB];
     const sourceRows = await db
       .select({ id: sourceItemsTable.id })

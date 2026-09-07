@@ -274,7 +274,9 @@ async function main() {
   const appearances = await getDb()
     .select({
       id: appearancesTable.id,
+      startsAtPrecision: appearancesTable.startsAtPrecision,
       startsAt: appearancesTable.startsAt,
+      startsOn: appearancesTable.startsOn,
       title: appearancesTable.title,
       seriesId: appearancesTable.seriesId,
       eventGroupId: appearancesTable.eventGroupId,
@@ -292,7 +294,7 @@ async function main() {
     buildAppearanceCards(
       appearances.map((appearance) => ({
         ...appearance,
-        startsAt: appearance.startsAt.toISOString(),
+        startsAt: appearance.startsAt?.toISOString() ?? null,
         seriesName: null,
         publishedAt: appearance.publishedAt?.toISOString() ?? null,
         collectedAt: appearance.collectedAt.toISOString(),

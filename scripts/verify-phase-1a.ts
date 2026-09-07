@@ -52,7 +52,9 @@ function fixture(
 ): AppearanceImportItem {
   return {
     id,
+    startsAtPrecision: "exact",
     startsAt: "2030-01-01T18:00:00+09:00",
+    startsOn: null,
     title: sessionLabel === null ? "Phase 1A transaction test" : `Test ${sessionLabel}`,
     seriesId: null,
     eventGroupId: sessionLabel === null ? null : `${testPrefix}event`,
@@ -93,7 +95,9 @@ async function readPublishedAppearances() {
   const rows = await getDb()
     .select({
       id: appearancesTable.id,
+      startsAtPrecision: appearancesTable.startsAtPrecision,
       startsAt: appearancesTable.startsAt,
+      startsOn: appearancesTable.startsOn,
       title: appearancesTable.title,
       seriesId: appearancesTable.seriesId,
       seriesName: appearanceSeriesTable.displayName,
@@ -117,7 +121,7 @@ async function readPublishedAppearances() {
   return rows.map(
     (row): Appearance => ({
       ...row,
-      startsAt: row.startsAt.toISOString(),
+      startsAt: row.startsAt?.toISOString() ?? null,
       publishedAt: row.publishedAt?.toISOString() ?? null,
       collectedAt: row.collectedAt.toISOString(),
     }),

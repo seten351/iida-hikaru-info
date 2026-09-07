@@ -19,7 +19,7 @@ import {
   sourceItemsTable,
 } from "@/db/schema";
 import {
-  buildAppearanceRevisionSnapshotV2,
+  buildAppearanceRevisionSnapshotV3,
   currentAppearanceSnapshotSchemaVersion,
 } from "@/server/appearances/revisions";
 import {
@@ -156,11 +156,38 @@ function fieldsForGroupUpdate(
 ): AdminAppearanceFields {
   return {
     id: current.id,
-    startsAt: current.startsAt.toISOString(),
+    startsAtPrecision: current.startsAtPrecision,
+    startsAt: current.startsAt?.toISOString() ?? null,
+    startsOn: current.startsOn,
     title: target.title,
     seriesId: current.seriesId,
     eventGroupId: current.eventGroupId,
     eventTitle,
+    sessionLabel: current.sessionLabel,
+    category: current.category,
+  };
+}
+
+function startValues(fields: AdminAppearanceFields) {
+  return {
+    startsAtPrecision: fields.startsAtPrecision,
+    startsAt: fields.startsAt ? new Date(fields.startsAt) : null,
+    startsOn: fields.startsOn,
+  };
+}
+
+function appearanceFields(
+  current: typeof appearancesTable.$inferSelect,
+): AdminAppearanceFields {
+  return {
+    id: current.id,
+    startsAtPrecision: current.startsAtPrecision,
+    startsAt: current.startsAt?.toISOString() ?? null,
+    startsOn: current.startsOn,
+    title: current.title,
+    seriesId: current.seriesId,
+    eventGroupId: current.eventGroupId,
+    eventTitle: current.eventTitle,
     sessionLabel: current.sessionLabel,
     category: current.category,
   };
@@ -363,7 +390,7 @@ async function insertRevision(
   operation: "create" | "update" | "hide" | "restore",
   linkedProposalId: string,
 ) {
-  const snapshot = await buildAppearanceRevisionSnapshotV2(tx, appearanceId);
+  const snapshot = await buildAppearanceRevisionSnapshotV3(tx, appearanceId);
   await tx.insert(appearanceRevisionsTable).values({
     appearanceId,
     version,
@@ -445,7 +472,11 @@ async function insertAppearanceProposal(
     status: values.status,
     appearanceId: values.appearanceId,
     expectedAppearanceVersion: values.expectedVersion,
-    startsAt: values.fields ? new Date(values.fields.startsAt) : null,
+    ...(values.fields ? startValues(values.fields) : {
+      startsAtPrecision: null,
+      startsAt: null,
+      startsOn: null,
+    }),
     title: values.fields?.title ?? null,
     seriesId: values.fields?.seriesId ?? null,
     eventGroupId: values.fields?.eventGroupId ?? null,
@@ -495,7 +526,7 @@ async function confirmAppearance(
     const source = await upsertAdminSource(tx, input.source, now);
     await tx.insert(appearancesTable).values({
       id: input.fields.id,
-      startsAt: new Date(input.fields.startsAt),
+      ...startValues(input.fields),
       title: input.fields.title,
       seriesId: input.fields.seriesId,
       eventGroupId: input.fields.eventGroupId,
@@ -582,7 +613,7 @@ async function confirmAppearance(
     .set({
       ...(input.operation === "update"
         ? {
-            startsAt: new Date(input.fields.startsAt),
+            ...startValues(input.fields),
             title: input.fields.title,
             seriesId: input.fields.seriesId,
             eventGroupId: input.fields.eventGroupId,
@@ -603,16 +634,7 @@ async function confirmAppearance(
   const fields: AdminAppearanceFields =
     input.operation === "update"
       ? input.fields
-      : {
-          id: current.id,
-          startsAt: current.startsAt.toISOString(),
-          title: current.title,
-          seriesId: current.seriesId,
-          eventGroupId: current.eventGroupId,
-          eventTitle: current.eventTitle,
-          sessionLabel: current.sessionLabel,
-          category: current.category,
-        };
+      : appearanceFields(current);
   const id = await insertAppearanceProposal(tx, {
     key,
     hash,

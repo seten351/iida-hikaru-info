@@ -3,7 +3,7 @@ import Link from "next/link";
 import { listAdminAppearances } from "@/server/admin/repository";
 import { requireAdminSession } from "@/server/admin/auth";
 
-import { AdminPageHeader, formatAdminDate } from "../_components";
+import { AdminPageHeader, formatAdminAppearanceStart } from "../_components";
 
 export default async function AdminAppearancesPage() {
   const [{ config }, appearances] = await Promise.all([
@@ -47,7 +47,7 @@ export default async function AdminAppearancesPage() {
                   </Link>
                   <small>{appearance.id}</small>
                 </td>
-                <td>{formatAdminDate(appearance.startsAt)}</td>
+                <td>{formatAdminAppearanceStart(appearance)}</td>
                 <td>{appearance.category}</td>
                 <td>{appearance.seriesName ?? "—"}</td>
                 <td>{appearance.visibilityStatus}</td>

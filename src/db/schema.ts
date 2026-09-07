@@ -19,6 +19,7 @@ import {
 import {
   appearanceCategories,
   publishedAtPrecisions,
+  startsAtPrecisions,
 } from "../domain/appearance";
 
 export const appearanceCategoryEnum = pgEnum(
@@ -29,6 +30,11 @@ export const appearanceCategoryEnum = pgEnum(
 export const publishedAtPrecisionEnum = pgEnum(
   "appearance_published_precision",
   publishedAtPrecisions,
+);
+
+export const startsAtPrecisionEnum = pgEnum(
+  "appearance_start_precision",
+  startsAtPrecisions,
 );
 
 export const appearanceVisibilityStatusEnum = pgEnum(
@@ -121,7 +127,9 @@ export const appearancesTable = pgTable(
     startsAt: timestamp("starts_at", {
       withTimezone: true,
       mode: "date",
-    }).notNull(),
+    }),
+    startsOn: date("starts_on", { mode: "string" }),
+    startsAtPrecision: startsAtPrecisionEnum("starts_at_precision").notNull(),
     title: text("title").notNull(),
     seriesId: text("series_id").references(() => appearanceSeriesTable.id, {
       onDelete: "restrict",
@@ -177,12 +185,19 @@ export const appearancesTable = pgTable(
         or (${table.eventGroupId} is not null and ${table.eventTitle} is not null and ${table.sessionLabel} is not null)`,
     ),
     check(
+      "appearances_starts_at_precision_valid",
+      sql`(${table.startsAtPrecision} = 'exact' and ${table.startsAt} is not null and ${table.startsOn} is null)
+        or (${table.startsAtPrecision} = 'date' and ${table.startsAt} is null and ${table.startsOn} is not null)
+        or (${table.startsAtPrecision} = 'unknown' and ${table.startsAt} is null and ${table.startsOn} is null)`,
+    ),
+    check(
       "appearances_published_at_precision_valid",
       sql`(${table.publishedAtPrecision} = 'exact' and ${table.publishedAt} is not null and ${table.publishedOn} is null)
         or (${table.publishedAtPrecision} = 'date' and ${table.publishedAt} is null and ${table.publishedOn} is not null)
         or (${table.publishedAtPrecision} = 'unknown' and ${table.publishedAt} is null and ${table.publishedOn} is null)`,
     ),
     index("appearances_starts_at_idx").on(table.startsAt),
+    index("appearances_starts_on_idx").on(table.startsOn),
     index("appearances_published_at_idx").on(table.publishedAt),
     index("appearances_series_id_idx").on(table.seriesId),
     index("appearances_event_group_id_idx").on(table.eventGroupId),
@@ -342,6 +357,8 @@ export const appearanceProposalsTable = pgTable(
     }),
     expectedAppearanceVersion: integer("expected_appearance_version"),
     startsAt: timestamp("starts_at", { withTimezone: true, mode: "date" }),
+    startsOn: date("starts_on", { mode: "string" }),
+    startsAtPrecision: startsAtPrecisionEnum("starts_at_precision"),
     title: text("title"),
     seriesId: text("series_id").references(() => appearanceSeriesTable.id, {
       onDelete: "restrict",
@@ -377,6 +394,13 @@ export const appearanceProposalsTable = pgTable(
     }),
   },
   (table) => [
+    check(
+      "appearance_proposals_starts_at_precision_valid",
+      sql`(${table.startsAtPrecision} is null and ${table.startsAt} is null and ${table.startsOn} is null)
+        or (${table.startsAtPrecision} = 'exact' and ${table.startsAt} is not null and ${table.startsOn} is null)
+        or (${table.startsAtPrecision} = 'date' and ${table.startsAt} is null and ${table.startsOn} is not null)
+        or (${table.startsAtPrecision} = 'unknown' and ${table.startsAt} is null and ${table.startsOn} is null)`,
+    ),
     index("appearance_proposals_appearance_id_idx").on(table.appearanceId),
     index("appearance_proposals_status_idx").on(table.status),
     index("appearance_proposals_admin_batch_id_idx").on(table.adminBatchId),
