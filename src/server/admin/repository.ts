@@ -217,6 +217,25 @@ export async function getAdminAppearance(appearanceId: string) {
   return { ...appearance, sourceLinks, revisions };
 }
 
+export async function getAdminEventGroup(eventGroupId: string) {
+  await requireAdminSession();
+  return getDb()
+    .select({
+      id: appearancesTable.id,
+      title: appearancesTable.title,
+      eventGroupId: appearancesTable.eventGroupId,
+      eventTitle: appearancesTable.eventTitle,
+      sessionLabel: appearancesTable.sessionLabel,
+      startsAt: appearancesTable.startsAt,
+      seriesId: appearancesTable.seriesId,
+      category: appearancesTable.category,
+      version: appearancesTable.version,
+    })
+    .from(appearancesTable)
+    .where(eq(appearancesTable.eventGroupId, eventGroupId))
+    .orderBy(asc(appearancesTable.id));
+}
+
 export async function listAdminSources() {
   await requireAdminSession();
   return getDb()

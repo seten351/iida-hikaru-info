@@ -65,6 +65,57 @@ test("Admin write input rejects partial event grouping and bad precision", () =>
   );
 });
 
+const groupUpdateInput = {
+  kind: "appearance-group",
+  operation: "update",
+  eventGroupId: "gakuen-idolmaster-fukuoka",
+  eventTitle: " 学園アイドルマスター LIVE TOUR -標- 福岡公演 ",
+  targets: [
+    {
+      appearanceId: "gakuen-idolmaster-fukuoka-day1",
+      expectedVersion: 4,
+      title: " 学園アイドルマスター LIVE TOUR -標- 福岡公演 DAY1 ",
+    },
+    {
+      appearanceId: "gakuen-idolmaster-fukuoka-day2",
+      expectedVersion: 7,
+      title: " 学園アイドルマスター LIVE TOUR -標- 福岡公演 DAY2 ",
+    },
+  ],
+} as const;
+
+test("Event group batch input normalizes every target for one atomic preview", () => {
+  const parsed = parseAdminWriteInput(groupUpdateInput);
+  assert.equal(parsed.kind, "appearance-group");
+  assert.equal(parsed.eventTitle, "学園アイドルマスター LIVE TOUR -標- 福岡公演");
+  assert.deepEqual(parsed.targets, [
+    {
+      appearanceId: "gakuen-idolmaster-fukuoka-day1",
+      expectedVersion: 4,
+      title: "学園アイドルマスター LIVE TOUR -標- 福岡公演 DAY1",
+    },
+    {
+      appearanceId: "gakuen-idolmaster-fukuoka-day2",
+      expectedVersion: 7,
+      title: "学園アイドルマスター LIVE TOUR -標- 福岡公演 DAY2",
+    },
+  ]);
+});
+
+test("Event group batch input rejects a non-atomic target set", () => {
+  assert.throws(
+    () => parseAdminWriteInput({ ...groupUpdateInput, targets: [groupUpdateInput.targets[0]] }),
+    AdminWriteValidationError,
+  );
+  assert.throws(
+    () => parseAdminWriteInput({
+      ...groupUpdateInput,
+      targets: [groupUpdateInput.targets[0], groupUpdateInput.targets[0]],
+    }),
+    AdminWriteValidationError,
+  );
+});
+
 test("Preview token is signed, expiring, and contains revalidated input", () => {
   const now = new Date("2026-09-06T00:00:00.000Z");
   const parsed = parseAdminWriteInput(appearanceInput);
@@ -84,6 +135,13 @@ test("Preview token is signed, expiring, and contains revalidated input", () => 
     verifyAdminPreviewToken(token, secret, new Date("2026-09-06T00:15:00.001Z")),
     null,
   );
+});
+
+test("Preview token preserves the complete event group batch", () => {
+  const now = new Date("2026-09-06T00:00:00.000Z");
+  const parsed = parseAdminWriteInput(groupUpdateInput);
+  const token = createAdminPreviewToken(parsed, secret, now);
+  assert.deepEqual(verifyAdminPreviewToken(token, secret, now)?.input, parsed);
 });
 
 test("Appearance revision decoder keeps v1 compatibility and accepts v2", () => {

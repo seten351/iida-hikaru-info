@@ -140,6 +140,57 @@ export function AppearanceEditor({
   );
 }
 
+export function EventGroupEditor({
+  eventGroupId,
+  eventTitle,
+  appearances,
+}: {
+  eventGroupId: string;
+  eventTitle: string;
+  appearances: Array<{ id: string; title: string; sessionLabel: string; version: number }>;
+}) {
+  const [nextEventTitle, setNextEventTitle] = useState(eventTitle);
+  const [targets, setTargets] = useState(appearances);
+  const input: AdminWriteInput = {
+    kind: "appearance-group",
+    operation: "update",
+    eventGroupId,
+    eventTitle: nextEventTitle,
+    targets: targets.map((target) => ({
+      appearanceId: target.id,
+      expectedVersion: target.version,
+      title: target.title,
+    })),
+  };
+  const { state, dispatch, pending } = usePreview(input);
+  if (state.stage === "preview") return <Confirmation state={state} />;
+  if (state.stage === "complete") return <Result state={state} />;
+
+  return (
+    <form action={dispatch} className="admin-write-form">
+      <p className="admin-form-note">
+        group内の全{appearances.length}件を同一transactionで更新します。開始日時・series・event group ID・session label・sourceは変更できません。
+      </p>
+      <label>event title<input required value={nextEventTitle} onChange={(event) => setNextEventTitle(event.target.value)} /></label>
+      <fieldset className="admin-fieldset">
+        <legend>appearance title</legend>
+        {targets.map((target, index) => (
+          <label key={target.id}>
+            {target.sessionLabel} · {target.id} (v{target.version})
+            <input
+              required
+              value={target.title}
+              onChange={(event) => setTargets((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, title: event.target.value } : item))}
+            />
+          </label>
+        ))}
+      </fieldset>
+      <Result state={state} />
+      <button disabled={pending} type="submit">{pending ? "検証中…" : "Preview"}</button>
+    </form>
+  );
+}
+
 function SourceFields({
   source,
   update,

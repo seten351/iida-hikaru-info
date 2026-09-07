@@ -43,6 +43,11 @@ export default async function AdminAppearanceDetailPage({
       {config.writeEnabled ? (
         <div className="admin-page-actions">
           <Link href={`/admin/appearances/${appearance.id}/edit`} prefetch={false}>基本情報を編集</Link>
+          {appearance.eventGroupId ? (
+            <Link href={`/admin/event-groups/${encodeURIComponent(appearance.eventGroupId)}/edit`} prefetch={false}>
+              同じevent groupを一括編集
+            </Link>
+          ) : null}
         </div>
       ) : null}
       <section className="admin-panel">

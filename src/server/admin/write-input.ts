@@ -50,6 +50,18 @@ export type AdminAppearanceMutationInput =
       expectedVersion: number;
     };
 
+export type AdminAppearanceGroupMutationInput = {
+  kind: "appearance-group";
+  operation: "update";
+  eventGroupId: string;
+  eventTitle: string;
+  targets: Array<{
+    appearanceId: string;
+    expectedVersion: number;
+    title: string;
+  }>;
+};
+
 export type AdminSourceMutationInput = {
   kind: "source";
   operation: "append" | "replace" | "primary";
@@ -77,6 +89,7 @@ export type AdminSeriesMutationInput =
 
 export type AdminWriteInput =
   | AdminAppearanceMutationInput
+  | AdminAppearanceGroupMutationInput
   | AdminSourceMutationInput
   | AdminSeriesMutationInput;
 
@@ -270,6 +283,32 @@ export function parseAdminWriteInput(value: unknown): AdminWriteInput {
         expectedVersion: positiveVersion(input.expectedVersion, "version"),
       };
     }
+  }
+  if (input.kind === "appearance-group") {
+    if (input.operation !== "update") {
+      throw new AdminWriteValidationError("event group操作が不正です。");
+    }
+    if (!Array.isArray(input.targets) || input.targets.length < 2 || input.targets.length > 100) {
+      throw new AdminWriteValidationError("event groupの対象appearanceを2〜100件指定してください。");
+    }
+    const targets = input.targets.map((value) => {
+      const target = record(value, "対象appearance");
+      return {
+        appearanceId: normalizedId(target.appearanceId, "appearance ID"),
+        expectedVersion: positiveVersion(target.expectedVersion, "version"),
+        title: requiredString(target.title, "タイトル", 500),
+      };
+    });
+    if (new Set(targets.map((target) => target.appearanceId)).size !== targets.length) {
+      throw new AdminWriteValidationError("対象appearanceが重複しています。");
+    }
+    return {
+      kind: "appearance-group",
+      operation: "update",
+      eventGroupId: requiredString(input.eventGroupId, "event group ID", 200),
+      eventTitle: requiredString(input.eventTitle, "event title", 500),
+      targets,
+    };
   }
   if (input.kind === "source") {
     if (!["append", "replace", "primary"].includes(String(input.operation))) {

@@ -32,6 +32,7 @@ import {
   AdminWriteValidationError,
   parseAdminWriteInput,
   type AdminAppearanceFields,
+  type AdminAppearanceGroupMutationInput,
   type AdminSourceInput,
   type AdminSourceMutationInput,
   type AdminWriteInput,
@@ -146,6 +147,69 @@ async function validateEventGroup(
       );
     }
   }
+}
+
+function fieldsForGroupUpdate(
+  current: typeof appearancesTable.$inferSelect,
+  target: AdminAppearanceGroupMutationInput["targets"][number],
+  eventTitle: string,
+): AdminAppearanceFields {
+  return {
+    id: current.id,
+    startsAt: current.startsAt.toISOString(),
+    title: target.title,
+    seriesId: current.seriesId,
+    eventGroupId: current.eventGroupId,
+    eventTitle,
+    sessionLabel: current.sessionLabel,
+    category: current.category,
+  };
+}
+
+async function readAndValidateEventGroup(
+  tx: WriterTransaction,
+  input: AdminAppearanceGroupMutationInput,
+  lock = false,
+  verifyVersions = true,
+) {
+  const query = tx
+    .select()
+    .from(appearancesTable)
+    .where(eq(appearancesTable.eventGroupId, input.eventGroupId))
+    .orderBy(asc(appearancesTable.id));
+  const rows = lock ? await query.for("update") : await query;
+  const targets = new Map(input.targets.map((target) => [target.appearanceId, target]));
+  if (rows.length !== targets.size || rows.some((row) => !targets.has(row.id))) {
+    throw new AdminWriteValidationError(
+      "event groupの全appearanceを同時に指定してください。",
+    );
+  }
+  if (verifyVersions && rows.some((row) => row.version !== targets.get(row.id)?.expectedVersion)) {
+    throw new AdminWriteValidationError("対象appearanceのversionが更新されています。");
+  }
+  if (
+    rows.some(
+      (row) =>
+        row.eventGroupId !== input.eventGroupId ||
+        row.eventTitle === null ||
+        row.sessionLabel === null,
+    )
+  ) {
+    throw new AdminWriteValidationError("event groupの現在の状態が不正です。");
+  }
+  const [first] = rows;
+  if (
+    rows.some(
+      (row) =>
+        row.category !== first.category ||
+        row.seriesId !== first.seriesId ||
+        row.eventTitle !== first.eventTitle,
+    ) ||
+    new Set(rows.map((row) => row.sessionLabel)).size !== rows.length
+  ) {
+    throw new AdminWriteValidationError("event group invariantに違反しています。");
+  }
+  return { rows, targets };
 }
 
 async function upsertAdminSource(
@@ -564,6 +628,88 @@ async function confirmAppearance(
   return { status: "approved", proposalIds: [id], targets: [{ id: current.id, version: nextVersion }], replayed: false };
 }
 
+async function confirmAppearanceGroup(
+  tx: WriterTransaction,
+  input: AdminAppearanceGroupMutationInput,
+  key: string,
+  hash: string,
+): Promise<AdminWriteResult> {
+  await lockMutation(tx, `event-group:${input.eventGroupId}`);
+  const { rows, targets } = await readAndValidateEventGroup(tx, input, true, false);
+  const now = new Date();
+  const stale = rows.filter((row) => row.version !== targets.get(row.id)?.expectedVersion);
+  if (stale.length) {
+    const proposalIds: string[] = [];
+    for (const current of rows) {
+      proposalIds.push(
+        await insertAppearanceProposal(tx, {
+          key: `${key}:${current.id}`,
+          batchId: key,
+          hash,
+          status: "superseded",
+          operation: "update",
+          appearanceId: current.id,
+          expectedVersion: targets.get(current.id)?.expectedVersion ?? null,
+          fields: fieldsForGroupUpdate(current, targets.get(current.id)!, input.eventTitle),
+          note: "batch内にstale versionがあるため全件を拒否しました。",
+        }),
+      );
+    }
+    return {
+      status: "superseded",
+      proposalIds,
+      message: "対象の一部に先行変更があります。全件を再確認してください。",
+      replayed: false,
+    };
+  }
+
+  for (const current of rows) {
+    const target = targets.get(current.id)!;
+    await tx
+      .update(appearancesTable)
+      .set({
+        title: target.title,
+        eventTitle: input.eventTitle,
+        version: current.version + 1,
+        updatedAt: now,
+      })
+      .where(eq(appearancesTable.id, current.id));
+  }
+
+  const proposalIds: string[] = [];
+  const approvedTargets: ApprovedResult["targets"] = [];
+  for (const current of rows) {
+    const target = targets.get(current.id)!;
+    const nextVersion = current.version + 1;
+    const id = await insertAppearanceProposal(tx, {
+      key: `${key}:${current.id}`,
+      batchId: key,
+      hash,
+      status: "approved",
+      operation: "update",
+      appearanceId: current.id,
+      expectedVersion: current.version,
+      fields: fieldsForGroupUpdate(current, target, input.eventTitle),
+      visibilityStatus: current.visibilityStatus,
+    });
+    proposalIds.push(id);
+    approvedTargets.push({ id: current.id, version: nextVersion });
+  }
+  for (const current of rows) {
+    await assertAppearanceInvariant(tx, current.id);
+  }
+  for (const current of rows) {
+    await insertRevision(
+      tx,
+      current.id,
+      current.version + 1,
+      "update",
+      proposalIds[approvedTargets.findIndex((target) => target.id === current.id)],
+    );
+  }
+  return { status: "approved", proposalIds, targets: approvedTargets, replayed: false };
+}
+
 async function confirmSource(
   tx: WriterTransaction,
   input: AdminSourceMutationInput,
@@ -843,6 +989,7 @@ export async function confirmAdminWrite(
         : await readAppearanceReplay(tx, idempotencyKey, hash);
     if (replay) return replay;
     if (input.kind === "appearance") return confirmAppearance(tx, input, idempotencyKey, hash);
+    if (input.kind === "appearance-group") return confirmAppearanceGroup(tx, input, idempotencyKey, hash);
     if (input.kind === "source") return confirmSource(tx, input, idempotencyKey, hash);
     return confirmSeries(tx, input, idempotencyKey, hash);
   });
@@ -945,6 +1092,8 @@ export async function validateAdminWritePreview(untrustedInput: unknown) {
           await validateEventGroup(tx, input.fields, current.id);
         }
       }
+    } else if (input.kind === "appearance-group") {
+      await readAndValidateEventGroup(tx, input);
     } else if (input.kind === "source") {
       const ids = input.targets.map((target) => target.appearanceId);
       const rows = await tx
