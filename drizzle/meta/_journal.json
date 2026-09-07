@@ -64,6 +64,13 @@
       "when": 1788672075010,
       "tag": "0008_phase2b_admin_write",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788771170825,
+      "tag": "0009_add_game_appearance_category",
+      "breakpoints": true
     }
   ]
 }

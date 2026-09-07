@@ -444,6 +444,11 @@ nav a:hover {
   color: #605750;
 }
 
+.category-game {
+  background: #fff0d9;
+  color: #8a5416;
+}
+
 .appearance-card h3 {
   margin: 1.25rem 0 0.7rem;
   font-size: 1.06rem;

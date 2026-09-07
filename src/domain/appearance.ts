@@ -4,6 +4,7 @@ export const appearanceCategories = [
   "配信",
   "イベント",
   "その他",
+  "ゲーム",
 ] as const;
 
 export type AppearanceCategory = (typeof appearanceCategories)[number];

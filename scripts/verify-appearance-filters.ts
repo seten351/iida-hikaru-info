@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 
-import type { Appearance } from "../src/domain/appearance";
+import {
+  validateAppearanceImportItems,
+  type Appearance,
+} from "../src/domain/appearance";
 import {
   createAppearanceFilterHref,
   filterAppearanceCards,
@@ -34,6 +37,57 @@ function filtersFor(
 
 const cards = buildAppearanceCards(appearances);
 const options = getAppearanceFilterOptions(cards);
+
+const gameAppearance: Appearance = {
+  ...appearances[0],
+  id: "game-category-verification",
+  title: "ゲーム出演検証",
+  seriesId: null,
+  seriesName: null,
+  eventGroupId: null,
+  eventTitle: null,
+  sessionLabel: null,
+  category: "ゲーム",
+};
+const cardsWithGame = buildAppearanceCards([...appearances, gameAppearance]);
+const optionsWithGame = getAppearanceFilterOptions(cardsWithGame);
+
+validateAppearanceImportItems(
+  [{
+    ...appearanceImportData[0],
+    id: "game-category-validation",
+    title: "ゲーム出演検証",
+    seriesId: null,
+    eventGroupId: null,
+    eventTitle: null,
+    sessionLabel: null,
+    category: "ゲーム",
+  }],
+  appearanceSeriesData,
+);
+assert.ok(optionsWithGame.categories.includes("ゲーム"));
+const game = filterAppearanceCards(
+  cardsWithGame,
+  parseAppearanceFilters({ category: "ゲーム" }, optionsWithGame),
+);
+assert.equal(game.length, 1);
+assert.equal(game[0].category, "ゲーム");
+assert.equal(
+  filterAppearanceCards(
+    cardsWithGame,
+    parseAppearanceFilters({ q: "ゲーム出演" }, optionsWithGame),
+  )[0]?.id,
+  "appearance:game-category-verification",
+);
+assert.equal(
+  createAppearanceFilterHref("/", "", {
+    q: "",
+    series: null,
+    category: "ゲーム",
+    year: null,
+  }),
+  "/?category=%E3%82%B2%E3%83%BC%E3%83%A0",
+);
 
 assert.equal(appearances.length, 120);
 assert.equal(cards.length, 97);

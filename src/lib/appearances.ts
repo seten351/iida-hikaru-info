@@ -31,6 +31,7 @@ export const categoryClassNames: Record<AppearanceCategory, string> = {
   配信: "category-stream",
   イベント: "category-event",
   その他: "category-other",
+  ゲーム: "category-game",
 };
 
 export function formatAppearanceDate(value: string) {

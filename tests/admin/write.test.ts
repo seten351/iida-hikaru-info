@@ -48,6 +48,19 @@ test("Admin write input normalizes valid values and preserves publication precis
   assert.equal(parsed.source.publishedOn, "2026-09-05");
 });
 
+test("Admin write input accepts the game category", () => {
+  const parsed = parseAdminWriteInput({
+    ...appearanceInput,
+    fields: { ...appearanceInput.fields, category: "ゲーム" },
+  });
+  assert.equal(parsed.kind, "appearance");
+  assert.equal(parsed.operation, "create");
+  if (parsed.kind !== "appearance" || parsed.operation !== "create") {
+    assert.fail("Expected an appearance create input.");
+  }
+  assert.equal(parsed.fields.category, "ゲーム");
+});
+
 test("Admin write input rejects partial event grouping and bad precision", () => {
   assert.throws(
     () => parseAdminWriteInput({
