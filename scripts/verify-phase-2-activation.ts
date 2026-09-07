@@ -127,23 +127,26 @@ async function main() {
     .orderBy(appearanceRevisionsTable.appearanceId)
     .limit(1);
   assert.ok(revision);
-  await db
-    .update(appearanceRevisionsTable)
-    .set({ snapshot: {} })
-    .where(
-      sql`${appearanceRevisionsTable.appearanceId} = ${revision.appearanceId}
-        and ${appearanceRevisionsTable.version} = ${revision.version}`,
-    );
-  await assert.rejects(activateAdminContent(valid), /revision invariant/);
-  const afterFailedActivation = await readAdminActivationState();
-  assert.equal(afterFailedActivation.classification, "ready");
-  await db
-    .update(appearanceRevisionsTable)
-    .set({ snapshot: revision.snapshot })
-    .where(
-      sql`${appearanceRevisionsTable.appearanceId} = ${revision.appearanceId}
-        and ${appearanceRevisionsTable.version} = ${revision.version}`,
-    );
+  try {
+    await db
+      .update(appearanceRevisionsTable)
+      .set({ snapshot: {} })
+      .where(
+        sql`${appearanceRevisionsTable.appearanceId} = ${revision.appearanceId}
+          and ${appearanceRevisionsTable.version} = ${revision.version}`,
+      );
+    await assert.rejects(activateAdminContent(valid), /revision invariant/);
+    const afterFailedActivation = await readAdminActivationState();
+    assert.equal(afterFailedActivation.classification, "ready");
+  } finally {
+    await db
+      .update(appearanceRevisionsTable)
+      .set({ snapshot: revision.snapshot })
+      .where(
+        sql`${appearanceRevisionsTable.appearanceId} = ${revision.appearanceId}
+          and ${appearanceRevisionsTable.version} = ${revision.version}`,
+      );
+  }
   assert.deepEqual(await contentFingerprint(), baselineFingerprint);
 
   const concurrent = await Promise.all([

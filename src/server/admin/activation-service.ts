@@ -191,11 +191,11 @@ async function assertActivationCheckpoint(tx: WriterTransaction) {
         + (select count(*) from appearance_series_proposals)
         + (select count(*) from appearance_series_revisions where actor_type = 'admin'))::int as bad_admin_artifacts,
       ((select count(*) from appearances where
-        (published_at_precision = 'timestamp' and (published_at is null or published_on is not null))
+        (published_at_precision = 'exact' and (published_at is null or published_on is not null))
         or (published_at_precision = 'date' and (published_at is not null or published_on is null))
         or (published_at_precision = 'unknown' and (published_at is not null or published_on is not null)))
         + (select count(*) from appearance_source_links where
-          (published_at_precision = 'timestamp' and (published_at is null or published_on is not null))
+          (published_at_precision = 'exact' and (published_at is null or published_on is not null))
           or (published_at_precision = 'date' and (published_at is not null or published_on is null))
           or (published_at_precision = 'unknown' and (published_at is not null or published_on is not null))))::int as bad_publication_precision
   `);
