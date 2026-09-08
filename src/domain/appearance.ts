@@ -43,6 +43,8 @@ export type Appearance = {
   eventTitle: string | null;
   sessionLabel: string | null;
   category: AppearanceCategory;
+  /** Active source URLs, with the primary source first. */
+  sourceUrls: string[];
   sourceUrl: string;
   publishedAtPrecision: PublishedAtPrecision;
   publishedAt: string | null;
@@ -52,7 +54,7 @@ export type Appearance = {
 
 export type AppearanceImportItem = Omit<
   Appearance,
-  "collectedAt" | "seriesName"
+  "collectedAt" | "seriesName" | "sourceUrls"
 > & {
   sourceName: OfficialAppearanceSourceName;
   sourceItemId: string;

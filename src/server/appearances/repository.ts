@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
 import {
@@ -60,6 +60,43 @@ export async function getAppearancePageData(): Promise<{
     .where(publicAppearanceCondition)
     .orderBy(asc(appearancesTable.id));
 
+  // Publication metadata intentionally comes from the active primary link above.
+  // Fetch all active links separately so secondary sources do not affect it.
+  const activeSources = await getDb()
+    .select({
+      appearanceId: appearanceSourceLinksTable.appearanceId,
+      sourceUrl: sourceItemsTable.canonicalUrl,
+    })
+    .from(appearanceSourceLinksTable)
+    .innerJoin(
+      appearancesTable,
+      eq(appearanceSourceLinksTable.appearanceId, appearancesTable.id),
+    )
+    .innerJoin(
+      sourceItemsTable,
+      eq(appearanceSourceLinksTable.sourceId, sourceItemsTable.id),
+    )
+    .where(
+      and(
+        eq(appearanceSourceLinksTable.active, true),
+        publicAppearanceCondition,
+      ),
+    )
+    .orderBy(
+      asc(appearanceSourceLinksTable.appearanceId),
+      desc(appearanceSourceLinksTable.isPrimary),
+      asc(sourceItemsTable.canonicalUrl),
+    );
+
+  const sourceUrlsByAppearanceId = new Map<string, string[]>();
+  for (const source of activeSources) {
+    const urls = sourceUrlsByAppearanceId.get(source.appearanceId) ?? [];
+    if (!urls.includes(source.sourceUrl)) {
+      urls.push(source.sourceUrl);
+      sourceUrlsByAppearanceId.set(source.appearanceId, urls);
+    }
+  }
+
   const lastUpdatedAt = rows.reduce<Date | null>(
     (latest, row) =>
       latest === null || row.updatedAt > latest ? row.updatedAt : latest,
@@ -79,6 +116,7 @@ export async function getAppearancePageData(): Promise<{
       eventTitle: row.eventTitle,
       sessionLabel: row.sessionLabel,
       category: row.category,
+      sourceUrls: sourceUrlsByAppearanceId.get(row.id) ?? [row.sourceUrl],
       sourceUrl: row.sourceUrl,
       publishedAt: row.publishedAt?.toISOString() ?? null,
       publishedOn: row.publishedOn,

@@ -28,6 +28,7 @@ const appearances: Appearance[] = appearanceImportData.map((item) => ({
   startsAtPrecision: "exact",
   startsOn: null,
   seriesName: item.seriesId === null ? null : seriesNames.get(item.seriesId) ?? null,
+  sourceUrls: [item.sourceUrl],
   collectedAt: "2026-09-02T00:00:00+09:00",
 }));
 
@@ -193,6 +194,31 @@ const crossYearCards = buildAppearanceCards([
     eventTitle: "年またぎイベント",
     sessionLabel: "DAY2",
   },
+]);
+const multipleSourcesCards = buildAppearanceCards([
+  {
+    ...appearances[0],
+    id: "multiple-sources-primary",
+    eventGroupId: "multiple-sources",
+    eventTitle: "複数情報元イベント",
+    sessionLabel: "DAY1",
+    sourceUrls: ["https://x.com/example/status/primary", "https://x.com/example/status/secondary"],
+    sourceUrl: "https://x.com/example/status/primary",
+  },
+  {
+    ...appearances[0],
+    id: "multiple-sources-grouped",
+    eventGroupId: "multiple-sources",
+    eventTitle: "複数情報元イベント",
+    sessionLabel: "DAY2",
+    sourceUrls: ["https://x.com/example/status/secondary", "https://x.com/example/status/third"],
+    sourceUrl: "https://x.com/example/status/secondary",
+  },
+]);
+assert.deepEqual(multipleSourcesCards[0].sourceUrls, [
+  "https://x.com/example/status/primary",
+  "https://x.com/example/status/secondary",
+  "https://x.com/example/status/third",
 ]);
 assert.equal(firstGroup.isGrouped, true);
 const crossYearMatches = filterAppearanceCards(

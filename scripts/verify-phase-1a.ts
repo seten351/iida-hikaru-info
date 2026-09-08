@@ -121,6 +121,7 @@ async function readPublishedAppearances() {
   return rows.map(
     (row): Appearance => ({
       ...row,
+      sourceUrls: [row.sourceUrl],
       startsAt: row.startsAt?.toISOString() ?? null,
       publishedAt: row.publishedAt?.toISOString() ?? null,
       collectedAt: row.collectedAt.toISOString(),

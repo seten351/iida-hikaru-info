@@ -39,6 +39,7 @@ function fixture(
     eventTitle: null,
     sessionLabel: null,
     category: "イベント",
+    sourceUrls: ["https://x.com/iidahikaroom/status/2056344052958638140"],
     sourceUrl: "https://x.com/iidahikaroom/status/2056344052958638140",
     ...publication,
   };
@@ -88,6 +89,7 @@ async function main() {
     eventTitle: row.eventTitle,
     sessionLabel: row.sessionLabel,
     category: row.category,
+    sourceUrls: [row.sourceUrl],
     sourceUrl: row.sourceUrl,
     publishedAtPrecision: row.publishedAtPrecision,
     publishedAt: row.publishedAt?.toISOString() ?? null,
@@ -193,6 +195,7 @@ async function main() {
     eventTitle: row.eventTitle,
     sessionLabel: row.sessionLabel,
     category: row.category,
+    sourceUrls: [row.sourceUrl],
     sourceUrl: row.sourceUrl,
     publishedAtPrecision: row.publishedAtPrecision,
     publishedAt: row.publishedAt?.toISOString() ?? null,

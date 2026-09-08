@@ -294,6 +294,7 @@ async function main() {
     buildAppearanceCards(
       appearances.map((appearance) => ({
         ...appearance,
+        sourceUrls: [appearance.sourceUrl],
         startsAt: appearance.startsAt?.toISOString() ?? null,
         seriesName: null,
         publishedAt: appearance.publishedAt?.toISOString() ?? null,

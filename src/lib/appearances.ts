@@ -260,8 +260,10 @@ export function buildAppearanceCards(items: Appearance[]): AppearanceCard[] {
         throw new Error(`Event group ${existing.id} has inconsistent series metadata.`);
       }
       existing.sessions.push(session);
-      if (!existing.sourceUrls.includes(item.sourceUrl)) {
-        existing.sourceUrls.push(item.sourceUrl);
+      for (const sourceUrl of item.sourceUrls) {
+        if (!existing.sourceUrls.includes(sourceUrl)) {
+          existing.sourceUrls.push(sourceUrl);
+        }
       }
       if (comparePublications(publicationOf(item), existing.publication) < 0) {
         existing.publication = publicationOf(item);
@@ -276,7 +278,7 @@ export function buildAppearanceCards(items: Appearance[]): AppearanceCard[] {
       seriesName: item.seriesName,
       category: item.category,
       sessions: [session],
-      sourceUrls: [item.sourceUrl],
+      sourceUrls: [...new Set(item.sourceUrls)],
       publication: publicationOf(item),
       isGrouped,
     });
