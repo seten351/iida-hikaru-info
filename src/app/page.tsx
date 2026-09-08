@@ -3,6 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 
 import { AppearanceFilters } from "@/app/appearance-filters";
+import { LatestAppearanceList } from "@/app/latest-appearance-list";
 import {
   type AppearanceCard,
   categoryClassNames,
@@ -368,15 +369,22 @@ export default async function Home(props: PageProps<"/">) {
           />
         </Suspense>
 
-        <AppearanceSection
-          id="latest"
-          eyebrow="LATEST NEWS"
-          title="新着情報"
-          description="最近追加された出演情報をお知らせします。"
-          items={latest}
-          emptyMessage={isFiltering ? noMatchingMessage : "新着情報はまだありません。"}
-          featured
-        />
+        <section className="appearance-section latest-section" id="latest" aria-labelledby="latest-heading">
+          <header className="section-heading latest-section__heading">
+            <div>
+              <p className="eyebrow">LATEST NEWS</p>
+              <h2 id="latest-heading">新着情報</h2>
+            </div>
+            <p>公式発表日が新しい順に表示しています。</p>
+          </header>
+          {latest.length > 0 ? (
+            <LatestAppearanceList items={latest} />
+          ) : (
+            <p className="empty-state">
+              {isFiltering ? noMatchingMessage : "新着情報はまだありません。"}
+            </p>
+          )}
+        </section>
 
         <AppearanceScheduleSection
           schedule={schedule}

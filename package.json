@@ -19,6 +19,7 @@
     "verify:phase1c": "NODE_OPTIONS=--conditions=react-server tsx scripts/verify-phase-1c.ts",
     "admin:password-verifier": "tsx scripts/generate-admin-password-verifier.ts",
     "verify:phase2a": "NODE_OPTIONS=--conditions=react-server tsx scripts/verify-phase-2a.ts",
+    "test:latest-ui": "tsx --test tests/latest-appearance-list.test.tsx",
     "test:phase2a": "NODE_OPTIONS=--conditions=react-server tsx --test tests/admin/security.test.ts",
     "test:phase2b": "NODE_OPTIONS=--conditions=react-server tsx --test tests/admin/*.test.ts",
     "verify:phase2b": "NODE_OPTIONS=--conditions=react-server tsx scripts/verify-phase-2b.ts",
