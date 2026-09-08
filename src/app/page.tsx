@@ -17,6 +17,11 @@ import {
   hasAppearanceFilters,
   parseAppearanceFilters,
 } from "@/lib/appearance-filters";
+import {
+  createAppearanceHistoryPageHref,
+  getAppearanceHistoryPage,
+  paginateAppearanceHistory,
+} from "@/lib/appearance-pagination";
 import { getAppearancePageData } from "@/server/appearances/repository";
 
 type AppearanceSectionProps = {
@@ -132,6 +137,47 @@ function AppearanceSection({
   );
 }
 
+function AppearanceHistoryPagination({
+  currentPage,
+  totalPages,
+  currentSearchParams,
+}: {
+  currentPage: number;
+  totalPages: number;
+  currentSearchParams: string;
+}) {
+  if (totalPages <= 1) return null;
+
+  const hrefFor = (page: number) =>
+    createAppearanceHistoryPageHref("/", currentSearchParams, page);
+
+  return (
+    <nav className="appearance-pagination" aria-label="出演履歴のページ送り">
+      {currentPage > 1 ? (
+        <a className="appearance-pagination__link" href={hrefFor(currentPage - 1)}>
+          前へ
+        </a>
+      ) : (
+        <span className="appearance-pagination__link" aria-disabled="true">
+          前へ
+        </span>
+      )}
+      <p className="appearance-pagination__status" aria-live="polite">
+        <span>{currentPage}</span> / {totalPages} ページ
+      </p>
+      {currentPage < totalPages ? (
+        <a className="appearance-pagination__link" href={hrefFor(currentPage + 1)}>
+          次へ
+        </a>
+      ) : (
+        <span className="appearance-pagination__link" aria-disabled="true">
+          次へ
+        </span>
+      )}
+    </nav>
+  );
+}
+
 export default async function Home(props: PageProps<"/">) {
   await connection();
 
@@ -145,6 +191,17 @@ export default async function Home(props: PageProps<"/">) {
   const filters = parseAppearanceFilters(searchParams, filterOptions);
   const filteredCards = filterAppearanceCards(cards, filters);
   const { latest, upcoming, past } = groupAppearanceCards(filteredCards, now);
+  const { page, totalPages } = getAppearanceHistoryPage(searchParams.page, past.length);
+  const paginatedPast = paginateAppearanceHistory(past, page);
+  const currentSearchParams = new URLSearchParams(
+    Object.entries(searchParams).flatMap(([key, value]) =>
+      Array.isArray(value)
+        ? value.map((item) => [key, item])
+        : value === undefined
+          ? []
+          : [[key, value]],
+    ),
+  ).toString();
   const isFiltering = hasAppearanceFilters(filters);
   const noMatchingMessage = "条件に一致する出演情報はありません。";
 
@@ -229,8 +286,13 @@ export default async function Home(props: PageProps<"/">) {
           eyebrow="ARCHIVE"
           title="過去の出演履歴"
           description="これまでの出演情報を新しい順に振り返れます。"
-          items={past}
+          items={paginatedPast}
           emptyMessage={isFiltering ? noMatchingMessage : "過去の出演情報はまだありません。"}
+        />
+        <AppearanceHistoryPagination
+          currentPage={page}
+          totalPages={totalPages}
+          currentSearchParams={currentSearchParams}
         />
       </div>
 

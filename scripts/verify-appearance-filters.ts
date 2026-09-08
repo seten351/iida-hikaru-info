@@ -10,6 +10,12 @@ import {
   getAppearanceFilterOptions,
   parseAppearanceFilters,
 } from "../src/lib/appearance-filters";
+import {
+  appearanceHistoryPageSize,
+  createAppearanceHistoryPageHref,
+  getAppearanceHistoryPage,
+  paginateAppearanceHistory,
+} from "../src/lib/appearance-pagination";
 import { appearanceSeriesSearchAliases } from "../src/lib/appearance-series-search-aliases";
 import {
   buildAppearanceCards,
@@ -109,7 +115,7 @@ assert.equal(
     category: "ゲーム",
     year: null,
   }),
-  "/?category=%E3%82%B2%E3%83%BC%E3%83%A0",
+  "/?page=1&category=%E3%82%B2%E3%83%BC%E3%83%A0",
 );
 
 assert.equal(appearances.length, 120);
@@ -117,6 +123,57 @@ assert.equal(cards.length, 97);
 
 const noFilters = filtersFor(cards, {});
 assert.equal(filterAppearanceCards(cards, noFilters).length, 97);
+
+const paginationCards = Array.from({ length: 61 }, (_, index) => ({
+  ...cards[0],
+  id: `pagination-card-${index + 1}`,
+}));
+assert.equal(appearanceHistoryPageSize, 30);
+assert.deepEqual(getAppearanceHistoryPage(undefined, paginationCards.length), {
+  page: 1,
+  totalPages: 3,
+});
+assert.deepEqual(getAppearanceHistoryPage("2", paginationCards.length), {
+  page: 2,
+  totalPages: 3,
+});
+assert.deepEqual(getAppearanceHistoryPage("3", paginationCards.length), {
+  page: 3,
+  totalPages: 3,
+});
+assert.deepEqual(getAppearanceHistoryPage("0", paginationCards.length), {
+  page: 1,
+  totalPages: 3,
+});
+assert.deepEqual(getAppearanceHistoryPage("1.5", paginationCards.length), {
+  page: 1,
+  totalPages: 3,
+});
+assert.deepEqual(getAppearanceHistoryPage("999", paginationCards.length), {
+  page: 3,
+  totalPages: 3,
+});
+assert.deepEqual(getAppearanceHistoryPage("2", 0), { page: 1, totalPages: 1 });
+assert.equal(paginateAppearanceHistory(paginationCards, 1).length, 30);
+assert.equal(paginateAppearanceHistory(paginationCards, 2).length, 30);
+assert.equal(paginateAppearanceHistory(paginationCards, 3).length, 1);
+assert.deepEqual(
+  paginateAppearanceHistory(paginationCards, 2).map((card) => card.id),
+  paginationCards.slice(30, 60).map((card) => card.id),
+);
+assert.equal(
+  createAppearanceHistoryPageHref("/", "q=%E3%83%86%E3%82%B9%E3%83%88&year=2026", 2),
+  "/?q=%E3%83%86%E3%82%B9%E3%83%88&year=2026&page=2",
+);
+assert.equal(
+  createAppearanceFilterHref("/", "page=3&utm_source=test", {
+    q: "",
+    series: null,
+    category: null,
+    year: null,
+  }),
+  "/?page=1&utm_source=test",
+);
 
 const hikaroom = filterAppearanceCards(cards, filtersFor(cards, { q: "ヒカROOM" }));
 assert.ok(hikaroom.length > 0);
@@ -456,7 +513,7 @@ assert.equal(
     category: "配信",
     year: "2026",
   }),
-  "/?utm_source=test&q=%E3%83%92%E3%82%ABROOM&series=hikaroom&category=%E9%85%8D%E4%BF%A1&year=2026",
+  "/?utm_source=test&page=1&q=%E3%83%92%E3%82%ABROOM&series=hikaroom&category=%E9%85%8D%E4%BF%A1&year=2026",
 );
 
 assert.ok(options.series.some((option) => option.value === "hikaroom"));

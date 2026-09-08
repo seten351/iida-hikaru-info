@@ -520,6 +520,52 @@ nav a:hover {
   text-align: center;
 }
 
+.appearance-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: -2.5rem;
+}
+
+.appearance-pagination__link {
+  min-width: 5.5rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent-dark);
+  font-size: 0.85rem;
+  font-weight: 750;
+  text-align: center;
+  text-decoration: none;
+}
+
+.appearance-pagination__link:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.appearance-pagination__link[aria-disabled="true"] {
+  color: var(--muted);
+  opacity: 0.55;
+}
+
+.appearance-pagination__status {
+  min-width: 7.5rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 650;
+  text-align: center;
+}
+
+.appearance-pagination__status span {
+  color: var(--foreground);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
 footer {
   margin-top: 2rem;
   background: #272229;
@@ -694,6 +740,20 @@ footer {
 
   .appearance-grid {
     grid-template-columns: 1fr;
+  }
+
+  .appearance-pagination {
+    gap: 0.5rem;
+    margin-top: -2rem;
+  }
+
+  .appearance-pagination__link {
+    min-width: 4.75rem;
+    padding-inline: 0.75rem;
+  }
+
+  .appearance-pagination__status {
+    min-width: 6.5rem;
   }
 
   .appearance-card {

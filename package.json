@@ -13,6 +13,7 @@
     "db:backfill": "dotenv -e .env.local -- tsx scripts/backfill-appearances.ts",
     "db:verify": "dotenv -e .env.local -- tsx scripts/verify-appearances.ts",
     "verify:filters": "tsx scripts/verify-appearance-filters.ts",
+    "verify:production-readonly": "dotenv -e .env.local -- tsx scripts/verify-production-readonly.ts",
     "verify:phase1a": "tsx scripts/verify-phase-1a.ts",
     "verify:phase1b": "tsx scripts/verify-phase-1b.ts",
     "verify:phase1c": "NODE_OPTIONS=--conditions=react-server tsx scripts/verify-phase-1c.ts",

@@ -193,6 +193,7 @@ export function createAppearanceFilterHref(
   for (const key of appearanceFilterSearchParamKeys) {
     searchParams.delete(key);
   }
+  searchParams.set("page", "1");
 
   if (filters.q) {
     searchParams.set("q", filters.q);
