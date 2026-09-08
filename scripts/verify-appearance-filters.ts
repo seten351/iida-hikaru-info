@@ -16,9 +16,15 @@ import {
   getAppearanceHistoryPage,
   paginateAppearanceHistory,
 } from "../src/lib/appearance-pagination";
+import {
+  createAppearanceScheduleViewHref,
+  getAppearanceSchedule,
+  parseAppearanceScheduleView,
+} from "../src/lib/appearance-schedule";
 import { appearanceSeriesSearchAliases } from "../src/lib/appearance-series-search-aliases";
 import {
   buildAppearanceCards,
+  formatAppearanceAgendaStart,
   formatAppearanceStart,
   groupAppearanceCards,
 } from "../src/lib/appearances";
@@ -164,6 +170,24 @@ assert.deepEqual(
 assert.equal(
   createAppearanceHistoryPageHref("/", "q=%E3%83%86%E3%82%B9%E3%83%88&year=2026", 2),
   "/?q=%E3%83%86%E3%82%B9%E3%83%88&year=2026&page=2",
+);
+assert.equal(
+  createAppearanceHistoryPageHref("/", "view=month&q=test", 2),
+  "/?view=month&q=test&page=2",
+);
+assert.equal(parseAppearanceScheduleView(undefined), "upcoming");
+assert.equal(parseAppearanceScheduleView("upcoming"), "upcoming");
+assert.equal(parseAppearanceScheduleView("week"), "week");
+assert.equal(parseAppearanceScheduleView("month"), "month");
+assert.equal(parseAppearanceScheduleView("invalid"), "upcoming");
+assert.equal(parseAppearanceScheduleView(["month", "week"]), "month");
+assert.equal(
+  createAppearanceScheduleViewHref(
+    "/",
+    "q=test&series=hikaroom&category=%E9%85%8D%E4%BF%A1&year=2026&page=3&utm_source=check&view=week",
+    "month",
+  ),
+  "/?q=test&series=hikaroom&category=%E9%85%8D%E4%BF%A1&year=2026&page=3&utm_source=check&view=month#upcoming",
 );
 assert.equal(
   createAppearanceFilterHref("/", "page=3&utm_source=test", {
@@ -374,6 +398,147 @@ assert.deepEqual(
 assert.equal(formatAppearanceStart(precisionAppearances[0]), "2026年9月17日(木) 18:00");
 assert.equal(formatAppearanceStart(precisionAppearances[1]), "2026年9月17日");
 assert.equal(formatAppearanceStart(precisionAppearances[3]), "日時未定");
+assert.equal(formatAppearanceAgendaStart(precisionAppearances[0]), "18:00");
+assert.equal(formatAppearanceAgendaStart(precisionAppearances[1]), "日付のみ");
+assert.equal(formatAppearanceAgendaStart(precisionAppearances[3]), "日時未定");
+
+const scheduleAppearances = buildAppearanceCards([
+  {
+    ...precisionAppearances[0],
+    id: "before-week",
+    startsAt: "2026-12-27T14:59:59Z",
+  },
+  {
+    ...precisionAppearances[1],
+    id: "week-monday-date",
+    startsOn: "2026-12-28",
+  },
+  {
+    ...precisionAppearances[2],
+    id: "week-monday-exact",
+    startsAt: "2026-12-28T00:00:00+09:00",
+  },
+  {
+    ...precisionAppearances[1],
+    id: "week-sunday-date",
+    startsOn: "2027-01-03",
+  },
+  {
+    ...precisionAppearances[0],
+    id: "week-sunday-exact",
+    startsAt: "2027-01-02T15:30:00Z",
+  },
+  {
+    ...precisionAppearances[0],
+    id: "after-week",
+    startsAt: "2027-01-03T15:00:00Z",
+  },
+  {
+    ...precisionAppearances[3],
+    id: "schedule-unknown",
+  },
+  {
+    ...precisionAppearances[1],
+    id: "schedule-group-date",
+    startsOn: "2027-01-03",
+    eventGroupId: "schedule-group",
+    eventTitle: "日程表示グループ",
+    sessionLabel: "日付のみ公演",
+  },
+  {
+    ...precisionAppearances[0],
+    id: "schedule-group-exact",
+    startsAt: "2027-01-03T12:00:00+09:00",
+    eventGroupId: "schedule-group",
+    eventTitle: "日程表示グループ",
+    sessionLabel: "昼公演",
+  },
+  {
+    ...precisionAppearances[3],
+    id: "schedule-group-unknown",
+    startsAt: null,
+    startsOn: null,
+    eventGroupId: "schedule-group",
+    eventTitle: "日程表示グループ",
+    sessionLabel: "詳細未定",
+  },
+  {
+    ...precisionAppearances[0],
+    id: "schedule-group-next-week",
+    startsAt: "2027-01-04T10:00:00+09:00",
+    eventGroupId: "schedule-group",
+    eventTitle: "日程表示グループ",
+    sessionLabel: "翌週公演",
+  },
+]);
+const crossYearWeek = getAppearanceSchedule(
+  scheduleAppearances,
+  new Date("2027-01-03T14:59:59Z"),
+  "week",
+);
+assert.equal(crossYearWeek.rangeLabel, "2026年12月28日(月)〜2027年1月3日(日)");
+assert.deepEqual(
+  crossYearWeek.days.map((day) => day.date),
+  ["2026-12-28", "2027-01-03"],
+);
+assert.deepEqual(
+  crossYearWeek.days[0].items.map((card) => card.sessions[0].id),
+  ["week-monday-date", "week-monday-exact"],
+);
+assert.deepEqual(
+  crossYearWeek.days[1].items.map((card) => card.sessions[0].startsAtPrecision),
+  ["date", "date", "exact"],
+);
+const projectedScheduleGroup = crossYearWeek.days[1].items.find(
+  (card) => card.id === "schedule-group",
+)!;
+assert.equal(projectedScheduleGroup.isGrouped, true);
+assert.deepEqual(
+  projectedScheduleGroup.sessions.map((session) => session.id),
+  ["schedule-group-date", "schedule-group-exact"],
+);
+assert.ok(
+  crossYearWeek.days.flatMap((day) => day.items).every((card) =>
+    card.sessions.every((session) => session.startsAtPrecision !== "unknown"),
+  ),
+);
+assert.equal(
+  crossYearWeek.days.flatMap((day) => day.items).some((card) =>
+    card.sessions.some((session) => session.id === "after-week"),
+  ),
+  false,
+);
+
+const decemberSchedule = getAppearanceSchedule(
+  scheduleAppearances,
+  new Date("2026-12-15T00:00:00+09:00"),
+  "month",
+);
+assert.equal(decemberSchedule.rangeLabel, "2026年12月");
+assert.deepEqual(
+  decemberSchedule.days.map((day) => day.date),
+  ["2026-12-27", "2026-12-28"],
+);
+const leapMonthCards = buildAppearanceCards([
+  {
+    ...precisionAppearances[1],
+    id: "leap-day",
+    startsOn: "2028-02-29",
+  },
+  {
+    ...precisionAppearances[0],
+    id: "tokyo-next-month",
+    startsAt: "2028-02-29T15:00:00Z",
+  },
+]);
+assert.deepEqual(
+  getAppearanceSchedule(
+    leapMonthCards,
+    new Date("2028-02-15T00:00:00+09:00"),
+    "month",
+  ).days.map((day) => day.date),
+  ["2028-02-29"],
+);
 
 const mixedGroupCards = buildAppearanceCards([
   {
@@ -514,6 +679,15 @@ assert.equal(
     year: "2026",
   }),
   "/?utm_source=test&page=1&q=%E3%83%92%E3%82%ABROOM&series=hikaroom&category=%E9%85%8D%E4%BF%A1&year=2026",
+);
+assert.equal(
+  createAppearanceFilterHref("/", "view=week&page=3", {
+    q: "test",
+    series: null,
+    category: null,
+    year: null,
+  }),
+  "/?view=week&page=1&q=test",
 );
 
 assert.ok(options.series.some((option) => option.value === "hikaroom"));

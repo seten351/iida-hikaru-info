@@ -181,6 +181,29 @@ function startReferenceDay(start: AppearanceStart) {
   return null;
 }
 
+export function getAppearanceStartDay(start: AppearanceStart) {
+  return startReferenceDay(start);
+}
+
+const timeFormatter = new Intl.DateTimeFormat("ja-JP", {
+  timeZone: "Asia/Tokyo",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+export function formatAppearanceAgendaStart(start: AppearanceStart) {
+  if (start.startsAtPrecision === "exact") {
+    return timeFormatter.format(new Date(start.startsAt!));
+  }
+
+  if (start.startsAtPrecision === "date") {
+    return "日付のみ";
+  }
+
+  return "日時未定";
+}
+
 function startPrecisionRank(precision: StartsAtPrecision) {
   return { date: 0, exact: 1, unknown: 2 }[precision];
 }

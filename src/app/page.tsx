@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { connection } from "next/server";
 
 import { AppearanceFilters } from "@/app/appearance-filters";
@@ -6,6 +7,7 @@ import {
   type AppearanceCard,
   categoryClassNames,
   buildAppearanceCards,
+  formatAppearanceAgendaStart,
   formatAppearanceStart,
   formatPublication,
   formatUpdatedAt,
@@ -22,6 +24,14 @@ import {
   getAppearanceHistoryPage,
   paginateAppearanceHistory,
 } from "@/lib/appearance-pagination";
+import {
+  appearanceScheduleViews,
+  createAppearanceScheduleViewHref,
+  getAppearanceSchedule,
+  parseAppearanceScheduleView,
+  type AppearanceSchedule,
+  type AppearanceScheduleView,
+} from "@/lib/appearance-schedule";
 import { getAppearancePageData } from "@/server/appearances/repository";
 
 type AppearanceSectionProps = {
@@ -36,10 +46,14 @@ type AppearanceSectionProps = {
 
 function AppearanceStart({
   session,
+  agenda = false,
 }: {
   session: AppearanceCard["sessions"][number];
+  agenda?: boolean;
 }) {
-  const label = formatAppearanceStart(session);
+  const label = agenda
+    ? formatAppearanceAgendaStart(session)
+    : formatAppearanceStart(session);
 
   if (session.startsAtPrecision === "unknown") {
     return <span>{label}</span>;
@@ -52,7 +66,13 @@ function AppearanceStart({
   );
 }
 
-function AppearanceCard({ item }: { item: AppearanceCard }) {
+function AppearanceCard({
+  item,
+  agenda = false,
+}: {
+  item: AppearanceCard;
+  agenda?: boolean;
+}) {
   const hasMultipleSources = item.sourceUrls.length > 1;
 
   return (
@@ -64,7 +84,7 @@ function AppearanceCard({ item }: { item: AppearanceCard }) {
           {item.category}
         </span>
         {!item.isGrouped && (
-          <AppearanceStart session={item.sessions[0]} />
+          <AppearanceStart session={item.sessions[0]} agenda={agenda} />
         )}
       </div>
       <h3>{item.title}</h3>
@@ -73,7 +93,7 @@ function AppearanceCard({ item }: { item: AppearanceCard }) {
           {item.sessions.map((session) => (
             <li key={session.id}>
               <span>{session.sessionLabel}</span>
-              <AppearanceStart session={session} />
+              <AppearanceStart session={session} agenda={agenda} />
             </li>
           ))}
         </ul>
@@ -98,6 +118,94 @@ function AppearanceCard({ item }: { item: AppearanceCard }) {
         ))}
       </div>
     </article>
+  );
+}
+
+const appearanceScheduleViewLabels: Record<AppearanceScheduleView, string> = {
+  upcoming: "今後",
+  week: "今週",
+  month: "今月",
+};
+
+function AppearanceScheduleSection({
+  schedule,
+  upcoming,
+  currentSearchParams,
+  emptyMessage,
+}: {
+  schedule: AppearanceSchedule;
+  upcoming: AppearanceCard[];
+  currentSearchParams: string;
+  emptyMessage: string;
+}) {
+  const hasItems =
+    schedule.view === "upcoming" ? upcoming.length > 0 : schedule.days.length > 0;
+
+  return (
+    <section
+      className="appearance-section appearance-schedule"
+      id="upcoming"
+      aria-labelledby="upcoming-heading"
+    >
+      <header className="section-heading appearance-schedule__heading">
+        <div>
+          <p className="eyebrow">UPCOMING</p>
+          <h2 id="upcoming-heading">{schedule.title}</h2>
+        </div>
+        <div className="appearance-schedule__summary">
+          <p>{schedule.description}</p>
+          {schedule.rangeLabel !== null && <strong>{schedule.rangeLabel}</strong>}
+        </div>
+      </header>
+
+      <nav className="appearance-view-switcher" aria-label="出演予定の表示期間">
+        {appearanceScheduleViews.map((view) => (
+          <Link
+            key={view}
+            href={createAppearanceScheduleViewHref(
+              "/",
+              currentSearchParams,
+              view,
+            )}
+            aria-current={schedule.view === view ? "page" : undefined}
+            scroll={false}
+          >
+            {appearanceScheduleViewLabels[view]}
+          </Link>
+        ))}
+      </nav>
+
+      {hasItems ? (
+        schedule.view === "upcoming" ? (
+          <div className="appearance-grid">
+            {upcoming.map((item) => (
+              <AppearanceCard item={item} key={item.id} />
+            ))}
+          </div>
+        ) : (
+          <div className="appearance-agenda">
+            {schedule.days.map((day) => (
+              <section
+                className="appearance-agenda__day"
+                key={day.date}
+                aria-labelledby={`appearance-day-${day.date}`}
+              >
+                <h3 id={`appearance-day-${day.date}`}>
+                  <time dateTime={day.date}>{day.label}</time>
+                </h3>
+                <div className="appearance-grid">
+                  {day.items.map((item) => (
+                    <AppearanceCard item={item} key={item.id} agenda />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )
+      ) : (
+        <p className="empty-state">{emptyMessage}</p>
+      )}
+    </section>
   );
 }
 
@@ -191,6 +299,8 @@ export default async function Home(props: PageProps<"/">) {
   const filters = parseAppearanceFilters(searchParams, filterOptions);
   const filteredCards = filterAppearanceCards(cards, filters);
   const { latest, upcoming, past } = groupAppearanceCards(filteredCards, now);
+  const scheduleView = parseAppearanceScheduleView(searchParams.view);
+  const schedule = getAppearanceSchedule(filteredCards, now, scheduleView);
   const { page, totalPages } = getAppearanceHistoryPage(searchParams.page, past.length);
   const paginatedPast = paginateAppearanceHistory(past, page);
   const currentSearchParams = new URLSearchParams(
@@ -268,16 +378,18 @@ export default async function Home(props: PageProps<"/">) {
           featured
         />
 
-        <AppearanceSection
-          id="upcoming"
-          eyebrow="UPCOMING"
-          title="今後の出演予定"
-          description="閲覧時点から近い順に掲載しています。"
-          items={upcoming}
+        <AppearanceScheduleSection
+          schedule={schedule}
+          upcoming={upcoming}
+          currentSearchParams={currentSearchParams}
           emptyMessage={
             isFiltering
               ? noMatchingMessage
-              : "現在お知らせできる出演予定はありません。"
+              : schedule.view === "week"
+                ? "今週お知らせできる出演予定はありません。"
+                : schedule.view === "month"
+                  ? "今月お知らせできる出演予定はありません。"
+                  : "現在お知らせできる出演予定はありません。"
           }
         />
 
