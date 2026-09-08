@@ -114,70 +114,74 @@ export function AppearanceFilters({
           />
         </label>
 
-        <label className="appearance-filter-field">
-          <span>シリーズ</span>
-          <select
-            value={draftFilters.series ?? ""}
-            onChange={(event) => updateFacet("series", event.target.value)}
-            disabled={isPending}
-          >
-            <option value="">すべて</option>
-            {options.series.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="appearance-filter-facets">
+          <label className="appearance-filter-field">
+            <span>シリーズ</span>
+            <select
+              value={draftFilters.series ?? ""}
+              onChange={(event) => updateFacet("series", event.target.value)}
+              disabled={isPending}
+            >
+              <option value="">すべて</option>
+              {options.series.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <label className="appearance-filter-field">
-          <span>カテゴリ</span>
-          <select
-            value={draftFilters.category ?? ""}
-            onChange={(event) => updateFacet("category", event.target.value)}
-            disabled={isPending}
-          >
-            <option value="">すべて</option>
-            {options.categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="appearance-filter-field">
+            <span>カテゴリ</span>
+            <select
+              value={draftFilters.category ?? ""}
+              onChange={(event) => updateFacet("category", event.target.value)}
+              disabled={isPending}
+            >
+              <option value="">すべて</option>
+              {options.categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
-        <label className="appearance-filter-field">
-          <span>年</span>
-          <select
-            value={draftFilters.year ?? ""}
-            onChange={(event) => updateFacet("year", event.target.value)}
-            disabled={isPending}
-          >
-            <option value="">すべて</option>
-            {options.years.map((year) => (
-              <option key={year} value={year}>
-                {year}年
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="appearance-filter-actions-row">
+          <label className="appearance-filter-field">
+            <span>年</span>
+            <select
+              value={draftFilters.year ?? ""}
+              onChange={(event) => updateFacet("year", event.target.value)}
+              disabled={isPending}
+            >
+              <option value="">すべて</option>
+              {options.years.map((year) => (
+                <option key={year} value={year}>
+                  {year}年
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <div className="appearance-filter-actions">
-          <button
-            className="appearance-filter-search"
-            type="submit"
-            disabled={isPending}
-          >
-            検索
-          </button>
-          <button
-            className="appearance-filter-clear"
-            type="button"
-            disabled={isPending || !active}
-            onClick={clearFilters}
-          >
-            条件をクリア
-          </button>
+          <div className="appearance-filter-actions">
+            <button
+              className="appearance-filter-search"
+              type="submit"
+              disabled={isPending}
+            >
+              検索
+            </button>
+            <button
+              className="appearance-filter-clear"
+              type="button"
+              disabled={isPending || !active}
+              onClick={clearFilters}
+            >
+              条件をクリア
+            </button>
+          </div>
         </div>
       </form>
     </section>
