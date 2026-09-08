@@ -5,6 +5,7 @@ export const appearanceCategories = [
   "イベント",
   "その他",
   "ゲーム",
+  "音声作品",
 ] as const;
 
 export type AppearanceCategory = (typeof appearanceCategories)[number];
@@ -15,6 +16,7 @@ export const appearanceCategoryDisplayOrder = [
   "配信",
   "イベント",
   "ゲーム",
+  "音声作品",
   "その他",
 ] as const satisfies readonly AppearanceCategory[];
 

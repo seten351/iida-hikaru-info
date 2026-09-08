@@ -71,26 +71,47 @@ const otherAppearance: Appearance = {
   title: "その他出演検証",
   category: "その他",
 };
+const audioAppearance: Appearance = {
+  ...gameAppearance,
+  id: "audio-category-verification",
+  title: "ASMR音声作品検証",
+  category: "音声作品",
+};
 const cardsWithAllCategories = buildAppearanceCards([
   ...appearances,
   gameAppearance,
+  audioAppearance,
   otherAppearance,
 ]);
 const optionsWithAllCategories = getAppearanceFilterOptions(cardsWithAllCategories);
 
 validateAppearanceImportItems(
-  [{
-    ...appearanceImportData[0],
-    id: "game-category-validation",
-    title: "ゲーム出演検証",
-    seriesId: null,
-    eventGroupId: null,
-    eventTitle: null,
-    sessionLabel: null,
-    category: "ゲーム",
-    startsAtPrecision: "exact",
-    startsOn: null,
-  }],
+  [
+    {
+      ...appearanceImportData[0],
+      id: "game-category-validation",
+      title: "ゲーム出演検証",
+      seriesId: null,
+      eventGroupId: null,
+      eventTitle: null,
+      sessionLabel: null,
+      category: "ゲーム",
+      startsAtPrecision: "exact",
+      startsOn: null,
+    },
+    {
+      ...appearanceImportData[0],
+      id: "audio-category-validation",
+      title: "シチュエーションボイス出演検証",
+      seriesId: null,
+      eventGroupId: null,
+      eventTitle: null,
+      sessionLabel: null,
+      category: "音声作品",
+      startsAtPrecision: "exact",
+      startsOn: null,
+    },
+  ],
   appearanceSeriesData,
 );
 assert.deepEqual(optionsWithAllCategories.categories, [
@@ -99,6 +120,7 @@ assert.deepEqual(optionsWithAllCategories.categories, [
   "配信",
   "イベント",
   "ゲーム",
+  "音声作品",
   "その他",
 ]);
 const game = filterAppearanceCards(
@@ -122,6 +144,28 @@ assert.equal(
     year: null,
   }),
   "/?page=1&category=%E3%82%B2%E3%83%BC%E3%83%A0",
+);
+const audio = filterAppearanceCards(
+  cardsWithAllCategories,
+  parseAppearanceFilters({ category: "音声作品" }, optionsWithAllCategories),
+);
+assert.equal(audio.length, 1);
+assert.equal(audio[0].category, "音声作品");
+assert.equal(
+  filterAppearanceCards(
+    cardsWithAllCategories,
+    parseAppearanceFilters({ q: "ASMR" }, optionsWithAllCategories),
+  )[0]?.id,
+  "appearance:audio-category-verification",
+);
+assert.equal(
+  createAppearanceFilterHref("/", "", {
+    q: "",
+    series: null,
+    category: "音声作品",
+    year: null,
+  }),
+  "/?page=1&category=%E9%9F%B3%E5%A3%B0%E4%BD%9C%E5%93%81",
 );
 
 assert.equal(appearances.length, 120);

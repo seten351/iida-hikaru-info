@@ -128,6 +128,29 @@ test("Admin write input accepts the game category", () => {
   assert.equal(parsed.fields.category, "ゲーム");
 });
 
+test("Admin write input accepts the audio work category", () => {
+  const parsed = parseAdminWriteInput({
+    ...appearanceInput,
+    fields: { ...appearanceInput.fields, category: "音声作品" },
+  });
+  assert.equal(parsed.kind, "appearance");
+  assert.equal(parsed.operation, "create");
+  if (parsed.kind !== "appearance" || parsed.operation !== "create") {
+    assert.fail("Expected an appearance create input.");
+  }
+  assert.equal(parsed.fields.category, "音声作品");
+});
+
+test("Admin write input rejects an unknown category", () => {
+  assert.throws(
+    () => parseAdminWriteInput({
+      ...appearanceInput,
+      fields: { ...appearanceInput.fields, category: "音声" },
+    }),
+    AdminWriteValidationError,
+  );
+});
+
 test("Admin write input rejects partial event grouping and bad precision", () => {
   assert.throws(
     () => parseAdminWriteInput({

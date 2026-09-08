@@ -40,3 +40,12 @@ test("latest list keeps the publication date and every official source link", ()
   assert.match(markup, /aria-label="公開日を基準にした新着情報の公式情報元"/);
   assert.match(markup, /target="_blank" rel="noopener noreferrer"/);
 });
+
+test("latest list renders the audio work category badge", () => {
+  const markup = renderToStaticMarkup(
+    <LatestAppearanceList items={[{ ...item, category: "音声作品" }]} />,
+  );
+
+  assert.match(markup, /class="category-badge category-audio"/);
+  assert.match(markup, />音声作品<\/span>/);
+});

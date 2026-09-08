@@ -1,0 +1,1 @@
+ALTER TYPE "public"."appearance_category" ADD VALUE '音声作品';

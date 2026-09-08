@@ -595,6 +595,11 @@ nav a:hover {
   color: #8a5416;
 }
 
+.category-audio {
+  background: #fcebf4;
+  color: #8a3f68;
+}
+
 .appearance-card h3 {
   margin: 1.25rem 0 0.7rem;
   font-size: 1.06rem;

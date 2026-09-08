@@ -189,7 +189,7 @@ async function main() {
         eventGroupId: `${prefix}-group`,
         eventTitle: `Phase 2B event ${suffix}`,
         sessionLabel: id.endsWith("-a") ? "day" : "night",
-        category: "イベント",
+        category: "音声作品",
       },
       source: {
         ...sourceA,

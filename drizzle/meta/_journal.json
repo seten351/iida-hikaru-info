@@ -78,6 +78,13 @@
       "when": 1788776361251,
       "tag": "0010_steady_big_bertha",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788859224264,
+      "tag": "0011_add_audio_work_appearance_category",
+      "breakpoints": true
     }
   ]
 }

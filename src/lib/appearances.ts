@@ -33,6 +33,7 @@ export const categoryClassNames: Record<AppearanceCategory, string> = {
   イベント: "category-event",
   その他: "category-other",
   ゲーム: "category-game",
+  音声作品: "category-audio",
 };
 
 export function formatAppearanceDate(value: string) {
