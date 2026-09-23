@@ -47,11 +47,66 @@ export function publishedAt(value: string): Publication {
   };
 }
 
+type DateSingleInput = Pick<
+  AppearanceImportItem,
+  | "id"
+  | "title"
+  | "seriesId"
+  | "category"
+  | "sourceUrl"
+  | "sourceName"
+  | "sourceItemId"
+> & {
+  startsOn: string;
+  publication?: Publication;
+};
+
 export function single(input: CommonInput): AppearanceImportItem {
   const { publication = unknownPublication, ...item } = input;
   return {
     ...item,
     startsAtPrecision: "exact",
+    startsOn: null,
+    eventGroupId: null,
+    eventTitle: null,
+    sessionLabel: null,
+    ...publication,
+  };
+}
+
+export function singleDate(input: DateSingleInput): AppearanceImportItem {
+  const { publication = unknownPublication, ...item } = input;
+  return {
+    ...item,
+    startsAtPrecision: "date",
+    startsAt: null,
+    startsOn: item.startsOn,
+    eventGroupId: null,
+    eventTitle: null,
+    sessionLabel: null,
+    ...publication,
+  };
+}
+
+type UnknownSingleInput = Pick<
+  AppearanceImportItem,
+  | "id"
+  | "title"
+  | "seriesId"
+  | "category"
+  | "sourceUrl"
+  | "sourceName"
+  | "sourceItemId"
+> & {
+  publication?: Publication;
+};
+
+export function singleUnknown(input: UnknownSingleInput): AppearanceImportItem {
+  const { publication = unknownPublication, ...item } = input;
+  return {
+    ...item,
+    startsAtPrecision: "unknown",
+    startsAt: null,
     startsOn: null,
     eventGroupId: null,
     eventTitle: null,
@@ -69,3 +124,4 @@ export function session(input: SessionInput): AppearanceImportItem {
     ...publication,
   };
 }
+

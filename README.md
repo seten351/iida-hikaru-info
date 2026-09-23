@@ -52,6 +52,12 @@ npm run db:import -- --apply
 npm run db:verify
 ```
 
+Admin activation完了後はレガシーな `db:import --apply` がロックされるため、Git管理データからAdmin write契約（proposal/revision/source link整合性）に則って未登録データを安全に投入する場合は `db:admin-import` を使用します。
+
+```bash
+npm run db:admin-import
+```
+
 旧サンプルデータの削除は通常importと分離されています。実データの投入と表示を確認した後にdry-runし、既知のサンプル行だけが対象であることを確認してから実行します。
 
 ```bash

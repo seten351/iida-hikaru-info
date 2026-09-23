@@ -32,4 +32,11 @@ export const appearanceSeriesData = [
   { id: "ascendance-of-a-bookworm", displayName: "本好きの下剋上" },
   { id: "iyapan", displayName: "嫌な顔されながらおパンツ見せてもらいたい" },
   { id: "ichijoma", displayName: "一畳間まんきつ暮らし！" },
+  { id: "seifuku-kanojo", displayName: "制服カノジョ" },
+  { id: "fire-emblem", displayName: "ファイアーエムブレム" },
+  { id: "sugar-lies", displayName: "Sugar Lies" },
+  { id: "cue-sheet", displayName: "CUE SHEET" },
+  { id: "life-size-girlfriend", displayName: "等身大の彼女" },
+  { id: "zero-distance-girl", displayName: "ゼロ距離ガール" },
+  { id: "iyashihime-school-swimming-club", displayName: "癒姫学園水泳部" },
 ] as const satisfies readonly AppearanceSeries[];

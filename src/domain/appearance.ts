@@ -91,6 +91,10 @@ export const officialAppearanceSources = {
     hostname: "x.com",
     pathnamePrefix: "/voice_lounge",
   },
+  "x:uo-seiyuclub": {
+    hostname: "x.com",
+    pathnamePrefix: "/UO_seiyuclub",
+  },
   "official:idolmaster": {
     hostname: "idolmaster-official.jp",
     pathnamePrefix: "/",
@@ -194,6 +198,30 @@ export const officialAppearanceSources = {
   "official:raccoon-dog": {
     hostname: "www.raccoon-dog.co.jp",
     pathnamePrefix: "/talent/",
+  },
+  "x:onsenradio": {
+    hostname: "x.com",
+    pathnamePrefix: "/onsenradio/status/",
+  },
+  "x:gkmas-official": {
+    hostname: "x.com",
+    pathnamePrefix: "/gkmas_official/status/",
+  },
+  "official:livepocket": {
+    hostname: "livepocket.jp",
+    pathnamePrefix: "/e/",
+  },
+  "official:entergram": {
+    hostname: "www.entergram.co.jp",
+    pathnamePrefix: "/",
+  },
+  "official:nintendo-store": {
+    hostname: "store-jp.nintendo.com",
+    pathnamePrefix: "/",
+  },
+  "official:kogado": {
+    hostname: "sugarlies.kogado.com",
+    pathnamePrefix: "/",
   },
 } as const;
 

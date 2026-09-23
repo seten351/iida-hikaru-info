@@ -14,6 +14,7 @@ const hikaroomEpisodes = [
   [33, "2026-07-31T20:00:00+09:00"],
   [34, "2026-08-13T20:00:00+09:00"],
   [35, "2026-08-31T20:00:00+09:00"],
+  [36, "2026-09-21T20:00:00+09:00"],
 ] as const;
 
 const kannahikaruEpisodes = [
@@ -31,6 +32,7 @@ const kannahikaruEpisodes = [
   [12, "2026-08-04T19:00:00+09:00"],
   [13, "2026-08-18T19:00:00+09:00"],
   [14, "2026-09-01T19:00:00+09:00"],
+  [15, "2026-09-15T19:00:00+09:00"],
 ] as const;
 
 const pikanonoEpisodes = [
@@ -42,6 +44,8 @@ const pikanonoEpisodes = [
   [9, "2026-08-11T20:00:00+09:00"],
   [10, "2026-08-18T20:00:00+09:00"],
   [11, "2026-08-25T20:00:00+09:00"],
+  [12, "2026-09-14T20:00:00+09:00"],
+  [13, "2026-09-22T20:00:00+09:00"],
 ] as const;
 
 const hatsuboshiEpisodes = [
@@ -53,6 +57,7 @@ const hatsuboshiEpisodes = [
   [84, "2026-04-15T21:00:00+09:00"],
   [96, "2026-07-08T21:00:00+09:00"],
   [100, "2026-08-05T19:00:00+09:00"],
+  [106, "2026-09-23T21:00:00+09:00"],
 ] as const;
 
 const yuriRelationEpisodes = [
@@ -77,17 +82,25 @@ export const regularProgramAppearances = [
       sourceUrl:
         episode === 35
           ? "https://x.com/iidahikaroom/status/2092901505024344380"
-          : "https://x.com/iidahikaroom",
+          : episode === 36
+            ? "https://x.com/iidahikaroom/status/2102011755987951652"
+            : "https://x.com/iidahikaroom",
       publication:
         episode === 35
           ? publishedAt("2026-08-27T18:06:17.684+09:00")
-          : undefined,
+          : episode === 36
+            ? publishedAt("2026-09-21T21:27:10.774+09:00")
+            : undefined,
       sourceName:
-        episode === 35 ? "x:iidahikaroom" : "x:iidahikaroom-account",
+        episode === 35 || episode === 36
+          ? "x:iidahikaroom"
+          : "x:iidahikaroom-account",
       sourceItemId:
         episode === 35
           ? "2092901505024344380"
-          : `iidahikaroom:episode:${episode}`,
+          : episode === 36
+            ? "2102011755987951652"
+            : `iidahikaroom:episode:${episode}`,
     }),
   ),
   ...kannahikaruEpisodes.map(([episode, startsAt]) =>
@@ -97,9 +110,17 @@ export const regularProgramAppearances = [
       title: `カンナヒカル（仮）第${episode}回`,
       seriesId: "kannahikaru",
       category: "ラジオ",
-      sourceUrl: "https://www.onsen.ag/program/umauma",
-      sourceName: "official:onsen",
-      sourceItemId: `umauma:episode:${episode}`,
+      sourceUrl:
+        episode === 15
+          ? "https://x.com/onsenradio/status/2099800669310083073"
+          : "https://www.onsen.ag/program/umauma",
+      publication:
+        episode === 15
+          ? publishedAt("2026-09-15T19:01:06.630+09:00")
+          : undefined,
+      sourceName: episode === 15 ? "x:onsenradio" : "official:onsen",
+      sourceItemId:
+        episode === 15 ? "2099800669310083073" : `umauma:episode:${episode}`,
     }),
   ),
   ...pikanonoEpisodes.map(([episode, startsAt]) =>
@@ -109,9 +130,25 @@ export const regularProgramAppearances = [
       title: `ぴかのの定理 第${episode}回`,
       seriesId: "pikanono",
       category: "配信",
-      sourceUrl: "https://x.com/voice_lounge",
+      sourceUrl:
+        episode === 12
+          ? "https://x.com/voice_lounge/status/2097998922673426695"
+          : episode === 13
+            ? "https://x.com/voice_lounge/status/2101880597765591545"
+            : "https://x.com/voice_lounge",
+      publication:
+        episode === 12
+          ? publishedAt("2026-09-10T19:41:36.757+09:00")
+          : episode === 13
+            ? publishedAt("2026-09-21T12:46:00.217+09:00")
+            : undefined,
       sourceName: "x:voice-lounge",
-      sourceItemId: `voice_lounge:pikanono:${episode}`,
+      sourceItemId:
+        episode === 12
+          ? "2097998922673426695"
+          : episode === 13
+            ? "2101880597765591545"
+            : `voice_lounge:pikanono:${episode}`,
     }),
   ),
   ...hatsuboshiEpisodes.map(([episode, startsAt]) =>
@@ -121,9 +158,20 @@ export const regularProgramAppearances = [
       title: `初星学園放送部 第${episode}回`,
       seriesId: "gakuen-idolmaster",
       category: "配信",
-      sourceUrl: "https://asobichannel.asobistore.jp/",
-      sourceName: "official:asobi-channel",
-      sourceItemId: `hatsuboshi-housoubu:${episode}`,
+      sourceUrl:
+        episode === 106
+          ? "https://x.com/gkmas_official/status/2100205561476251832"
+          : "https://asobichannel.asobistore.jp/",
+      publication:
+        episode === 106
+          ? publishedAt("2026-09-16T21:50:00.445+09:00")
+          : undefined,
+      sourceName:
+        episode === 106 ? "x:gkmas-official" : "official:asobi-channel",
+      sourceItemId:
+        episode === 106
+          ? "2100205561476251832"
+          : `hatsuboshi-housoubu:${episode}`,
     }),
   ),
   ...yuriRelationEpisodes.map(([key, startsAt, title]) =>

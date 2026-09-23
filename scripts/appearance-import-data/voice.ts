@@ -1,5 +1,5 @@
 import type { AppearanceImportItem } from "../../src/domain/appearance";
-import { single } from "./helpers";
+import { publishedAt, publishedOn, single, singleDate, singleUnknown } from "./helpers";
 
 const agencyProfileUrl = "https://www.raccoon-dog.co.jp/talent/r18-iida.html";
 
@@ -43,5 +43,37 @@ export const voiceAppearances = [
     sourceUrl: agencyProfileUrl,
     sourceName: "official:raccoon-dog",
     sourceItemId: "profile:tv:ichijoma",
+  }),
+  singleDate({
+    id: "oshigoto-neiro-encore-biyoushi",
+    startsOn: "2025-11-10",
+    title: "ASMR『おしごとねいろ アンコール ～美容師編～』",
+    seriesId: "kotoneiro",
+    category: "音声作品",
+    sourceUrl: "https://www.youtube.com/live/fWexqZR_35I",
+    publication: publishedOn("2025-11-10"),
+    sourceName: "official:youtube",
+    sourceItemId: "youtube:live:fWexqZR_35I",
+  }),
+  singleDate({
+    id: "toushindai-no-kanojo-school-stay",
+    startsOn: "2026-08-13",
+    title: "ASMR『等身大の彼女～二人きりの学校お泊り～』（織井澄玲 役）",
+    seriesId: null,
+    category: "音声作品",
+    sourceUrl: "https://prtimes.jp/main/html/rd/p/000000026.000020837.html",
+    publication: publishedAt("2026-08-12T00:00:00+09:00"),
+    sourceName: "official:pr-times",
+    sourceItemId: "prtimes:000000026.000020837",
+  }),
+  singleUnknown({
+    id: "sugar-lies-asmr-series",
+    title: "『Sugar Lies』ASMRボイスドラマシリーズ（雪平明星 役）",
+    seriesId: "sugar-lies",
+    category: "音声作品",
+    sourceUrl: "https://sugarlies.kogado.com/",
+    publication: publishedOn("2026-09-18"),
+    sourceName: "official:kogado",
+    sourceItemId: "kogado:sugarlies:asmr",
   }),
 ] satisfies readonly AppearanceImportItem[];
