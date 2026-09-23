@@ -17,6 +17,7 @@ import {
   paginateAppearanceHistory,
 } from "../src/lib/appearance-pagination";
 import {
+  createAppearanceCalendarPeriodHref,
   createAppearanceScheduleViewHref,
   getAppearanceSchedule,
   parseAppearanceScheduleView,
@@ -227,10 +228,23 @@ assert.equal(parseAppearanceScheduleView(["month", "week"]), "month");
 assert.equal(
   createAppearanceScheduleViewHref(
     "/",
-    "q=test&series=hikaroom&category=%E9%85%8D%E4%BF%A1&year=2026&page=3&utm_source=check&view=week",
+    "q=test&series=hikaroom&category=%E9%85%8D%E4%BF%A1&year=2026&page=3&utm_source=check&view=week&month=2026-09",
     "month",
   ),
   "/?q=test&series=hikaroom&category=%E9%85%8D%E4%BF%A1&year=2026&page=3&utm_source=check&view=month#upcoming",
+);
+assert.equal(
+  createAppearanceCalendarPeriodHref(
+    "/",
+    "q=test&series=hikaroom&category=%E9%85%8D%E4%BF%A1&year=2026&page=3&utm_source=check&view=week&week=2026-09-20",
+    "month",
+    "2026-10",
+  ),
+  "/?q=test&series=hikaroom&category=%E9%85%8D%E4%BF%A1&year=2026&page=3&utm_source=check&view=month&month=2026-10#upcoming",
+);
+assert.equal(
+  createAppearanceCalendarPeriodHref("/", "q=test&month=2026-09", "month", null),
+  "/?q=test&view=month#upcoming",
 );
 assert.equal(
   createAppearanceFilterHref("/", "page=3&utm_source=test", {
@@ -519,20 +533,20 @@ const crossYearWeek = getAppearanceSchedule(
   new Date("2027-01-03T14:59:59Z"),
   "week",
 );
-assert.equal(crossYearWeek.rangeLabel, "2026年12月28日(月)〜2027年1月3日(日)");
+assert.equal(crossYearWeek.rangeLabel, "2027年1月3日(日)〜2027年1月9日(土)");
 assert.deepEqual(
   crossYearWeek.days.map((day) => day.date),
-  ["2026-12-28", "2027-01-03"],
+  ["2027-01-03", "2027-01-04"],
 );
 assert.deepEqual(
   crossYearWeek.days[0].items.map((card) => card.sessions[0].id),
-  ["week-monday-date", "week-monday-exact"],
+  ["schedule-group-date", "week-sunday-date", "week-sunday-exact"],
 );
 assert.deepEqual(
   crossYearWeek.days[1].items.map((card) => card.sessions[0].startsAtPrecision),
-  ["date", "date", "exact"],
+  ["exact", "exact"],
 );
-const projectedScheduleGroup = crossYearWeek.days[1].items.find(
+const projectedScheduleGroup = crossYearWeek.days[0].items.find(
   (card) => card.id === "schedule-group",
 )!;
 assert.equal(projectedScheduleGroup.isGrouped, true);
@@ -549,8 +563,14 @@ assert.equal(
   crossYearWeek.days.flatMap((day) => day.items).some((card) =>
     card.sessions.some((session) => session.id === "after-week"),
   ),
-  false,
+  true,
 );
+assert.equal(crossYearWeek.calendar?.startDay, "2027-01-03");
+assert.equal(crossYearWeek.calendar?.endDay, "2027-01-09");
+assert.equal(crossYearWeek.calendar?.weeks.length, 1);
+assert.equal(crossYearWeek.calendar?.weeks[0][0]?.isToday, true);
+assert.equal(crossYearWeek.calendar?.weeks[0][1]?.items[0]?.sessions[0].id, "after-week");
+assert.equal(crossYearWeek.calendar?.initialSelectedDay, "2027-01-03");
 
 const decemberSchedule = getAppearanceSchedule(
   scheduleAppearances,

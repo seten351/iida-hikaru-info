@@ -3,14 +3,12 @@ import Link from "next/link";
 import { connection } from "next/server";
 
 import { AppearanceFilters } from "@/app/appearance-filters";
+import { AppearanceCard } from "@/app/appearance-card";
+import { AppearanceCalendar } from "@/app/appearance-calendar";
 import { LatestAppearanceList } from "@/app/latest-appearance-list";
 import {
-  type AppearanceCard,
-  categoryClassNames,
+  type AppearanceCard as AppearanceCardData,
   buildAppearanceCards,
-  formatAppearanceAgendaStart,
-  formatAppearanceStart,
-  formatPublication,
   formatUpdatedAt,
   groupAppearanceCards,
 } from "@/lib/appearances";
@@ -40,87 +38,10 @@ type AppearanceSectionProps = {
   eyebrow: string;
   title: string;
   description: string;
-  items: AppearanceCard[];
+  items: AppearanceCardData[];
   emptyMessage: string;
   featured?: boolean;
 };
-
-function AppearanceStart({
-  session,
-  agenda = false,
-}: {
-  session: AppearanceCard["sessions"][number];
-  agenda?: boolean;
-}) {
-  const label = agenda
-    ? formatAppearanceAgendaStart(session)
-    : formatAppearanceStart(session);
-
-  if (session.startsAtPrecision === "unknown") {
-    return <span>{label}</span>;
-  }
-
-  return (
-    <time dateTime={session.startsAt ?? session.startsOn!}>
-      {label}
-    </time>
-  );
-}
-
-function AppearanceCard({
-  item,
-  agenda = false,
-}: {
-  item: AppearanceCard;
-  agenda?: boolean;
-}) {
-  const hasMultipleSources = item.sourceUrls.length > 1;
-
-  return (
-    <article className="appearance-card">
-      <div className="appearance-card__meta">
-        <span
-          className={`category-badge ${categoryClassNames[item.category]}`}
-        >
-          {item.category}
-        </span>
-        {!item.isGrouped && (
-          <AppearanceStart session={item.sessions[0]} agenda={agenda} />
-        )}
-      </div>
-      <h3>{item.title}</h3>
-      {item.isGrouped && (
-        <ul className="appearance-card__sessions" aria-label={`${item.title}の公演一覧`}>
-          {item.sessions.map((session) => (
-            <li key={session.id}>
-              <span>{session.sessionLabel}</span>
-              <AppearanceStart session={session} agenda={agenda} />
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="appearance-card__published">
-        {item.isGrouped ? "最新公式発表" : "公式発表"}{" "}
-        {formatPublication(item.publication)}
-      </p>
-      <div className="appearance-card__sources">
-        {item.sourceUrls.map((sourceUrl, index) => (
-          <a
-            className="source-link"
-            href={sourceUrl}
-            key={sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${item.title}の情報元${index + 1}を新しいタブで開く`}
-          >
-            {hasMultipleSources ? `情報元 ${index + 1}` : "情報元を見る"}{" "}
-            <span aria-hidden="true">↗</span>
-          </a>
-        ))}
-      </div>
-    </article>
-  );
-}
 
 const appearanceScheduleViewLabels: Record<AppearanceScheduleView, string> = {
   upcoming: "今後",
@@ -135,13 +56,10 @@ function AppearanceScheduleSection({
   emptyMessage,
 }: {
   schedule: AppearanceSchedule;
-  upcoming: AppearanceCard[];
+  upcoming: AppearanceCardData[];
   currentSearchParams: string;
   emptyMessage: string;
 }) {
-  const hasItems =
-    schedule.view === "upcoming" ? upcoming.length > 0 : schedule.days.length > 0;
-
   return (
     <section
       className="appearance-section appearance-schedule"
@@ -155,7 +73,6 @@ function AppearanceScheduleSection({
         </div>
         <div className="appearance-schedule__summary">
           <p>{schedule.description}</p>
-          {schedule.rangeLabel !== null && <strong>{schedule.rangeLabel}</strong>}
         </div>
       </header>
 
@@ -176,33 +93,19 @@ function AppearanceScheduleSection({
         ))}
       </nav>
 
-      {hasItems ? (
-        schedule.view === "upcoming" ? (
-          <div className="appearance-grid">
-            {upcoming.map((item) => (
-              <AppearanceCard item={item} key={item.id} />
-            ))}
-          </div>
-        ) : (
-          <div className="appearance-agenda">
-            {schedule.days.map((day) => (
-              <section
-                className="appearance-agenda__day"
-                key={day.date}
-                aria-labelledby={`appearance-day-${day.date}`}
-              >
-                <h3 id={`appearance-day-${day.date}`}>
-                  <time dateTime={day.date}>{day.label}</time>
-                </h3>
-                <div className="appearance-grid">
-                  {day.items.map((item) => (
-                    <AppearanceCard item={item} key={item.id} agenda />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        )
+      {schedule.calendar !== null ? (
+        <AppearanceCalendar
+          key={`${schedule.calendar.view}:${schedule.calendar.period}`}
+          calendar={schedule.calendar}
+          currentSearchParams={currentSearchParams}
+          emptyMessage={emptyMessage}
+        />
+      ) : upcoming.length > 0 ? (
+        <div className="appearance-grid">
+          {upcoming.map((item) => (
+            <AppearanceCard item={item} key={item.id} />
+          ))}
+        </div>
       ) : (
         <p className="empty-state">{emptyMessage}</p>
       )}
@@ -301,7 +204,10 @@ export default async function Home(props: PageProps<"/">) {
   const filteredCards = filterAppearanceCards(cards, filters);
   const { latest, upcoming, past } = groupAppearanceCards(filteredCards, now);
   const scheduleView = parseAppearanceScheduleView(searchParams.view);
-  const schedule = getAppearanceSchedule(filteredCards, now, scheduleView);
+  const schedule = getAppearanceSchedule(filteredCards, now, scheduleView, {
+    month: searchParams.month,
+    week: searchParams.week,
+  });
   const { page, totalPages } = getAppearanceHistoryPage(searchParams.page, past.length);
   const paginatedPast = paginateAppearanceHistory(past, page);
   const currentSearchParams = new URLSearchParams(
@@ -394,9 +300,9 @@ export default async function Home(props: PageProps<"/">) {
             isFiltering
               ? noMatchingMessage
               : schedule.view === "week"
-                ? "今週お知らせできる出演予定はありません。"
+                ? "この週に掲載されている出演情報はありません。"
                 : schedule.view === "month"
-                  ? "今月お知らせできる出演予定はありません。"
+                  ? "この月に掲載されている出演情報はありません。"
                   : "現在お知らせできる出演予定はありません。"
           }
         />
