@@ -1,119 +1,69 @@
-import fs from "node:fs";
-
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
-if (fs.existsSync(".env.local")) {
-  try {
-    require("dotenv").config({ path: ".env.local" });
-  } catch {
-    // ignore
-  }
-}
-
+import { existsSync, mkdirSync, writeFileSync, appendFileSync } from "node:fs";
+import { dirname } from "node:path";
+import { loadEnvFile } from "node:process";
+import { closeWriterDb } from "../../src/db/client";
 import { appearanceImportData } from "../appearance-import-data";
+import { sendDiscordNotification } from "./discord-notifier";
 import { scrapeRaccoonDogProfile } from "./scrapers/raccoon-dog";
-import { checkProgramUpdates } from "./scrapers/web-programs";
+import { scrapeOnsenProgram, scrapeHikaroomProgram, scrapePikanonoProgram } from "./scrapers/web-programs";
 import { fetchHikaruNewsFeed } from "./scrapers/news-feed";
-import {
-  type AppearanceNotificationItem,
-  sendDiscordNotification,
-} from "./discord-notifier";
+import { executePatrol, type PatrolReport } from "./service";
+import { createPatrolStore, withPatrolLock, type PatrolStore } from "./store";
 
 async function main() {
+  if (existsSync(".env.local")) loadEnvFile(".env.local");
   const args = process.argv.slice(2);
-  const isDryRun = args.includes("--dry-run");
-
-  console.log("==========================================");
-  console.log(`[Patrol] Starting appearance patrol (${isDryRun ? "DRY-RUN" : "LIVE"})...`);
-  console.log(`[Patrol] Current registered appearances: ${appearanceImportData.length}`);
-  console.log("==========================================");
-
-  // 1. Gather current highest episode numbers
-  const extractMaxEpisode = (prefix: string) => {
-    const numbers = appearanceImportData
-      .filter((item) => item.id.startsWith(prefix))
-      .map((item) => {
-        const m = item.id.match(/-(\d+)$/);
-        return m ? parseInt(m[1], 10) : 0;
-      });
-    return numbers.length > 0 ? Math.max(...numbers) : 0;
+  if (args.some(arg => arg !== "--dry-run")) throw new Error("Unsupported patrol argument.");
+  const dryRun = args.includes("--dry-run");
+  const comparison = process.env.DATABASE_URL ? "database" : "repository";
+  const reportPath = process.env.PATROL_REPORT_PATH ?? ".patrol-output/report.json";
+  let report: PatrolReport = {
+    mode: dryRun ? "dry-run" : "backup", checkedAt: new Date().toISOString(), sources: [],
+    candidates: [], notificationCount: 0, resolvedCount: 0, errors: [],
   };
-
-  const currentHighest = {
-    kannahikaru: extractMaxEpisode("kannahikaru-episode-"),
-    pikanono: extractMaxEpisode("pikanono-episode-"),
-    hikaroom: extractMaxEpisode("hikaroom-episode-"),
-  };
-
-  console.log("[Patrol] Current program episode benchmarks:", currentHighest);
-
-  // 2. Run scrapers in parallel
-  const [profileEntries, programUpdates, newsItems] = await Promise.all([
-    scrapeRaccoonDogProfile(),
-    checkProgramUpdates(currentHighest),
-    fetchHikaruNewsFeed(),
-  ]);
-
-  const newNotifications: AppearanceNotificationItem[] = [];
-
-  // 3. Evaluate Raccoon Dog Agency Profile entries
-  console.log(`[Patrol] Checking ${profileEntries.length} items from agency profile...`);
-  const registeredTitles = appearanceImportData.map((item) => item.title.toLowerCase());
-
-  for (const entry of profileEntries) {
-    const isRecorded = registeredTitles.some((title) =>
-      title.includes(entry.title.toLowerCase()),
-    );
-    if (!isRecorded) {
-      console.log(`[Patrol] 🔔 Potential new title found on agency profile: [${entry.section}] ${entry.title} (${entry.role})`);
-      newNotifications.push({
-        id: `agency-entry-${Date.now()}`,
-        title: `${entry.title}（${entry.role}）`,
-        category: entry.section.includes("ゲーム") ? "ゲーム" : "テレビ",
-        startsAtLabel: "公式プロフィール掲載",
-        sourceUrl: "https://www.raccoon-dog.co.jp/talent/r18-iida.html",
-        action: "added",
-      });
-    }
-  }
-
-  // 4. Evaluate Program updates
-  for (const update of programUpdates) {
-    console.log(`[Patrol] 🔔 New episode detected: ${update.seriesTitle} 第${update.detectedEpisode}回`);
-    newNotifications.push({
-      id: `${update.seriesId}-episode-${update.detectedEpisode}`,
-      title: `${update.seriesTitle} 第${update.detectedEpisode}回`,
-      category: "配信",
-      startsAtLabel: "次回配信枠",
-      sourceUrl: update.sourceUrl,
-      action: "added",
+  try {
+    if (!dryRun && !process.env.DATABASE_URL) throw new Error("DATABASE_URL is required.");
+    if (!dryRun && !process.env.DISCORD_WEBHOOK_URL) throw new Error("DISCORD_WEBHOOK_URL is required.");
+    const readOnlyFallback = async () => { throw new Error("Repository comparison is read-only."); };
+    const store: PatrolStore = process.env.DATABASE_URL ? createPatrolStore() : {
+      known: async () => appearanceImportData,
+      enqueue: readOnlyFallback, pending: readOnlyFallback,
+      markRegistered: readOnlyFallback, markNotified: readOnlyFallback,
+    };
+    console.log(`[Patrol] ${dryRun ? "DRY-RUN" : "BACKUP"}; comparing with ${comparison}. Antigravity remains the primary updater.`);
+    const run = () => executePatrol({
+      dryRun, store,
+      collectors: [
+        { name: "agency-profile", collect: scrapeRaccoonDogProfile },
+        { name: "onsen-kannahikaru", collect: scrapeOnsenProgram },
+        { name: "youtube-hikaroom", collect: scrapeHikaroomProgram },
+        { name: "youtube-pikanono", collect: scrapePikanonoProgram },
+        { name: "news-rss", collect: fetchHikaruNewsFeed },
+      ],
+      notify: (items, onBatchSent) => sendDiscordNotification(items, undefined, { onBatchSent }),
     });
+    report = dryRun ? await run() : await withPatrolLock(run);
+  } catch {
+    report.errors.push("Patrol configuration or database operation failed. Check required Secrets and Admin activation.");
+  } finally {
+    await closeWriterDb();
+    mkdirSync(dirname(reportPath), { recursive: true });
+    writeFileSync(reportPath, JSON.stringify({ ...report, comparison }, null, 2) + "\n");
+    const summary = [
+      `Patrol mode: ${report.mode}; comparison: ${comparison}`,
+      ...report.sources.map(source => `${source.name}: ${source.error ? "FAILED" : source.count + " items"}`),
+      `Unregistered candidates: ${report.candidates.length}`,
+      `Notifications delivered: ${report.notificationCount}`,
+      `Already registered candidates resolved: ${report.resolvedCount}`,
+      ...report.errors.map(error => `ERROR: ${error}`),
+    ].join("\n");
+    console.log(summary);
+    if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## 補助巡回の結果\n\n\`\`\`text\n${summary}\n\`\`\`\n`);
+    if (report.errors.length) process.exitCode = 1;
   }
-
-  // 5. Evaluate News Items
-  console.log(`[Patrol] Evaluated ${newsItems.length} news feed items.`);
-
-  // 6. Report and Send Notifications
-  console.log("==========================================");
-  if (newNotifications.length === 0) {
-    console.log("[Patrol] ✅ All sources checked. No new appearances or changes detected.");
-  } else {
-    console.log(`[Patrol] 📢 Detected ${newNotifications.length} update(s)!`);
-    if (isDryRun) {
-      console.log("[Patrol] DRY-RUN: Skipping DB write and Discord notification.");
-      for (const item of newNotifications) {
-        console.log(` - [${item.action.toUpperCase()}] ${item.title} (${item.startsAtLabel}) -> ${item.sourceUrl}`);
-      }
-    } else {
-      console.log("[Patrol] Sending Discord notification...");
-      await sendDiscordNotification(newNotifications);
-    }
-  }
-  console.log("==========================================");
 }
 
-main().catch((err) => {
-  console.error("[Patrol] Fatal error during patrol run:", err);
-  process.exit(1);
+main().catch(() => {
+  console.error("[Patrol] Failed to complete the run or write its report.");
+  process.exitCode = 1;
 });

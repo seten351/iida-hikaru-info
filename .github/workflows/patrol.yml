@@ -1,58 +1,61 @@
-name: Appearance Patrol & Auto Sync
+name: Appearance Backup Patrol
 
 on:
   schedule:
-    # 9:00, 15:00, 22:00 JST -> 00:00, 06:00, 13:00 UTC
+    # Antigravity is the primary updater. Backup checks: 9:00, 15:00, 22:00 JST.
     - cron: '0 0,6,13 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Run in Dry-Run mode without saving changes or sending webhooks'
+        description: 'Compare sources without saving candidates or sending notifications'
         required: false
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
+concurrency:
+  group: appearance-backup-patrol
+  cancel-in-progress: false
+
 jobs:
   patrol:
+    # Live checks always use reviewed code on the default branch.
+    if: github.ref_name == github.event.repository.default_branch || inputs.dry_run
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
-          fetch-depth: 0
-
+          persist-credentials: false
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 22
-          cache: 'npm'
-
+          node-version: 24
+          cache: npm
       - name: Install dependencies
         run: npm ci
-
-      - name: Run Patrol Scraper
+      - name: Test patrol
+        run: npm run test:patrol
+      - name: Compare sources and save unregistered candidates
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
+          PATROL_REPORT_PATH: ${{ runner.temp }}/patrol-report.json
         run: |
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ "$DRY_RUN" = "true" ]; then
             npm run patrol:dry-run
           else
             npm run patrol
           fi
-
-      - name: Commit & Push Changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain scripts/appearance-import-data/)" ]; then
-            git add scripts/appearance-import-data/
-            git commit -m "chore(data): auto-update appearances from patrol [skip ci]"
-            git push
-            echo "Changes committed and pushed to main."
-          else
-            echo "No data file changes to commit."
-          fi
+      - name: Save patrol report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: patrol-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/patrol-report.json
+          if-no-files-found: warn
+          retention-days: 14

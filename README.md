@@ -70,3 +70,28 @@ DBスキーマは `src/db/schema.ts`、画面へ返すデータ取得処理は `
 Vercel Web AnalyticsとSpeed InsightsをRoot Layoutへ組み込み、ページビューとCore Web Vitalsを収集します。利用にはVercel Dashboard側でも各機能を有効にしてください。
 
 この環境ではCSS処理時の内部ポート制限を避けるため、開発・ビルドともNext.js公式のWebpackオプションを使用します。
+
+## 補助巡回（GitHub Actions）
+
+主担当はAntigravityの自動実行です。GitHub Actionsは二重確認と、Antigravityを開いていない間の情報収集を補います。毎日9:00・15:00・22:00（日本時間）に最新DBと照合し、未登録の情報だけを管理画面の `/admin/proposals` に `origin=collector`、`status=pending` の調査候補として保存・Discord通知します。Actionsは公開出演情報を追加・更新したり、Gitへ自動コミットしたりしません。
+
+巡回先は所属事務所プロフィール、音泉「カンナヒカル（仮）」の番組一覧、公式YouTubeの「ヒカROOM」「ぴかのの定理」、直近7日のGoogle Newsです。番組ページ全体に埋め込まれた別番組データは使用しません。YouTubeフィードの公開日時は動画の公開日時として保存し、放送開始日時には流用しません。プロフィールやニュースは発表の裏取りが必要な候補であり、新規出演・公式発表と断定しません。巡回元のURLは調査用リンクとして保持し、出演情報の一次情報元には指定しません。Antigravityでの反映時には公式の個別告知URLと発表日時を確認し、XポストはSnowflake IDから正確な日時を復元します。
+
+同じ候補の送信済み状態はDBに保存します。通知はDiscordの件数・文字数制限に合わせて全件分割し、失敗した後の実行では未送信分だけを再送します。Antigravityが登録した情報は送信直前にも最新DBと再照合し、該当候補を `superseded` にします。初回は過去の未登録プロフィール情報も調査候補に含まれます。Discordの送信成功直後からDBへの送信済み保存までの間にプロセスが終了した場合は、そのバッチが再送されることがあります。
+
+必要なRepository Secretsは `DATABASE_URL` と `DISCORD_WEBHOOK_URL` です。DBは既存のAdmin activationが完了している必要があります。追加のマイグレーションは不要です。各取得処理にはタイムアウトと限定的な再試行を設定し、取得・通知・DB保存の失敗はActionsの失敗として扱います。成功した巡回先の候補は残します。Actionsの同時実行制御とDBロックで補助巡回同士の重複起動を防ぎます。
+
+```bash
+# 取得・照合のみ。DB保存・通知なし
+npm run patrol:dry-run
+
+# 補助巡回を実行。候補と送信済み状態をDBへ保存しDiscordへ通知
+npm run patrol
+
+# ネットワーク・DB接続を使わない回帰テスト
+npm run test:patrol
+```
+
+ローカルでは `.env.local` を読み込みます。dry-runはDB設定がない場合に限りGit管理データとの比較に切り替わり、その比較元を明記します。実行結果はGit管理外の `.patrol-output/report.json`（`PATROL_REPORT_PATH` で変更可）へ出力し、ActionsではジョブのSummaryと14日保存のArtifactから確認できます。Antigravityの起動状態そのものは検知せず、常にDB上の登録結果を基準に補助します。
+
+GitHubの定期実行は遅延することがあり、公開リポジトリは60日間活動がないとスケジュールが無効化されます。運用時は[GitHub Actionsのschedule仕様](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)も確認してください。

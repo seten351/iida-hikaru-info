@@ -27,7 +27,8 @@
     "test:phase2b": "NODE_OPTIONS=--conditions=react-server tsx --test tests/admin/*.test.ts",
     "verify:phase2b": "NODE_OPTIONS=--conditions=react-server tsx scripts/verify-phase-2b.ts",
     "verify:phase2-activation": "NODE_OPTIONS=--conditions=react-server tsx scripts/verify-phase-2-activation.ts",
-    "db:remove-samples": "dotenv -e .env.local -- tsx scripts/remove-sample-appearances.ts"
+    "db:remove-samples": "dotenv -e .env.local -- tsx scripts/remove-sample-appearances.ts",
+    "test:patrol": "NODE_OPTIONS=--conditions=react-server node --import tsx --test tests/patrol/*.test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -44,6 +45,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cheerio": "^1.2.0",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
