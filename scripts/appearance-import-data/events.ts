@@ -496,6 +496,17 @@ export const eventAppearances = [
     sourceItemId: "gkmas-tour:fukuoka:day2",
   }),
   single({
+    id: "sora-no-kiseki-2nd-stream-2026-09-08",
+    startsAt: "2026-09-08T20:00:00+09:00",
+    title: "『空の軌跡 the 2nd』実況特番",
+    seriesId: "kiseki-series",
+    category: "配信",
+    sourceUrl: "https://www.youtube.com/",
+    publication: publishedOn("2026-09-08"),
+    sourceName: "official:youtube",
+    sourceItemId: "sora-no-kiseki-2nd-stream-2026-09-08",
+  }),
+  single({
     id: "hatsuboshi-houkago-talk-2026-09-09",
     startsAt: "2026-09-09T20:00:00+09:00",
     title: "学園アイドルマスター はつぼし放課後とーく",

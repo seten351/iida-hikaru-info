@@ -8,11 +8,48 @@ import type { AdminAppearanceMutationInput } from "../src/server/admin/write-inp
 
 async function main() {
   const db = getWriterDb();
-  const existingRows = await db.select({ id: appearancesTable.id }).from(appearancesTable);
-  const existingIds = new Set(existingRows.map((r) => r.id));
+  const existingRows = await db
+    .select({
+      id: appearancesTable.id,
+      version: appearancesTable.version,
+      startsAtPrecision: appearancesTable.startsAtPrecision,
+      startsAt: appearancesTable.startsAt,
+      startsOn: appearancesTable.startsOn,
+      title: appearancesTable.title,
+      seriesId: appearancesTable.seriesId,
+      eventGroupId: appearancesTable.eventGroupId,
+      eventTitle: appearancesTable.eventTitle,
+      sessionLabel: appearancesTable.sessionLabel,
+      category: appearancesTable.category,
+    })
+    .from(appearancesTable);
 
-  const toAdd = appearanceImportData.filter((item) => !existingIds.has(item.id));
-  console.log(`Found ${toAdd.length} appearances to add via Admin write.`);
+  const existingMap = new Map(existingRows.map((r) => [r.id, r]));
+
+  const toAdd = appearanceImportData.filter((item) => !existingMap.has(item.id));
+  const toUpdate = appearanceImportData.filter((item) => {
+    const current = existingMap.get(item.id);
+    if (!current) return false;
+
+    const currentStartsAtMs = current.startsAt ? current.startsAt.getTime() : null;
+    const itemStartsAtMs = item.startsAt ? new Date(item.startsAt).getTime() : null;
+
+    return (
+      current.startsAtPrecision !== item.startsAtPrecision ||
+      currentStartsAtMs !== itemStartsAtMs ||
+      current.startsOn !== item.startsOn ||
+      current.title !== item.title ||
+      current.seriesId !== item.seriesId ||
+      current.eventGroupId !== item.eventGroupId ||
+      current.eventTitle !== item.eventTitle ||
+      current.sessionLabel !== item.sessionLabel ||
+      current.category !== item.category
+    );
+  });
+
+  console.log(
+    `Found ${toAdd.length} appearances to add, ${toUpdate.length} to update via Admin write.`,
+  );
 
   for (const item of toAdd) {
     console.log(`Adding ${item.id} (${item.title})...`);
@@ -50,7 +87,36 @@ async function main() {
     console.log(`✔ Added ${item.id}`);
   }
 
-  console.log("All appearances successfully added via Admin write!");
+  for (const item of toUpdate) {
+    const current = existingMap.get(item.id)!;
+    console.log(`Updating ${item.id} (${item.title}) [current version ${current.version}]...`);
+    const input: AdminAppearanceMutationInput = {
+      kind: "appearance",
+      operation: "update",
+      appearanceId: item.id,
+      expectedVersion: current.version,
+      fields: {
+        id: item.id,
+        startsAtPrecision: item.startsAtPrecision,
+        startsAt: item.startsAt,
+        startsOn: item.startsOn,
+        title: item.title,
+        seriesId: item.seriesId,
+        eventGroupId: item.eventGroupId,
+        eventTitle: item.eventTitle,
+        sessionLabel: item.sessionLabel,
+        category: item.category,
+      },
+    };
+
+    const res = await confirmAdminWrite(input, randomUUID());
+    if (res.status !== "approved") {
+      throw new Error(`Failed to update ${item.id}: ${res.message}`);
+    }
+    console.log(`✔ Updated ${item.id}`);
+  }
+
+  console.log("All appearances successfully processed via Admin write!");
   process.exit(0);
 }
 

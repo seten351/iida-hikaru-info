@@ -11,6 +11,8 @@
     "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
     "db:import": "dotenv -e .env.local -- tsx scripts/import-appearances.ts",
     "db:admin-import": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/admin-import-appearances.ts",
+    "patrol": "NODE_OPTIONS=--conditions=react-server tsx scripts/patrol/run-patrol.ts",
+    "patrol:dry-run": "NODE_OPTIONS=--conditions=react-server tsx scripts/patrol/run-patrol.ts --dry-run",
     "db:backfill": "dotenv -e .env.local -- tsx scripts/backfill-appearances.ts",
     "db:verify": "dotenv -e .env.local -- tsx scripts/verify-appearances.ts",
     "verify:filters": "tsx scripts/verify-appearance-filters.ts",

@@ -1,0 +1,58 @@
+name: Appearance Patrol & Auto Sync
+
+on:
+  schedule:
+    # 9:00, 15:00, 22:00 JST -> 00:00, 06:00, 13:00 UTC
+    - cron: '0 0,6,13 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in Dry-Run mode without saving changes or sending webhooks'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  patrol:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Patrol Scraper
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            npm run patrol:dry-run
+          else
+            npm run patrol
+          fi
+
+      - name: Commit & Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain scripts/appearance-import-data/)" ]; then
+            git add scripts/appearance-import-data/
+            git commit -m "chore(data): auto-update appearances from patrol [skip ci]"
+            git push
+            echo "Changes committed and pushed to main."
+          else
+            echo "No data file changes to commit."
+          fi
