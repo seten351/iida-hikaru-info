@@ -39,4 +39,5 @@ export const appearanceSeriesData = [
   { id: "life-size-girlfriend", displayName: "等身大の彼女" },
   { id: "zero-distance-girl", displayName: "ゼロ距離ガール" },
   { id: "iyashihime-school-swimming-club", displayName: "癒姫学園水泳部" },
+  { id: "bang-dream", displayName: "バンドリ！" },
 ] as const satisfies readonly AppearanceSeries[];

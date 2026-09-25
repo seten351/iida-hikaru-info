@@ -34,4 +34,15 @@ export const gameAppearances = [
     sourceName: "official:kogado",
     sourceItemId: "kogado:sugarlies",
   }),
+  singleDate({
+    id: "bang-dream-our-notes",
+    startsOn: "2026-09-24",
+    title: "ゲーム『バンドリ！ アワーノーツ』（沢海奏多 役）",
+    seriesId: "bang-dream",
+    category: "ゲーム",
+    sourceUrl: "https://bang-dream.com/",
+    publication: publishedOn("2026-09-24"),
+    sourceName: "official:bang-dream",
+    sourceItemId: "bang-dream:our-notes",
+  }),
 ] satisfies readonly AppearanceImportItem[];

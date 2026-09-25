@@ -131,6 +131,10 @@ export const officialAppearanceSources = {
     hostname: "avexnet.jp",
     pathnamePrefix: "/",
   },
+  "official:bang-dream": {
+    hostname: "bang-dream.com",
+    pathnamePrefix: "/",
+  },
   "official:gekirock": {
     hostname: "gekirock.com",
     pathnamePrefix: "/",

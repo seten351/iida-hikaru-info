@@ -1,13 +1,48 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { getWriterDb } from "../src/db/client";
-import { appearancesTable } from "../src/db/schema";
+import { appearancesTable, appearanceSeriesTable } from "../src/db/schema";
 import { appearanceImportData } from "./appearance-import-data";
+import { appearanceSeriesData } from "./appearance-series-data";
 import { confirmAdminWrite } from "../src/server/admin/write-service";
-import type { AdminAppearanceMutationInput } from "../src/server/admin/write-input";
+import type {
+  AdminAppearanceMutationInput,
+  AdminSeriesMutationInput,
+} from "../src/server/admin/write-input";
 
 async function main() {
   const db = getWriterDb();
+
+  // 1. Ensure all series exist
+  const existingSeries = await db
+    .select({
+      id: appearanceSeriesTable.id,
+      displayName: appearanceSeriesTable.displayName,
+    })
+    .from(appearanceSeriesTable);
+  const existingSeriesIds = new Set(existingSeries.map((s) => s.id));
+
+  const missingSeries = appearanceSeriesData.filter((s) => !existingSeriesIds.has(s.id));
+  if (missingSeries.length > 0) {
+    console.log(`Found ${missingSeries.length} series to add via Admin write.`);
+    for (const s of missingSeries) {
+      console.log(`Adding series ${s.id} (${s.displayName})...`);
+      const input: AdminSeriesMutationInput = {
+        kind: "series",
+        operation: "create",
+        seriesId: s.id,
+        expectedVersion: null,
+        displayName: s.displayName,
+      };
+      const res = await confirmAdminWrite(input, randomUUID());
+      if (res.status !== "approved") {
+        throw new Error(`Failed to add series ${s.id}: ${res.message}`);
+      }
+      console.log(`✔ Added series ${s.id}`);
+    }
+  }
+
+  // 2. Fetch existing appearances
   const existingRows = await db
     .select({
       id: appearancesTable.id,
@@ -116,7 +151,7 @@ async function main() {
     console.log(`✔ Updated ${item.id}`);
   }
 
-  console.log("All appearances successfully processed via Admin write!");
+  console.log("All series and appearances successfully processed via Admin write!");
   process.exit(0);
 }
 
