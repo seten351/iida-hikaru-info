@@ -626,6 +626,17 @@ export const eventAppearances = [
     sourceItemId: "first-anniversary:2026",
   }),
   single({
+    id: "daiyakusai-talkshow-2026",
+    startsAt: "2026-10-31T14:00:00+09:00",
+    title: "声優トークショーin大薬祭2026",
+    seriesId: null,
+    category: "イベント",
+    sourceUrl: "https://x.com/Iida_Hikaru_828/status/2103344285966102954",
+    publication: publishedAt("2026-09-25T13:42:10.678+09:00"),
+    sourceName: "x:iida-hikaru",
+    sourceItemId: "2103344285966102954",
+  }),
+  single({
     id: "machikane-sai-talkshow-2026",
     startsAt: "2026-11-01T12:00:00+09:00",
     title: "飯田ヒカルトークショー ぴかるん概論",
