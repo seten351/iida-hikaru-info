@@ -1,5 +1,5 @@
 import type { AppearanceImportItem } from "../../src/domain/appearance";
-import { publishedOn, singleDate, singleUnknown } from "./helpers";
+import { publishedAt, publishedOn, singleDate, singleUnknown } from "./helpers";
 
 export const gameAppearances = [
   singleDate({
@@ -40,9 +40,9 @@ export const gameAppearances = [
     title: "ゲーム『バンドリ！ アワーノーツ』（沢海奏多 役）",
     seriesId: "bang-dream",
     category: "ゲーム",
-    sourceUrl: "https://bang-dream.com/",
-    publication: publishedOn("2026-09-24"),
-    sourceName: "official:bang-dream",
-    sourceItemId: "bang-dream:our-notes",
+    sourceUrl: "https://x.com/Iida_Hikaru_828/status/2103119925682557035",
+    publication: publishedAt("2026-09-24T22:50:39.018+09:00"),
+    sourceName: "x:iida-hikaru",
+    sourceItemId: "2103119925682557035",
   }),
 ] satisfies readonly AppearanceImportItem[];

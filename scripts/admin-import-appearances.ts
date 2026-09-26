@@ -8,6 +8,7 @@ import { confirmAdminWrite } from "../src/server/admin/write-service";
 import type {
   AdminAppearanceMutationInput,
   AdminSeriesMutationInput,
+  AdminSourceMutationInput,
 } from "../src/server/admin/write-input";
 
 async function main() {
@@ -56,6 +57,12 @@ async function main() {
       eventTitle: appearancesTable.eventTitle,
       sessionLabel: appearancesTable.sessionLabel,
       category: appearancesTable.category,
+      sourceUrl: appearancesTable.sourceUrl,
+      sourceName: appearancesTable.sourceName,
+      sourceItemId: appearancesTable.sourceItemId,
+      publishedAtPrecision: appearancesTable.publishedAtPrecision,
+      publishedAt: appearancesTable.publishedAt,
+      publishedOn: appearancesTable.publishedOn,
     })
     .from(appearancesTable);
 
@@ -69,7 +76,7 @@ async function main() {
     const currentStartsAtMs = current.startsAt ? current.startsAt.getTime() : null;
     const itemStartsAtMs = item.startsAt ? new Date(item.startsAt).getTime() : null;
 
-    return (
+    const fieldsDiff =
       current.startsAtPrecision !== item.startsAtPrecision ||
       currentStartsAtMs !== itemStartsAtMs ||
       current.startsOn !== item.startsOn ||
@@ -78,8 +85,20 @@ async function main() {
       current.eventGroupId !== item.eventGroupId ||
       current.eventTitle !== item.eventTitle ||
       current.sessionLabel !== item.sessionLabel ||
-      current.category !== item.category
-    );
+      current.category !== item.category;
+
+    const currentPublishedAtMs = current.publishedAt ? current.publishedAt.getTime() : null;
+    const itemPublishedAtMs = item.publishedAt ? new Date(item.publishedAt).getTime() : null;
+
+    const sourceDiff =
+      current.sourceUrl !== item.sourceUrl ||
+      current.sourceName !== item.sourceName ||
+      current.sourceItemId !== item.sourceItemId ||
+      current.publishedAtPrecision !== item.publishedAtPrecision ||
+      currentPublishedAtMs !== itemPublishedAtMs ||
+      current.publishedOn !== item.publishedOn;
+
+    return fieldsDiff || sourceDiff;
   });
 
   console.log(
@@ -124,31 +143,86 @@ async function main() {
 
   for (const item of toUpdate) {
     const current = existingMap.get(item.id)!;
-    console.log(`Updating ${item.id} (${item.title}) [current version ${current.version}]...`);
-    const input: AdminAppearanceMutationInput = {
-      kind: "appearance",
-      operation: "update",
-      appearanceId: item.id,
-      expectedVersion: current.version,
-      fields: {
-        id: item.id,
-        startsAtPrecision: item.startsAtPrecision,
-        startsAt: item.startsAt,
-        startsOn: item.startsOn,
-        title: item.title,
-        seriesId: item.seriesId,
-        eventGroupId: item.eventGroupId,
-        eventTitle: item.eventTitle,
-        sessionLabel: item.sessionLabel,
-        category: item.category,
-      },
-    };
+    console.log(`Processing updates for ${item.id} (${item.title}) [version ${current.version}]...`);
 
-    const res = await confirmAdminWrite(input, randomUUID());
-    if (res.status !== "approved") {
-      throw new Error(`Failed to update ${item.id}: ${res.message}`);
+    const currentStartsAtMs = current.startsAt ? current.startsAt.getTime() : null;
+    const itemStartsAtMs = item.startsAt ? new Date(item.startsAt).getTime() : null;
+
+    const fieldsDiff =
+      current.startsAtPrecision !== item.startsAtPrecision ||
+      currentStartsAtMs !== itemStartsAtMs ||
+      current.startsOn !== item.startsOn ||
+      current.title !== item.title ||
+      current.seriesId !== item.seriesId ||
+      current.eventGroupId !== item.eventGroupId ||
+      current.eventTitle !== item.eventTitle ||
+      current.sessionLabel !== item.sessionLabel ||
+      current.category !== item.category;
+
+    if (fieldsDiff) {
+      console.log(`  Updating fields for ${item.id}...`);
+      const input: AdminAppearanceMutationInput = {
+        kind: "appearance",
+        operation: "update",
+        appearanceId: item.id,
+        expectedVersion: current.version,
+        fields: {
+          id: item.id,
+          startsAtPrecision: item.startsAtPrecision,
+          startsAt: item.startsAt,
+          startsOn: item.startsOn,
+          title: item.title,
+          seriesId: item.seriesId,
+          eventGroupId: item.eventGroupId,
+          eventTitle: item.eventTitle,
+          sessionLabel: item.sessionLabel,
+          category: item.category,
+        },
+      };
+
+      const res = await confirmAdminWrite(input, randomUUID());
+      if (res.status !== "approved") {
+        throw new Error(`Failed to update fields for ${item.id}: ${res.message}`);
+      }
+      current.version += 1;
+      console.log(`  ✔ Fields updated for ${item.id} (new version ${current.version})`);
     }
-    console.log(`✔ Updated ${item.id}`);
+
+    const currentPublishedAtMs = current.publishedAt ? current.publishedAt.getTime() : null;
+    const itemPublishedAtMs = item.publishedAt ? new Date(item.publishedAt).getTime() : null;
+
+    const sourceDiff =
+      current.sourceUrl !== item.sourceUrl ||
+      current.sourceName !== item.sourceName ||
+      current.sourceItemId !== item.sourceItemId ||
+      current.publishedAtPrecision !== item.publishedAtPrecision ||
+      currentPublishedAtMs !== itemPublishedAtMs ||
+      current.publishedOn !== item.publishedOn;
+
+    if (sourceDiff) {
+      console.log(`  Updating primary source for ${item.id}...`);
+      const sourceInput: AdminSourceMutationInput = {
+        kind: "source",
+        operation: "replace",
+        targets: [{ appearanceId: item.id, expectedVersion: current.version }],
+        source: {
+          canonicalUrl: item.sourceUrl,
+          sourceName: item.sourceName,
+          externalItemId: item.sourceItemId,
+          evidenceKey: "default",
+          precision: item.publishedAtPrecision,
+          publishedAt: item.publishedAt,
+          publishedOn: item.publishedOn,
+        },
+      };
+
+      const res = await confirmAdminWrite(sourceInput, randomUUID());
+      if (res.status !== "approved") {
+        throw new Error(`Failed to update source for ${item.id}: ${res.message}`);
+      }
+      current.version += 1;
+      console.log(`  ✔ Source updated for ${item.id} (new version ${current.version})`);
+    }
   }
 
   console.log("All series and appearances successfully processed via Admin write!");
