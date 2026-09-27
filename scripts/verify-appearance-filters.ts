@@ -219,11 +219,11 @@ assert.equal(
   createAppearanceHistoryPageHref("/", "view=month&q=test", 2),
   "/?view=month&q=test&page=2",
 );
-assert.equal(parseAppearanceScheduleView(undefined), "upcoming");
+assert.equal(parseAppearanceScheduleView(undefined), "month");
 assert.equal(parseAppearanceScheduleView("upcoming"), "upcoming");
 assert.equal(parseAppearanceScheduleView("week"), "week");
 assert.equal(parseAppearanceScheduleView("month"), "month");
-assert.equal(parseAppearanceScheduleView("invalid"), "upcoming");
+assert.equal(parseAppearanceScheduleView("invalid"), "month");
 assert.equal(parseAppearanceScheduleView(["month", "week"]), "month");
 assert.equal(
   createAppearanceScheduleViewHref(

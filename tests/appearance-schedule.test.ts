@@ -137,7 +137,7 @@ test("past selections choose the first event, or their start day when empty", ()
   const withEvent = getAppearanceSchedule(cards, now, "month", { month: "2026-08" });
   const empty = getAppearanceSchedule([], now, "month", { month: "2026-08" });
 
-  assert.equal(withEvent.title, "月の出演予定");
+  assert.equal(withEvent.title, "出演カレンダー");
   assert.equal(withEvent.description, "日付を選ぶと、その日の出演情報を確認できます。");
   assert.equal(withEvent.calendar?.initialSelectedDay, "2026-08-20");
   assert.equal(empty.calendar?.initialSelectedDay, "2026-08-01");

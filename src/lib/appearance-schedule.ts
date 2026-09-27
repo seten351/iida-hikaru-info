@@ -325,7 +325,7 @@ export function parseAppearanceScheduleView(
   const view = firstSearchParam(value);
   return appearanceScheduleViews.includes(view as AppearanceScheduleView)
     ? (view as AppearanceScheduleView)
-    : "upcoming";
+    : "month";
 }
 
 export function createAppearanceScheduleViewHref(
@@ -412,7 +412,7 @@ export function getAppearanceSchedule(
 
   return {
     view,
-    title: calendar.isCurrentPeriod ? "今月の出演予定" : "月の出演予定",
+    title: "出演カレンダー",
     description: "日付を選ぶと、その日の出演情報を確認できます。",
     rangeLabel: calendar.label,
     days,

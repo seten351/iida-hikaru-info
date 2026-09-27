@@ -15,7 +15,7 @@ import {
 
 const viewLabels = {
   upcoming: "今後",
-  month: "今月",
+  month: "カレンダー",
 };
 
 export function AppearanceScheduleSection({
@@ -64,7 +64,7 @@ export function AppearanceScheduleSection({
         </div>
       </header>
 
-      <nav className="appearance-view-switcher" aria-label="出演予定の表示期間">
+      <nav className="appearance-view-switcher" aria-label="出演情報の表示方法">
         {appearanceScheduleViews.filter((item) => item !== "week").map((item) => (
           <Link
             key={item}
