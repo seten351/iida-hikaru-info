@@ -46,6 +46,7 @@ const pikanonoEpisodes = [
   [11, "2026-08-25T20:00:00+09:00"],
   [12, "2026-09-14T20:00:00+09:00"],
   [13, "2026-09-22T20:00:00+09:00"],
+  [14, "2026-09-29T20:00:00+09:00"],
 ] as const;
 
 const hatsuboshiEpisodes = [
@@ -135,20 +136,26 @@ export const regularProgramAppearances = [
           ? "https://x.com/voice_lounge/status/2097998922673426695"
           : episode === 13
             ? "https://x.com/voice_lounge/status/2101880597765591545"
-            : "https://x.com/voice_lounge",
+            : episode === 14
+              ? "https://x.com/voice_lounge/status/2104179248500215815"
+              : "https://x.com/voice_lounge",
       publication:
         episode === 12
           ? publishedAt("2026-09-10T19:41:36.757+09:00")
           : episode === 13
             ? publishedAt("2026-09-21T12:46:00.217+09:00")
-            : undefined,
+            : episode === 14
+              ? publishedAt("2026-09-27T21:00:01.259+09:00")
+              : undefined,
       sourceName: "x:voice-lounge",
       sourceItemId:
         episode === 12
           ? "2097998922673426695"
           : episode === 13
             ? "2101880597765591545"
-            : `voice_lounge:pikanono:${episode}`,
+            : episode === 14
+              ? "2104179248500215815"
+              : `voice_lounge:pikanono:${episode}`,
     }),
   ),
   ...hatsuboshiEpisodes.map(([episode, startsAt]) =>

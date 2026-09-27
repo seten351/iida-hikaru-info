@@ -168,11 +168,11 @@ assert.equal(
   "/?page=1&category=%E9%9F%B3%E5%A3%B0%E4%BD%9C%E5%93%81",
 );
 
-assert.equal(appearances.length, 140);
-assert.equal(cards.length, 114);
+assert.equal(appearances.length, 141);
+assert.equal(cards.length, 115);
 
 const noFilters = filtersFor(cards, {});
-assert.equal(filterAppearanceCards(cards, noFilters).length, 114);
+assert.equal(filterAppearanceCards(cards, noFilters).length, 115);
 
 const paginationCards = Array.from({ length: 61 }, (_, index) => ({
   ...cards[0],
