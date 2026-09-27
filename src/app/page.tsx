@@ -77,7 +77,7 @@ function AppearanceScheduleSection({
       </header>
 
       <nav className="appearance-view-switcher" aria-label="出演予定の表示期間">
-        {appearanceScheduleViews.map((view) => (
+        {appearanceScheduleViews.filter((view) => view !== "week").map((view) => (
           <Link
             key={view}
             href={createAppearanceScheduleViewHref(

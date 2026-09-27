@@ -449,7 +449,7 @@ nav a:hover {
 
 .appearance-view-switcher {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   width: min(100%, 30rem);
   gap: 0.3rem;
   margin: -0.5rem 0 2.25rem;
