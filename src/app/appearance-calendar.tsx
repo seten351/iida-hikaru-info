@@ -1,72 +1,120 @@
 "use client";
 
 import { useId, useState } from "react";
-import Link from "next/link";
 
 import { AppearanceCard } from "@/app/appearance-card";
 import { appearanceCategoryDisplayOrder } from "@/domain/appearance";
 import { categoryClassNames } from "@/lib/appearances";
-import {
-  createAppearanceCalendarPeriodHref,
-  type AppearanceCalendar as AppearanceCalendarData,
-} from "@/lib/appearance-schedule";
+import type { AppearanceCalendar as AppearanceCalendarData } from "@/lib/appearance-schedule";
 
 const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+const months = Array.from({ length: 12 }, (_, index) =>
+  String(index + 1).padStart(2, "0"),
+);
 
 export function AppearanceCalendar({
   calendar,
-  currentSearchParams,
+  availableYears,
+  onPeriodChange,
   emptyMessage,
 }: {
   calendar: AppearanceCalendarData;
-  currentSearchParams: string;
+  availableYears: string[];
+  onPeriodChange: (period: string | null) => void;
   emptyMessage: string;
 }) {
-  const [selectedDate, setSelectedDate] = useState(calendar.initialSelectedDay);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const id = useId();
   const headingId = `${id}-period`;
+  const calendarId = `${id}-calendar`;
   const detailsId = `${id}-details`;
   const detailsHeadingId = `${id}-day`;
   const days = calendar.weeks.flat().filter((day) => day !== null);
-  const selectedDay = days.find((day) => day.date === selectedDate)!;
+  const selectedDay = days.find((day) => day.date === selectedDate)
+    ?? days.find((day) => day.date === calendar.initialSelectedDay)!;
   const hasItems = days.some((day) => day.items.length > 0);
   const visibleCategories = new Set(days.flatMap((day) => day.items.map((item) => item.category)));
   const periodUnit = calendar.view === "week" ? "週" : "月";
-  const hrefFor = (period: string | null) =>
-    createAppearanceCalendarPeriodHref("/", currentSearchParams, calendar.view, period);
+  const selectedYear = calendar.period.slice(0, 4);
+  const selectedMonth = calendar.period.slice(5, 7);
+  const years = [...availableYears, selectedYear, calendar.today.slice(0, 4)].map(Number);
+  const firstYear = Math.max(1, Math.min(...years) - 1);
+  const lastYear = Math.min(9999, Math.max(...years) + 1);
+  const yearOptions = Array.from({ length: lastYear - firstYear + 1 }, (_, index) =>
+    String(firstYear + index).padStart(4, "0"),
+  );
+
+  function changePeriod(period: string | null) {
+    setSelectedDate(null);
+    onPeriodChange(period);
+  }
 
   return (
     <div className={`appearance-calendar appearance-calendar--${calendar.view}`}>
       <div className="appearance-calendar__toolbar">
         <div className="appearance-calendar__period">
           <p className="appearance-calendar__timezone">JAPAN TIME</p>
-          <h3 id={headingId}>{calendar.label}</h3>
+          <h3 id={headingId} aria-live="polite" aria-atomic="true">{calendar.label}</h3>
         </div>
-        <nav className="appearance-calendar__navigation" aria-label={`${periodUnit}の移動`}>
-          {calendar.previousPeriod === null ? (
-            <span aria-disabled="true">前{periodUnit}</span>
-          ) : (
-            <Link href={hrefFor(calendar.previousPeriod)} scroll={false}>
+        <div className="appearance-calendar__controls">
+          {calendar.view === "month" && (
+            <div className="appearance-calendar__month-picker" role="group" aria-label="表示する年月">
+              <label className="appearance-filter-field">
+                <span>年</span>
+                <select
+                  aria-label="表示する年"
+                  aria-controls={calendarId}
+                  value={selectedYear}
+                  onChange={(event) => changePeriod(`${event.target.value}-${selectedMonth}`)}
+                >
+                  {yearOptions.map((year) => (
+                    <option key={year} value={year}>{Number(year)}年</option>
+                  ))}
+                </select>
+              </label>
+              <label className="appearance-filter-field">
+                <span>月</span>
+                <select
+                  aria-label="表示する月"
+                  aria-controls={calendarId}
+                  value={selectedMonth}
+                  onChange={(event) => changePeriod(`${selectedYear}-${event.target.value}`)}
+                >
+                  {months.map((month) => (
+                    <option key={month} value={month}>{Number(month)}月</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
+          <nav className="appearance-calendar__navigation" aria-label={`${periodUnit}の移動`}>
+            <button
+              type="button"
+              disabled={calendar.previousPeriod === null}
+              aria-controls={calendarId}
+              onClick={() => changePeriod(calendar.previousPeriod)}
+            >
               <span aria-hidden="true">‹</span> 前{periodUnit}
-            </Link>
-          )}
-          {calendar.isCurrentPeriod ? (
-            <span className="appearance-calendar__current" aria-disabled="true">
+            </button>
+            <button
+              className="appearance-calendar__current"
+              type="button"
+              disabled={calendar.isCurrentPeriod}
+              aria-controls={calendarId}
+              onClick={() => changePeriod(null)}
+            >
               今{periodUnit}に戻る
-            </span>
-          ) : (
-            <Link className="appearance-calendar__current" href={hrefFor(null)} scroll={false}>
-              今{periodUnit}に戻る
-            </Link>
-          )}
-          {calendar.nextPeriod === null ? (
-            <span aria-disabled="true">翌{periodUnit}</span>
-          ) : (
-            <Link href={hrefFor(calendar.nextPeriod)} scroll={false}>
+            </button>
+            <button
+              type="button"
+              disabled={calendar.nextPeriod === null}
+              aria-controls={calendarId}
+              onClick={() => changePeriod(calendar.nextPeriod)}
+            >
               翌{periodUnit} <span aria-hidden="true">›</span>
-            </Link>
-          )}
-        </nav>
+            </button>
+          </nav>
+        </div>
       </div>
 
       {hasItems && (
@@ -83,7 +131,7 @@ export function AppearanceCalendar({
         </ul>
       )}
 
-      <div className="appearance-calendar__frame">
+      <div className="appearance-calendar__frame" id={calendarId}>
         <table className="appearance-calendar__table" aria-labelledby={headingId}>
           <thead>
             <tr>
@@ -106,7 +154,7 @@ export function AppearanceCalendar({
                         className="appearance-calendar__day"
                         type="button"
                         aria-label={`${day.label}、出演情報${day.items.length}件${categories.length > 0 ? `、${categories.join("・")}` : ""}${day.isToday ? "、今日" : ""}`}
-                        aria-pressed={day.date === selectedDate}
+                        aria-pressed={day.date === selectedDay.date}
                         aria-current={day.isToday ? "date" : undefined}
                         aria-controls={detailsId}
                         onClick={() => setSelectedDate(day.date)}

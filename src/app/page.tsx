@@ -1,10 +1,9 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { connection } from "next/server";
 
 import { AppearanceFilters } from "@/app/appearance-filters";
 import { AppearanceCard } from "@/app/appearance-card";
-import { AppearanceCalendar } from "@/app/appearance-calendar";
+import { AppearanceScheduleSection } from "@/app/appearance-schedule-section";
 import { LatestAppearanceList } from "@/app/latest-appearance-list";
 import {
   type AppearanceCard as AppearanceCardData,
@@ -23,14 +22,7 @@ import {
   getAppearanceHistoryPage,
   paginateAppearanceHistory,
 } from "@/lib/appearance-pagination";
-import {
-  appearanceScheduleViews,
-  createAppearanceScheduleViewHref,
-  getAppearanceSchedule,
-  parseAppearanceScheduleView,
-  type AppearanceSchedule,
-  type AppearanceScheduleView,
-} from "@/lib/appearance-schedule";
+import { parseAppearanceScheduleView } from "@/lib/appearance-schedule";
 import { getAppearancePageData } from "@/server/appearances/repository";
 
 type AppearanceSectionProps = {
@@ -42,76 +34,6 @@ type AppearanceSectionProps = {
   emptyMessage: string;
   featured?: boolean;
 };
-
-const appearanceScheduleViewLabels: Record<AppearanceScheduleView, string> = {
-  upcoming: "今後",
-  week: "今週",
-  month: "今月",
-};
-
-function AppearanceScheduleSection({
-  schedule,
-  upcoming,
-  currentSearchParams,
-  emptyMessage,
-}: {
-  schedule: AppearanceSchedule;
-  upcoming: AppearanceCardData[];
-  currentSearchParams: string;
-  emptyMessage: string;
-}) {
-  return (
-    <section
-      className="appearance-section appearance-schedule"
-      id="upcoming"
-      aria-labelledby="upcoming-heading"
-    >
-      <header className="section-heading appearance-schedule__heading">
-        <div>
-          <p className="eyebrow">UPCOMING</p>
-          <h2 id="upcoming-heading">{schedule.title}</h2>
-        </div>
-        <div className="appearance-schedule__summary">
-          <p>{schedule.description}</p>
-        </div>
-      </header>
-
-      <nav className="appearance-view-switcher" aria-label="出演予定の表示期間">
-        {appearanceScheduleViews.filter((view) => view !== "week").map((view) => (
-          <Link
-            key={view}
-            href={createAppearanceScheduleViewHref(
-              "/",
-              currentSearchParams,
-              view,
-            )}
-            aria-current={schedule.view === view ? "page" : undefined}
-            scroll={false}
-          >
-            {appearanceScheduleViewLabels[view]}
-          </Link>
-        ))}
-      </nav>
-
-      {schedule.calendar !== null ? (
-        <AppearanceCalendar
-          key={`${schedule.calendar.view}:${schedule.calendar.period}`}
-          calendar={schedule.calendar}
-          currentSearchParams={currentSearchParams}
-          emptyMessage={emptyMessage}
-        />
-      ) : upcoming.length > 0 ? (
-        <div className="appearance-grid">
-          {upcoming.map((item) => (
-            <AppearanceCard item={item} key={item.id} />
-          ))}
-        </div>
-      ) : (
-        <p className="empty-state">{emptyMessage}</p>
-      )}
-    </section>
-  );
-}
 
 function AppearanceSection({
   id,
@@ -204,10 +126,6 @@ export default async function Home(props: PageProps<"/">) {
   const filteredCards = filterAppearanceCards(cards, filters);
   const { latest, upcoming, past } = groupAppearanceCards(filteredCards, now);
   const scheduleView = parseAppearanceScheduleView(searchParams.view);
-  const schedule = getAppearanceSchedule(filteredCards, now, scheduleView, {
-    month: searchParams.month,
-    week: searchParams.week,
-  });
   const { page, totalPages } = getAppearanceHistoryPage(searchParams.page, past.length);
   const paginatedPast = paginateAppearanceHistory(past, page);
   const currentSearchParams = new URLSearchParams(
@@ -293,18 +211,13 @@ export default async function Home(props: PageProps<"/">) {
         </section>
 
         <AppearanceScheduleSection
-          schedule={schedule}
+          cards={filteredCards}
           upcoming={upcoming}
+          availableYears={filterOptions.years}
+          view={scheduleView}
+          now={now.toISOString()}
           currentSearchParams={currentSearchParams}
-          emptyMessage={
-            isFiltering
-              ? noMatchingMessage
-              : schedule.view === "week"
-                ? "この週に掲載されている出演情報はありません。"
-                : schedule.view === "month"
-                  ? "この月に掲載されている出演情報はありません。"
-                  : "現在お知らせできる出演予定はありません。"
-          }
+          isFiltering={isFiltering}
         />
 
         <AppearanceSection
