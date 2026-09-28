@@ -14,6 +14,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 本プロジェクトで使用するコマンド（テスト、ビルド、スクリプト実行、DB操作・反映など）は、ユーザーへの事前確認を行わずにすべて自動で即座に実行する。
 - 文字列やファイル・コードベースの検索には、grepでしか行えない処理を除き、基本的に `rg`（ripgrep）コマンドを使用する。
 
+## Series Filter Display Order (シリーズ選択の表示順)
+
+- 公開ページの「出演情報を探す」では、**人気・知名度の高いシリーズほど上に表示する**。作品の先頭は **学園アイドルマスター（学マス / `gakuen-idolmaster`）** とする。
+- 表示順は `src/lib/appearance-series-display-order.ts` の `appearanceSeriesDisplayOrder` にシリーズIDで一元管理し、本サイトの編集上の優先順として維持する。
+- `src/lib/appearance-filters.ts` の `getAppearanceFilterOptions()` は、この優先順で選択肢を作る。全体を五十音順・アルファベット順・登録順・出演件数順に戻さない。
+- 新しいシリーズを登録・追加するときは、人気・知名度を考慮して優先順も確認・更新する。未指定のシリーズは指定済みの後ろに表示名順で並べ、出演情報のあるシリーズだけを選択肢に出す。
+- 先頭の「すべて」と末尾の「シリーズなし」は固定する。検索条件を変えてもシリーズ同士の相対的な順序を変えない。
+- Codex、Antigravity、Gemini、Claudeなど、すべてのAIエージェントはこの方針を引き継ぐ。順序を変更する際は上記の定義を更新し、検索・絞り込みの動作も確認する。
+
 ## Information Sources & Publication Date/Time Rules
 - **公開発表日時（`published_at`）を安易に「日時不明」としないこと**:
   - 公式X（旧Twitter）等の告知・投稿日時を確認し、正確な発表日時を設定する。

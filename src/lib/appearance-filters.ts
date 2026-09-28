@@ -3,6 +3,7 @@ import {
   type AppearanceCategory,
 } from "@/domain/appearance";
 import type { AppearanceCard } from "@/lib/appearances";
+import { appearanceSeriesDisplayOrder } from "@/lib/appearance-series-display-order";
 import { appearanceSeriesSearchAliases } from "@/lib/appearance-series-search-aliases";
 
 export const appearanceFilterSearchParamKeys = [
@@ -31,6 +32,9 @@ type AppearanceSearchParams = Record<string, SearchParamValue>;
 const noSeriesValue = "_none";
 const searchQueryMaxLength = 100;
 const whitespacePattern = /\s+/;
+const seriesDisplayRanks = new Map<string, number>(
+  appearanceSeriesDisplayOrder.map((id, index) => [id, index]),
+);
 
 function firstSearchParam(value: SearchParamValue) {
   return Array.isArray(value) ? value[0] : value;
@@ -91,7 +95,17 @@ export function getAppearanceFilterOptions(
 
   const series = [...seriesById]
     .map(([value, label]) => ({ value, label }))
-    .sort((a, b) => a.label.localeCompare(b.label, "ja"));
+    .sort((a, b) => {
+      const aRank =
+        seriesDisplayRanks.get(a.value) ?? appearanceSeriesDisplayOrder.length;
+      const bRank =
+        seriesDisplayRanks.get(b.value) ?? appearanceSeriesDisplayOrder.length;
+      return (
+        aRank - bRank ||
+        a.label.localeCompare(b.label, "ja") ||
+        a.value.localeCompare(b.value)
+      );
+    });
 
   if (hasUnassignedSeries) {
     series.push({ value: noSeriesValue, label: "シリーズなし" });
