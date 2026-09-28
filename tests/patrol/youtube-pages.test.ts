@@ -8,9 +8,9 @@ import { parseYouTubeChannelPage, parseYouTubeVideoPage } from "../../scripts/pa
 
 const CHANNEL = "UC7ebYYsL-Uj3Q724lD2lR1Q";
 const PIKANONO = "UCO0ZWJpt-1Ya_sZGfFmsyKA";
-const VIDEO = { videoId: "zFU8AjGz_BY", title: "飯田ヒカルのヒカROOM 第36回", episode: 36 };
-const PREVIOUS = { videoId: "UpOrTLZJBqM", title: "飯田ヒカルのヒカROOM 第35回", episode: 35 };
-const UNRELATED = { videoId: "bbbbbbbbbbb", title: "別番組 #1178", episode: 1178 };
+const VIDEO = { videoId: "zFU8AjGz_BY", title: "飯田ヒカルのヒカROOM 第36回", episode: 36, channelId: CHANNEL };
+const PREVIOUS = { videoId: "UpOrTLZJBqM", title: "飯田ヒカルのヒカROOM 第35回", episode: 35, channelId: CHANNEL };
+const UNRELATED = { videoId: "bbbbbbbbbbb", title: "別番組 #1178", episode: 1178, channelId: CHANNEL };
 const episodeFromTitle = (title: string) => Number(/ヒカROOM 第(\d+)回/u.exec(title)?.[1]) || null;
 const atom = () => readFileSync(join(process.cwd(), "tests/patrol/fixtures/hikaroom-atom.xml"), "utf8");
 const script = (variable: string, data: unknown) => `<script>var ${variable} = ${JSON.stringify(data)};</script>`;
@@ -78,6 +78,21 @@ test("video fallback verifies identity and publication time independently of liv
   }
 });
 
+test("public VideoObject metadata can verify a video when player metadata is unavailable", () => {
+  const html = `<html><head><link rel="canonical" href="https://www.youtube.com/watch?v=${VIDEO.videoId}"></head>
+    <body><div itemscope itemtype="http://schema.org/VideoObject">
+    <meta itemprop="identifier" content="${VIDEO.videoId}"><meta itemprop="name" content="${VIDEO.title}">
+    <meta itemprop="datePublished" content="2026-09-21T17:01:49-07:00">
+    </div>${script("ytInitialPlayerResponse", { playabilityStatus: { status: "LOGIN_REQUIRED" } })}</body></html>`;
+  assert.equal(parseYouTubeVideoPage(html, CHANNEL, VIDEO, episodeFromTitle), "2026-09-22T00:01:49.000Z");
+  assert.throws(() => parseYouTubeVideoPage(html, PIKANONO, VIDEO, episodeFromTitle), /official channel/);
+  assert.throws(() => parseYouTubeVideoPage(html.replaceAll(VIDEO.videoId, PREVIOUS.videoId), CHANNEL, VIDEO, episodeFromTitle), /does not match/);
+  assert.throws(() => parseYouTubeVideoPage(html.replace("2026-09-21T17:01:49-07:00", "2026-09-21"), CHANNEL, VIDEO, episodeFromTitle), /exact publication timestamp/);
+  const wrongPlayer = html + script("ytInitialPlayerResponse", videoData(VIDEO, PIKANONO));
+  // An explicit conflicting player identity must never be replaced by the public metadata.
+  assert.throws(() => parseYouTubeVideoPage(wrongPlayer.replace(script("ytInitialPlayerResponse", { playabilityStatus: { status: "LOGIN_REQUIRED" } }), ""), CHANNEL, VIDEO, episodeFromTitle), /official channel/);
+});
+
 test("a feed 404 recovers through official pages with the same candidates and identities", async context => {
   const requests: string[] = [];
   context.mock.method(globalThis, "fetch", async (input: string) => {
@@ -118,7 +133,7 @@ test("failed fallback pages remain a collection failure", async context => {
 });
 
 test("pikanono fallback prefers a public episode over its members-only copy", async context => {
-  const publicVideo = { videoId: "Sfs0aZA8wCM", title: "飯田ヒカル・大渕野々花 『ぴかのの定理』 #13", episode: 13 };
+  const publicVideo = { videoId: "Sfs0aZA8wCM", title: "飯田ヒカル・大渕野々花 『ぴかのの定理』 #13", episode: 13, channelId: PIKANONO };
   const memberVideo = { ...publicVideo, videoId: "c7YPSk_f5w4", title: `【メンバー限定動画】${publicVideo.title}` };
   context.mock.method(globalThis, "fetch", async (input: string) => {
     const url = new URL(input);

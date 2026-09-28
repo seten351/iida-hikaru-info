@@ -2,7 +2,7 @@ import { load } from "cheerio";
 import { fetchText } from "../http";
 import { SourceValidationError } from "../source-errors";
 
-type Video = { videoId: string; title: string; episode: number };
+type Video = { videoId: string; title: string; episode: number; channelId: string };
 type ChannelItem = {
   richItemRenderer?: { content?: {
     lockupViewModel?: {
@@ -83,7 +83,7 @@ export function parseYouTubeChannelPage(
     if (!/^[\w-]{11}$/u.test(videoId) || endpointId !== videoId) {
       throw new SourceValidationError("video-link-mismatch");
     }
-    videos.push({ videoId, title, episode });
+    videos.push({ videoId, title, episode, channelId });
   }
   if (!videoCount) throw new SourceValidationError("grid-unrecognized");
   return videos;
@@ -95,17 +95,36 @@ export function parseYouTubeVideoPage(
   video: Video,
   episodeFromTitle: (title: string) => number | null,
 ): string {
-  const data = pageData<PlayerData>(html, "ytInitialPlayerResponse");
+  let data: PlayerData = {};
+  try { data = pageData<PlayerData>(html, "ytInitialPlayerResponse"); }
+  catch (error) {
+    if (!(error instanceof SourceValidationError) || error.code !== "video-data-missing") throw error;
+  }
   const details = data.videoDetails;
   const metadata = data.microformat?.playerMicroformatRenderer;
-  if (!details || !metadata) throw new SourceValidationError("video-details-missing");
-  if (details.channelId !== channelId || metadata.externalChannelId !== channelId) {
+  if (video.channelId !== channelId || (details && details.channelId !== channelId)
+    || (metadata && metadata.externalChannelId !== channelId)) {
     throw new SourceValidationError("video-channel-mismatch");
   }
-  if (details.videoId !== video.videoId || episodeFromTitle(details.title ?? "") !== video.episode) {
+  if (details && (details.videoId !== video.videoId || episodeFromTitle(details.title ?? "") !== video.episode)) {
     throw new SourceValidationError("video-episode-mismatch");
   }
-  const published = metadata.publishDate ?? "";
+  let published = metadata?.publishDate ?? "";
+  if (!details || !metadata) {
+    // Public VideoObject metadata remains available when playback needs login.
+    // Channel ownership was already proven by the channel's own video grid.
+    const $ = load(html);
+    const scope = $('[itemscope][itemtype$="/VideoObject"]').first();
+    if (!scope.length) throw new SourceValidationError("video-details-missing");
+    const canonical = $('link[rel="canonical"]').attr("href");
+    const id = scope.children('meta[itemprop="identifier"]').attr("content");
+    const title = scope.children('meta[itemprop="name"]').attr("content") ?? "";
+    if (canonical !== `https://www.youtube.com/watch?v=${video.videoId}`
+      || id !== video.videoId || episodeFromTitle(title) !== video.episode) {
+      throw new SourceValidationError("video-episode-mismatch");
+    }
+    published = scope.children('meta[itemprop="datePublished"]').attr("content") ?? "";
+  }
   // A date alone, relative label, or live start time is not a publication timestamp.
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/u.test(published)
     || Number.isNaN(Date.parse(published))) {
