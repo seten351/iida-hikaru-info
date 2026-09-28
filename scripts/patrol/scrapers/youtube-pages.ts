@@ -119,7 +119,8 @@ export async function fetchYouTubeProgramPages(program: {
   episodeFromTitle: (title: string) => number | null;
 }) {
   const tabs = await Promise.all((["videos", "streams"] as const).map(async tab => {
-    const html = await fetchText(`https://www.youtube.com/channel/${program.channelId}/${tab}`);
+    // Hosted runners are often outside Japan; translated titles lose the program matcher.
+    const html = await fetchText(`https://www.youtube.com/channel/${program.channelId}/${tab}?hl=ja`);
     return parseYouTubeChannelPage(html, program.channelId, tab, program.episodeFromTitle);
   }));
   // Prefer public videos to members-only copies of the same episode.
@@ -138,7 +139,7 @@ export async function fetchYouTubeProgramPages(program: {
   // Bound concurrency and history, keeping the fallback within the patrol timeout.
   for (let offset = 0; offset < episodes.length; offset += 3) {
     result.push(...await Promise.all(episodes.slice(offset, offset + 3).map(async video => {
-      const html = await fetchText(`https://www.youtube.com/watch?v=${video.videoId}`);
+      const html = await fetchText(`https://www.youtube.com/watch?v=${video.videoId}&hl=ja`);
       return { ...video, publishedAt: parseYouTubeVideoPage(html, program.channelId, video, program.episodeFromTitle) };
     })));
   }

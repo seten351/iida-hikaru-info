@@ -84,6 +84,7 @@ test("a feed 404 recovers through official pages with the same candidates and id
     requests.push(input);
     const url = new URL(input);
     if (url.pathname === "/feeds/videos.xml") return new Response("not found", { status: 404 });
+    assert.equal(url.searchParams.get("hl"), "ja", "hosted runners must request Japanese program titles");
     if (url.pathname.endsWith("/videos")) return new Response(script("ytInitialData", channelData("videos", [UNRELATED])));
     if (url.pathname.endsWith("/streams")) return new Response(script("ytInitialData", channelData("streams", [VIDEO, PREVIOUS, { ...VIDEO, title: `${VIDEO.title} おまけ` }])));
     if (url.searchParams.get("v") === VIDEO.videoId) return new Response(script("ytInitialPlayerResponse", videoData()));

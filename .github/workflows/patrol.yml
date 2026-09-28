@@ -40,6 +40,7 @@ jobs:
       - name: Test patrol
         run: npm run test:patrol
       - name: Compare sources and save unregistered candidates
+        id: collect
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -51,6 +52,14 @@ jobs:
           else
             npm run patrol
           fi
+      - name: Check agency connectivity after a collection failure
+        if: failure() && steps.collect.outcome == 'failure'
+        continue-on-error: true
+        run: >-
+          curl --ipv4 --location --silent --show-error
+          --connect-timeout 15 --max-time 25 --output /dev/null
+          --write-out 'Agency connectivity: HTTP %{http_code}, IP %{remote_ip}, connect %{time_connect}s, TLS %{time_appconnect}s, total %{time_total}s\n'
+          https://www.raccoon-dog.co.jp/talent/r18-iida.html
       - name: Save patrol report
         if: always()
         uses: actions/upload-artifact@v7
