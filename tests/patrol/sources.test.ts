@@ -66,3 +66,15 @@ test("raw fetch failures retry before becoming a typed sanitized error", async (
   assert.equal(await fetchText("https://example.test/path?token=secret"), "ok");
   assert.equal(calls, 3);
 });
+
+test("request diagnostics expose only known transport codes", async context => {
+  const cause = Object.assign(new Error("secret URL and response"), { code: "UND_ERR_CONNECT_TIMEOUT" });
+  context.mock.method(globalThis, "fetch", async () => { throw new TypeError("private connection details", { cause }); });
+  await assert.rejects(fetchText("https://example.test/path?token=secret"), error => {
+    assert.ok(error instanceof SourceFetchError);
+    assert.equal(error.requestCode, "UND_ERR_CONNECT_TIMEOUT");
+    assert.equal(error.message, "request failed or timed out");
+    assert.equal(JSON.stringify(error).includes("secret"), false);
+    return true;
+  });
+});

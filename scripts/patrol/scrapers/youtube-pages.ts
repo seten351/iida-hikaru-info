@@ -1,5 +1,6 @@
 import { load } from "cheerio";
 import { fetchText } from "../http";
+import { SourceValidationError } from "../source-errors";
 
 type Video = { videoId: string; title: string; episode: number };
 type ChannelItem = {
@@ -36,9 +37,12 @@ function pageData<T>(html: string, variable: "ytInitialData" | "ytInitialPlayerR
   const assignment = new RegExp(`^\\s*var\\s+${variable}\\s*=\\s*(\\{[\\s\\S]*\\})\\s*;?\\s*$`, "u");
   for (const element of $("script").toArray()) {
     const match = assignment.exec($(element).text());
-    if (match) return JSON.parse(match[1]) as T;
+    if (match) {
+      try { return JSON.parse(match[1]) as T; }
+      catch { throw new SourceValidationError("invalid-json"); }
+    }
   }
-  throw new Error("YouTube page is missing its expected JSON data");
+  throw new SourceValidationError(variable === "ytInitialData" ? "channel-data-missing" : "video-data-missing");
 }
 
 export function parseYouTubeChannelPage(
@@ -49,16 +53,16 @@ export function parseYouTubeChannelPage(
 ): Video[] {
   const data = pageData<ChannelData>(html, "ytInitialData");
   if (data.metadata?.channelMetadataRenderer?.externalId !== channelId) {
-    throw new Error("YouTube page does not identify the official channel");
+    throw new SourceValidationError("channel-mismatch");
   }
   const selected = data.contents?.twoColumnBrowseResultsRenderer?.tabs
     ?.map(item => item.tabRenderer).find(item => item?.selected);
   const url = new URL(selected?.endpoint?.commandMetadata?.webCommandMetadata?.url ?? "/", "https://www.youtube.com");
   if (url.origin !== "https://www.youtube.com" || !url.pathname.endsWith(`/${tab}`)) {
-    throw new Error("YouTube page does not contain the requested channel tab");
+    throw new SourceValidationError("tab-missing");
   }
   const items = selected?.content?.richGridRenderer?.contents;
-  if (!Array.isArray(items) || !items.length) throw new Error("YouTube channel video grid is missing or empty");
+  if (!Array.isArray(items) || !items.length) throw new SourceValidationError("grid-empty");
 
   const videos: Video[] = [];
   let videoCount = 0;
@@ -77,11 +81,11 @@ export function parseYouTubeChannelPage(
     const endpointId = lockup?.rendererContext?.commandContext?.onTap?.innertubeCommand?.watchEndpoint?.videoId
       ?? renderer?.navigationEndpoint?.watchEndpoint?.videoId;
     if (!/^[\w-]{11}$/u.test(videoId) || endpointId !== videoId) {
-      throw new Error("YouTube channel entry has an invalid video ID");
+      throw new SourceValidationError("video-link-mismatch");
     }
     videos.push({ videoId, title, episode });
   }
-  if (!videoCount) throw new Error("YouTube channel grid contains no recognizable videos");
+  if (!videoCount) throw new SourceValidationError("grid-unrecognized");
   return videos;
 }
 
@@ -94,15 +98,18 @@ export function parseYouTubeVideoPage(
   const data = pageData<PlayerData>(html, "ytInitialPlayerResponse");
   const details = data.videoDetails;
   const metadata = data.microformat?.playerMicroformatRenderer;
-  if (details?.channelId !== channelId || metadata?.externalChannelId !== channelId
-    || details?.videoId !== video.videoId || episodeFromTitle(details?.title ?? "") !== video.episode) {
-    throw new Error("YouTube video does not match the official channel and program episode");
+  if (!details || !metadata) throw new SourceValidationError("video-details-missing");
+  if (details.channelId !== channelId || metadata.externalChannelId !== channelId) {
+    throw new SourceValidationError("video-channel-mismatch");
+  }
+  if (details.videoId !== video.videoId || episodeFromTitle(details.title ?? "") !== video.episode) {
+    throw new SourceValidationError("video-episode-mismatch");
   }
   const published = metadata.publishDate ?? "";
   // A date alone, relative label, or live start time is not a publication timestamp.
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/u.test(published)
     || Number.isNaN(Date.parse(published))) {
-    throw new Error("YouTube video is missing an exact publication timestamp");
+    throw new SourceValidationError("publication-time-missing");
   }
   return new Date(published).toISOString();
 }
@@ -125,7 +132,7 @@ export async function fetchYouTubeProgramPages(program: {
   }
   const episodes = [...byEpisode.values()]
     .sort((a, b) => b.episode - a.episode).slice(0, 15);
-  if (!episodes.length) throw new Error("YouTube channel pages contain no matching main episodes");
+  if (!episodes.length) throw new SourceValidationError("episodes-missing");
 
   const result: Array<Video & { publishedAt: string }> = [];
   // Bound concurrency and history, keeping the fallback within the patrol timeout.

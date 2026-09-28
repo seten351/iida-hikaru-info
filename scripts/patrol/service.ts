@@ -1,5 +1,6 @@
 import type { AppearanceNotificationItem } from "./discord-notifier";
 import { SourceFetchError } from "./http";
+import { SourceValidationError } from "./source-errors";
 import type { KnownAppearance, PatrolStore } from "./store";
 import { candidateId, isIndividualSource, normalizeTitle, type PatrolCandidate } from "./types";
 
@@ -17,7 +18,7 @@ export type PatrolReport = {
 function sourceFailureDiagnostic(error: SourceFetchError): string {
   if (error.kind === "http") return `HTTP ${error.status}`;
   if (error.kind === "empty-response") return "empty response";
-  return "request failed or timed out";
+  return `request failed or timed out${error.requestCode ? `: ${error.requestCode}` : ""}`;
 }
 
 export function isRegistered(candidate: PatrolCandidate, known: KnownAppearance[]) {
@@ -48,7 +49,7 @@ export async function executePatrol(options: {
       // Do not expose raw HTTP/driver exceptions (they may contain credentials).
       const diagnostic = result.reason instanceof SourceFetchError
         ? ` (${sourceFailureDiagnostic(result.reason)})`
-        : "";
+        : result.reason instanceof SourceValidationError ? ` (${result.reason.code})` : "";
       const error = `${name}: source collection failed${diagnostic}`;
       report.sources.push({ name, count: 0, error });
       report.errors.push(error);

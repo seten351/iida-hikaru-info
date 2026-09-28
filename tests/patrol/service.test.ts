@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { SourceFetchError } from "../../scripts/patrol/http";
+import { SourceValidationError } from "../../scripts/patrol/source-errors";
 import { executePatrol, isRegistered } from "../../scripts/patrol/service";
 import { candidateId, type PatrolCandidate } from "../../scripts/patrol/types";
 import type { KnownAppearance, PatrolStore, QueuedCandidate } from "../../scripts/patrol/store";
@@ -104,6 +105,16 @@ test("generic and prefix-spoofed failures never expose credentials", async () =>
   ]);
   assert.equal(JSON.stringify(report).includes("password"), false);
   assert.equal(JSON.stringify(report).includes("token=secret"), false);
+});
+
+test("source validation reports fixed codes even if the exception message contains secrets", async () => {
+  const state = memoryStore();
+  const error = new SourceValidationError("video-details-missing");
+  error.message = "secret-response-body";
+  const report = await executePatrol({ dryRun: true, store: state.store,
+    collectors: [{ name: "official", collect: async () => { throw error; } }], notify: async () => {} });
+  assert.equal(report.errors[0], "official: source collection failed (video-details-missing)");
+  assert.equal(JSON.stringify(report).includes("secret-response-body"), false);
 });
 
 test("registration matching handles different IDs, typography, and individual source URLs", () => {
