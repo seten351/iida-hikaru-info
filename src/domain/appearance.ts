@@ -235,6 +235,10 @@ export const officialAppearanceSources = {
     hostname: "x.com",
     pathnamePrefix: "/Le_Mirage_jp/status/",
   },
+  "x:fire-emblem": {
+    hostname: "x.com",
+    pathnamePrefix: "/FireEmblemJP/status/",
+  },
 } as const;
 
 export type OfficialAppearanceSourceName =

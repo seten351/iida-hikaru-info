@@ -47,7 +47,7 @@ export const voiceAppearances = [
   singleDate({
     id: "oshigoto-neiro-encore-biyoushi",
     startsOn: "2025-11-10",
-    title: "ASMR『おしごとねいろ アンコール ～美容師編～』",
+    title: "ASMR『おしごとねいろ アンコール ～美容師編～』（栗原実咲 役）",
     seriesId: "kotoneiro",
     category: "音声作品",
     sourceUrl: "https://www.youtube.com/live/fWexqZR_35I",
