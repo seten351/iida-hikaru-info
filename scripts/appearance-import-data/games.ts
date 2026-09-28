@@ -45,15 +45,4 @@ export const gameAppearances = [
     sourceName: "x:iida-hikaru",
     sourceItemId: "2103119925682557035",
   }),
-  singleDate({
-    id: "le-mirage-mystique",
-    startsOn: "2026-09-17",
-    title: "ゲーム『Le Mirage Mystique』（アエス 役）",
-    seriesId: "le-mirage-mystique",
-    category: "ゲーム",
-    sourceUrl: "https://x.com/Le_Mirage_jp/status/2104406246661230879",
-    publication: publishedAt("2026-09-28T12:02:01.838+09:00"),
-    sourceName: "x:le-mirage",
-    sourceItemId: "2104406246661230879",
-  }),
 ] satisfies readonly AppearanceImportItem[];

@@ -40,5 +40,4 @@ export const appearanceSeriesData = [
   { id: "zero-distance-girl", displayName: "ゼロ距離ガール" },
   { id: "iyashihime-school-swimming-club", displayName: "癒姫学園水泳部" },
   { id: "bang-dream", displayName: "バンドリ！" },
-  { id: "le-mirage-mystique", displayName: "Le Mirage Mystique" },
 ] as const satisfies readonly AppearanceSeries[];

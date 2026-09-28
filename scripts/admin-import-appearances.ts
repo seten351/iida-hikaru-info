@@ -1,7 +1,13 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { getWriterDb } from "../src/db/client";
-import { appearancesTable, appearanceSeriesTable } from "../src/db/schema";
+import {
+  appearancesTable,
+  appearanceSeriesTable,
+  appearanceSourceLinksTable,
+  sourceItemsTable,
+} from "../src/db/schema";
+import { eq } from "drizzle-orm";
 import { appearanceImportData } from "./appearance-import-data";
 import { appearanceSeriesData } from "./appearance-series-data";
 import { confirmAdminWrite } from "../src/server/admin/write-service";
@@ -10,6 +16,16 @@ import type {
   AdminSeriesMutationInput,
   AdminSourceMutationInput,
 } from "../src/server/admin/write-input";
+
+function normalizeTitleForDeduplication(value: string) {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/^(ゲーム|asmr|tvアニメ|webアニメ|アニメ|ラジオ|配信)『?/, "")
+    .replace(/[『』「」()（）]/g, "")
+    .replace(/(役|出演)$/, "")
+    .replace(/[\s\p{P}\p{S}]/gu, "");
+}
 
 async function main() {
   const db = getWriterDb();
@@ -69,6 +85,63 @@ async function main() {
   const existingMap = new Map(existingRows.map((r) => [r.id, r]));
 
   const toAdd = appearanceImportData.filter((item) => !existingMap.has(item.id));
+
+  // Duplicate Guard: prevent adding appearances with already registered source URLs or duplicate title+date
+  const allSourceLinks = await db
+    .select({
+      appearanceId: appearanceSourceLinksTable.appearanceId,
+      canonicalUrl: sourceItemsTable.canonicalUrl,
+    })
+    .from(appearanceSourceLinksTable)
+    .innerJoin(
+      sourceItemsTable,
+      eq(appearanceSourceLinksTable.sourceId, sourceItemsTable.id),
+    );
+
+  const existingSourceUrls = new Map<string, string>();
+  for (const row of existingRows) {
+    if (row.sourceUrl) existingSourceUrls.set(row.sourceUrl, row.id);
+  }
+  for (const link of allSourceLinks) {
+    existingSourceUrls.set(link.canonicalUrl, link.appearanceId);
+  }
+
+  for (const item of toAdd) {
+    // 1. Check exact source URL duplicate
+    if (existingSourceUrls.has(item.sourceUrl)) {
+      const existingId = existingSourceUrls.get(item.sourceUrl)!;
+      if (existingId !== item.id) {
+        throw new Error(
+          `[DUPLICATE REJECTED] Cannot add appearance "${item.id}" (${item.title}): sourceUrl "${item.sourceUrl}" is already registered for appearance "${existingId}".`,
+        );
+      }
+    }
+
+    // 2. Check title + date duplicate
+    const itemNormalized = normalizeTitleForDeduplication(item.title);
+    const itemDate = item.startsOn ?? (item.startsAt ? item.startsAt.slice(0, 10) : null);
+    if (itemDate) {
+      for (const existing of existingRows) {
+        if (existing.id === item.id) continue;
+        const existingDate =
+          existing.startsOn ??
+          (existing.startsAt ? existing.startsAt.toISOString().slice(0, 10) : null);
+        if (existingDate === itemDate && existing.category === item.category) {
+          const existingNormalized = normalizeTitleForDeduplication(existing.title);
+          if (
+            itemNormalized === existingNormalized ||
+            (itemNormalized.length >= 4 && existingNormalized.includes(itemNormalized)) ||
+            (existingNormalized.length >= 4 && itemNormalized.includes(existingNormalized))
+          ) {
+            throw new Error(
+              `[DUPLICATE REJECTED] Cannot add appearance "${item.id}" (${item.title}): matches existing appearance "${existing.id}" (${existing.title}) on date ${itemDate}. Update the existing record instead of adding a duplicate.`,
+            );
+          }
+        }
+      }
+    }
+  }
+
   const toUpdate = appearanceImportData.filter((item) => {
     const current = existingMap.get(item.id);
     if (!current) return false;

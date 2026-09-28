@@ -21,3 +21,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **情報元URL（`source_url` / Primary Source Link）の個別化・具体化**:
   - 公式サイトのトップページやプラットフォームのトップURL（`https://...` トップ等）など、個別発表内容や日時が判別できない汎用URLは情報元として使用しない。
   - 個別の告知記事・ニュースページが存在しない、または判別できない場合は、公式X（旧Twitter）の告知ポストURL（`https://x.com/.../status/...`）を情報元リンクとして登録すること。
+
+## Duplicate Prevention Rules (出演情報の二重登録防止)
+- **DB既存レコードとの事前照合（重複防止）の徹底**:
+  - 新規出演情報を追加する前に、必ずDB内の既存登録情報（`appearances`, `appearance_source_links`）との重複がないか確認する。
+  - 重複確認コマンド: `npm run check:duplicate "<タイトル/キーワード/情報元URL/ID>"`
+  - 情報元URL（XポストURLやDLsiteのRJコード等）、作品タイトル（記号や表記揺れを正規化した比較）、および同一日付・同カテゴリでの既存登録がないかを必ず事前に照合すること。
+  - すでに同作品・同イベントのレコードがDB上に存在する場合（別IDや役名付きIDで先行登録されている場合など）は、**新規レコードを作成（二重登録）せず、既存レコードに対して `source_links` の追加や開演日時・詳細情報の更新（UPDATE）** を行うこと。
+  - `admin-import-appearances.ts`（`npm run db:admin-import`）にも情報元URLおよび正規化タイトル＋日付の二重検知ガードが備わっているが、登録前の事前調査と照合を怠らないこと。
+
