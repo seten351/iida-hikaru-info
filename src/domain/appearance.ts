@@ -231,6 +231,10 @@ export const officialAppearanceSources = {
     hostname: "www.dlsite.com",
     pathnamePrefix: "/home/work/=/product_id/",
   },
+  "x:le-mirage": {
+    hostname: "x.com",
+    pathnamePrefix: "/Le_Mirage_jp/status/",
+  },
 } as const;
 
 export type OfficialAppearanceSourceName =
