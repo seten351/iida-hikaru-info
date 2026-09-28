@@ -1,9 +1,7 @@
 name: Appearance Backup Patrol
 
 on:
-  schedule:
-    # Antigravity is the primary updater. Backup checks: 9:00, 15:00, 22:00 JST.
-    - cron: '0 0,6,13 * * *'
+  # Antigravity owns scheduled patrols; Actions is an on-demand backup only.
   workflow_dispatch:
     inputs:
       dry_run:
@@ -40,7 +38,6 @@ jobs:
       - name: Test patrol
         run: npm run test:patrol
       - name: Compare sources and save unregistered candidates
-        id: collect
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -52,40 +49,6 @@ jobs:
           else
             npm run patrol
           fi
-      - name: Check public source responses after a collection failure
-        if: failure() && steps.collect.outcome == 'failure'
-        continue-on-error: true
-        run: |
-          node --input-type=module <<'NODE'
-          import { load } from 'cheerio';
-          const urls = [
-            'https://www.youtube.com/channel/UC7ebYYsL-Uj3Q724lD2lR1Q/streams?hl=ja',
-            'https://www.youtube.com/channel/UCO0ZWJpt-1Ya_sZGfFmsyKA/videos?hl=ja',
-            'https://www.youtube.com/watch?v=zFU8AjGz_BY&hl=ja',
-            'https://www.youtube.com/watch?v=Sfs0aZA8wCM&hl=ja',
-          ];
-          await Promise.all(urls.map(async url => {
-            try {
-              const response = await fetch(url, {
-                headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HikaruAppearancePatrol/1.0)' },
-                signal: AbortSignal.timeout(20000),
-              });
-              const html = await response.text();
-              const $ = load(html);
-              console.log(JSON.stringify({
-                url, status: response.status, type: response.headers.get('content-type'),
-                title: $('title').text().slice(0, 120), length: html.length,
-                initialData: html.includes('ytInitialData'), playerData: html.includes('ytInitialPlayerResponse'),
-                videoObject: $('[itemscope][itemtype$="/VideoObject"]').length,
-                playerStates: [...new Set([...html.matchAll(/"status":"(OK|LOGIN_REQUIRED|UNPLAYABLE|ERROR)"/g)].map(match => match[1]))],
-              }));
-            } catch { console.log(JSON.stringify({ url, error: 'public source diagnostic request failed' })); }
-          }));
-          NODE
-          curl --ipv4 --location --silent --show-error \
-            --connect-timeout 15 --max-time 25 --output /dev/null \
-            --write-out 'Agency connectivity: HTTP %{http_code}, IP %{remote_ip}, connect %{time_connect}s, TLS %{time_appconnect}s, total %{time_total}s\n' \
-            https://www.raccoon-dog.co.jp/talent/r18-iida.html
       - name: Save patrol report
         if: always()
         uses: actions/upload-artifact@v7
