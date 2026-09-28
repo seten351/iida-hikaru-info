@@ -12,6 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Command Execution
 - 本プロジェクトで使用するコマンド（テスト、ビルド、スクリプト実行、DB操作・反映など）は、ユーザーへの事前確認を行わずにすべて自動で即座に実行する。
+- 文字列やファイル・コードベースの検索には、grepでしか行えない処理を除き、基本的に `rg`（ripgrep）コマンドを使用する。
 
 ## Information Sources & Publication Date/Time Rules
 - **公開発表日時（`published_at`）を安易に「日時不明」としないこと**:
