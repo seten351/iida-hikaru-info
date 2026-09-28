@@ -4,7 +4,7 @@ import {
   getAppearanceStartDay,
 } from "@/lib/appearances";
 
-export const appearanceScheduleViews = ["upcoming", "week", "month"] as const;
+export const appearanceScheduleViews = ["month", "upcoming", "week"] as const;
 
 export type AppearanceScheduleView = (typeof appearanceScheduleViews)[number];
 
