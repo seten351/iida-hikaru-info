@@ -227,6 +227,10 @@ export const officialAppearanceSources = {
     hostname: "sugarlies.kogado.com",
     pathnamePrefix: "/",
   },
+  "official:dlsite": {
+    hostname: "www.dlsite.com",
+    pathnamePrefix: "/home/work/=/product_id/",
+  },
 } as const;
 
 export type OfficialAppearanceSourceName =

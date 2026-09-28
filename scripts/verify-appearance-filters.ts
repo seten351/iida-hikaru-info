@@ -150,7 +150,7 @@ const audio = filterAppearanceCards(
   cardsWithAllCategories,
   parseAppearanceFilters({ category: "音声作品" }, optionsWithAllCategories),
 );
-assert.equal(audio.length, 4);
+assert.equal(audio.length, 5);
 assert.ok(audio.every((item) => item.category === "音声作品"));
 assert.ok(
   filterAppearanceCards(
@@ -168,11 +168,11 @@ assert.equal(
   "/?page=1&category=%E9%9F%B3%E5%A3%B0%E4%BD%9C%E5%93%81",
 );
 
-assert.equal(appearances.length, 141);
-assert.equal(cards.length, 115);
+assert.equal(appearances.length, 142);
+assert.equal(cards.length, 116);
 
 const noFilters = filtersFor(cards, {});
-assert.equal(filterAppearanceCards(cards, noFilters).length, 115);
+assert.equal(filterAppearanceCards(cards, noFilters).length, 116);
 
 const paginationCards = Array.from({ length: 61 }, (_, index) => ({
   ...cards[0],
@@ -287,7 +287,7 @@ const noSeries = filterAppearanceCards(
   cards,
   filtersFor(cards, { series: "_none" }),
 );
-assert.equal(noSeries.length, 5);
+assert.equal(noSeries.length, 6);
 assert.ok(noSeries.every((card) => card.seriesId === null));
 
 const radio = filterAppearanceCards(cards, filtersFor(cards, { category: "ラジオ" }));

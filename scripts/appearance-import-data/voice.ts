@@ -76,4 +76,15 @@ export const voiceAppearances = [
     sourceName: "official:kogado",
     sourceItemId: "kogado:sugarlies:asmr",
   }),
+  singleDate({
+    id: "succubus-haishinsha-urano-kao",
+    startsOn: "2026-08-17",
+    title: "ASMR『お兄ちゃんにだけ甘えちゃう♡小悪魔系サキュバス配信者の裏の顔』（美鈴、ベルル 役）",
+    seriesId: null,
+    category: "音声作品",
+    sourceUrl: "https://www.dlsite.com/home/work/=/product_id/RJ01678330.html",
+    publication: publishedOn("2026-08-17"),
+    sourceName: "official:dlsite",
+    sourceItemId: "dlsite:work:RJ01678330",
+  }),
 ] satisfies readonly AppearanceImportItem[];
