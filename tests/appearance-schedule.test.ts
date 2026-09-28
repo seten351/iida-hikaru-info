@@ -46,19 +46,27 @@ function unknownAppearance(id: string): Appearance {
 
 const now = new Date("2026-09-15T03:00:00Z");
 
-test("month calendars are Sunday-first and retain blank cells", () => {
+test("month calendars are Sunday-first and fill adjacent days in the visible weeks", () => {
   const cards = buildAppearanceCards([dateAppearance("leap", "2028-02-29")]);
   const fourRows = getAppearanceSchedule(cards, now, "month", { month: "2026-02" }).calendar!;
   const fiveRows = getAppearanceSchedule(cards, now, "month", { month: "2021-02" }).calendar!;
   const sixRows = getAppearanceSchedule(cards, now, "month", { month: "2026-08" }).calendar!;
   const leap = getAppearanceSchedule(cards, now, "month", { month: "2028-02" }).calendar!;
+  const september = getAppearanceSchedule([], now, "month", { month: "2026-09" }).calendar!;
 
   assert.equal(fourRows.weeks.length, 4);
   assert.equal(fourRows.weeks[0][0]?.date, "2026-02-01");
   assert.equal(fiveRows.weeks.length, 5);
   assert.equal(sixRows.weeks.length, 6);
-  assert.equal(sixRows.weeks[0][0], null);
+  assert.equal(sixRows.weeks[0][0]?.date, "2026-07-26");
   assert.equal(sixRows.weeks[0][6]?.date, "2026-08-01");
+  assert.equal(sixRows.weeks.at(-1)?.[6]?.date, "2026-09-05");
+  assert.deepEqual(
+    september.weeks.flat().filter((day) => !day?.date.startsWith("2026-09-")).map((day) => day?.date),
+    ["2026-08-30", "2026-08-31", "2026-10-01", "2026-10-02", "2026-10-03"],
+  );
+  assert.equal(september.period, "2026-09");
+  assert.equal(september.initialSelectedDay, "2026-09-15");
   assert.equal(leap.endDay, "2028-02-29");
   assert.equal(leap.weeks.flat().find((day) => day?.date === "2028-02-29")?.items[0]?.id, "appearance:leap");
 });
@@ -90,6 +98,8 @@ test("selected periods project only that day’s sessions and omit unknown start
   assert.deepEqual(second!.items[0].sessions.map((session) => session.id), ["second"]);
   assert.equal(schedule.days.some((day) => day.items.some((card) => card.id === "appearance:unknown")), false);
   assert.equal(schedule.days.some((day) => day.date === "2026-09-01"), false);
+  const adjacentDay = schedule.calendar!.weeks.flat().find((day) => day?.date === "2026-09-01")!;
+  assert.deepEqual(adjacentDay.items[0].sessions.map((session) => session.id), ["tokyo-boundary"]);
 });
 
 test("invalid period parameters fall back to the Tokyo current period", () => {
@@ -112,6 +122,10 @@ test("unrepresentable adjacent months have no navigation period", () => {
   assert.equal(firstMonth.nextPeriod, "0001-02");
   assert.equal(lastMonth.previousPeriod, "9999-11");
   assert.equal(lastMonth.nextPeriod, null);
+  assert.equal(firstMonth.weeks[0][0], null);
+  assert.equal(firstMonth.weeks[0][1]?.date, "0001-01-01");
+  assert.equal(lastMonth.weeks.at(-1)?.[5]?.date, "9999-12-31");
+  assert.equal(lastMonth.weeks.at(-1)?.[6], null);
 });
 
 test("out-of-range week queries fall back and boundary navigation is unavailable", () => {
@@ -133,9 +147,13 @@ test("out-of-range week queries fall back and boundary navigation is unavailable
 });
 
 test("past selections choose the first event, or their start day when empty", () => {
-  const cards = buildAppearanceCards([dateAppearance("past-event", "2026-08-20")]);
+  const adjacentCards = buildAppearanceCards([
+    dateAppearance("previous-month-event", "2026-07-31"),
+    dateAppearance("next-month-event", "2026-09-01"),
+  ]);
+  const cards = [...adjacentCards, ...buildAppearanceCards([dateAppearance("past-event", "2026-08-20")])];
   const withEvent = getAppearanceSchedule(cards, now, "month", { month: "2026-08" });
-  const empty = getAppearanceSchedule([], now, "month", { month: "2026-08" });
+  const empty = getAppearanceSchedule(adjacentCards, now, "month", { month: "2026-08" });
 
   assert.equal(withEvent.title, "出演カレンダー");
   assert.equal(withEvent.description, "日付を選ぶと、その日の出演情報を確認できます。");

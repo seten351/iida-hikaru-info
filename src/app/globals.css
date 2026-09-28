@@ -568,9 +568,10 @@ nav a:hover {
 }
 
 .appearance-calendar__frame {
+  --calendar-radius: 16px;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--calendar-radius);
   background: var(--surface);
 }
 
@@ -661,6 +662,18 @@ nav a:hover {
   cursor: pointer;
 }
 
+.appearance-calendar__table tbody tr:last-child td:first-child .appearance-calendar__day {
+  border-bottom-left-radius: calc(var(--calendar-radius) - 1px);
+}
+
+.appearance-calendar__table tbody tr:last-child td:last-child .appearance-calendar__day {
+  border-bottom-right-radius: calc(var(--calendar-radius) - 1px);
+}
+
+.appearance-calendar__day--outside-month {
+  background: color-mix(in srgb, var(--surface-soft) 55%, var(--surface));
+}
+
 .appearance-calendar__day:hover {
   background: color-mix(in srgb, var(--surface-soft) 55%, var(--surface));
 }
@@ -693,6 +706,14 @@ nav a:hover {
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+
+.appearance-calendar__table td .appearance-calendar__day--outside-month .appearance-calendar__date {
+  width: auto;
+  min-width: 1.8rem;
+  padding-inline: 0.15rem;
+  color: var(--muted);
+  font-size: 0.76rem;
 }
 
 .appearance-calendar__table .appearance-calendar__day[aria-current="date"] .appearance-calendar__date {
@@ -1291,7 +1312,7 @@ footer {
   }
 
   .appearance-calendar__frame {
-    border-radius: 12px;
+    --calendar-radius: 12px;
   }
 
   .appearance-calendar__legend {

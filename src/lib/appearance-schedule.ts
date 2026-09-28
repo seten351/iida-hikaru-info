@@ -292,10 +292,11 @@ function createCalendar(
     weeks.push(
       Array.from({ length: 7 }, (_, dayIndex) => {
         const dayNumber = weekIndex * 7 + dayIndex - firstDayOffset + 1;
-        if (dayNumber < 1 || dayNumber > daysInMonth) return null;
+        const date = addDays(startDay, dayNumber - 1);
+        if (date === null) return null;
 
         return createCalendarDay(
-          `${period}-${String(dayNumber).padStart(2, "0")}`,
+          date,
           today,
           scheduledDays,
         );
@@ -312,7 +313,9 @@ function createCalendar(
     label: monthLabelFormatter.format(calendarDate(startDay)!),
     weeks,
     initialSelectedDay:
-      today >= startDay && today <= endDay ? today : days[0]?.date ?? startDay,
+      today >= startDay && today <= endDay
+        ? today
+        : days.find((day) => day.date >= startDay && day.date <= endDay)?.date ?? startDay,
     previousPeriod: shiftMonth(period, -1),
     nextPeriod: shiftMonth(period, 1),
     isCurrentPeriod,
@@ -406,9 +409,13 @@ export function getAppearanceSchedule(
     requestedMonth === null
       ? currentMonth
       : formatCalendarMonth(requestedMonth.year, requestedMonth.month)!;
+  const startDay = `${period}-01`;
   const endDay = endOfMonth(period)!;
-  const days = groupCardsByDay(cards, `${period}-01`, endDay);
-  const calendar = createCalendar("month", period, today, currentMonth, days);
+  const gridStartDay = startOfWeek(startDay) ?? startDay;
+  const gridEndDay = addDays(endDay, 6 - calendarDate(endDay)!.getUTCDay()) ?? endDay;
+  const calendarDays = groupCardsByDay(cards, gridStartDay, gridEndDay);
+  const days = calendarDays.filter((day) => day.date >= startDay && day.date <= endDay);
+  const calendar = createCalendar("month", period, today, currentMonth, calendarDays);
 
   return {
     view,

@@ -145,13 +145,14 @@ export function AppearanceCalendar({
                   if (day === null) {
                     return <td className="appearance-calendar__blank" key={`blank-${column}`} />;
                   }
+                  const isOutsideMonth = calendar.view === "month" && !day.date.startsWith(`${calendar.period}-`);
                   const categories = appearanceCategoryDisplayOrder.filter((category) =>
                     day.items.some((item) => item.category === category),
                   );
                   return (
                     <td key={day.date}>
                       <button
-                        className="appearance-calendar__day"
+                        className={`appearance-calendar__day${isOutsideMonth ? " appearance-calendar__day--outside-month" : ""}`}
                         type="button"
                         aria-label={`${day.label}、出演情報${day.items.length}件${categories.length > 0 ? `、${categories.join("・")}` : ""}${day.isToday ? "、今日" : ""}`}
                         aria-pressed={day.date === selectedDay.date}
@@ -161,7 +162,7 @@ export function AppearanceCalendar({
                       >
                         <span className="appearance-calendar__date-row">
                           <time className="appearance-calendar__date" dateTime={day.date}>
-                            {day.dayNumber}
+                            {isOutsideMonth ? `${Number(day.date.slice(5, 7))}/${day.dayNumber}` : day.dayNumber}
                           </time>
                           {day.isToday && <span className="appearance-calendar__today-label">今日</span>}
                         </span>
