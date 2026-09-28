@@ -34,12 +34,36 @@ type PlayerData = {
 /** Read JSON assignments only; never execute scripts supplied by a source page. */
 function pageData<T>(html: string, variable: "ytInitialData" | "ytInitialPlayerResponse"): T {
   const $ = load(html);
-  const assignment = new RegExp(`^\\s*var\\s+${variable}\\s*=\\s*(\\{[\\s\\S]*\\})\\s*;?\\s*$`, "u");
+  const assignment = new RegExp(
+    `^\\s*(?:(?:(?:var|let|const)\\s+)?${variable}\\b|window\\s*\\[\\s*["']${variable}["']\\s*\\])\\s*=\\s*`,
+    "u",
+  );
   for (const element of $("script").toArray()) {
-    const match = assignment.exec($(element).text());
+    const script = $(element).text();
+    const match = assignment.exec(script);
     if (match) {
-      try { return JSON.parse(match[1]) as T; }
-      catch { throw new SourceValidationError("invalid-json"); }
+      const start = match[0].length;
+      if (script[start] !== "{") throw new SourceValidationError("invalid-json");
+
+      let depth = 0;
+      let inString = false;
+      let escaped = false;
+      for (let index = start; index < script.length; index++) {
+        const character = script[index];
+        if (inString) {
+          if (escaped) escaped = false;
+          else if (character === "\\") escaped = true;
+          else if (character === '"') inString = false;
+          continue;
+        }
+        if (character === '"') inString = true;
+        else if (character === "{") depth++;
+        else if (character === "}" && --depth === 0) {
+          try { return JSON.parse(script.slice(start, index + 1)) as T; }
+          catch { throw new SourceValidationError("invalid-json"); }
+        }
+      }
+      throw new SourceValidationError("invalid-json");
     }
   }
   throw new SourceValidationError(variable === "ytInitialData" ? "channel-data-missing" : "video-data-missing");

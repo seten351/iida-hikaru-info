@@ -53,6 +53,37 @@ test("channel fallback reads only videos in the verified selected tab", () => {
   assert.throws(() => parseYouTubeChannelPage("<html>Consent required</html>", CHANNEL, "streams", episodeFromTitle), /expected JSON/);
 });
 
+test("page JSON extraction accepts YouTube assignment variants without executing script", () => {
+  const data = { ...channelData("streams"), ignored: 'quoted brace } and escaped quote "' };
+  const json = JSON.stringify(data);
+  const assignments = [
+    `var ytInitialData = ${json}; window.after = true;`,
+    `let ytInitialData = ${json}; anotherStatement();`,
+    `const ytInitialData = ${json}; void 0;`,
+    `ytInitialData = ${json}; trailing = "script";`,
+    `window["ytInitialData"] = ${json}; trailing = "script";`,
+    `window['ytInitialData'] = ${json}; trailing = "script";`,
+  ];
+  for (const assignment of assignments) {
+    assert.deepEqual(
+      parseYouTubeChannelPage(`<script>  ${assignment}</script>`, CHANNEL, "streams", episodeFromTitle),
+      [VIDEO],
+    );
+  }
+  const player = JSON.stringify(videoData());
+  assert.equal(
+    parseYouTubeVideoPage(
+      `<script>window['ytInitialPlayerResponse'] = ${player}; trailing = "script";</script>`,
+      CHANNEL,
+      VIDEO,
+      episodeFromTitle,
+    ),
+    "2026-09-22T00:01:49.000Z",
+  );
+  const unrelated = `<script>const text = 'ytInitialData = ${json}';</script>`;
+  assert.throws(() => parseYouTubeChannelPage(unrelated, CHANNEL, "streams", episodeFromTitle), /expected JSON/);
+});
+
 test("channel fallback supports the older renderer and rejects mismatched video links", () => {
   const data = channelData("streams");
   const tab = data.contents.twoColumnBrowseResultsRenderer.tabs[0].tabRenderer;
