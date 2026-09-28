@@ -1,11 +1,13 @@
 import { load } from "cheerio";
 
-import { fetchText } from "../http";
+import { fetchText, SourceFetchError } from "../http";
 import type { PatrolCandidate } from "../types";
+import { fetchYouTubeProgramPages } from "./youtube-pages";
 
 const ONSEN_URL = "https://www.onsen.ag/program/umauma";
 const HIKAROOM_ATOM_URL = "https://www.youtube.com/feeds/videos.xml?channel_id=UC7ebYYsL-Uj3Q724lD2lR1Q";
 const PIKANONO_ATOM_URL = "https://www.youtube.com/feeds/videos.xml?channel_id=UCO0ZWJpt-1Ya_sZGfFmsyKA";
+const YOUTUBE_NOTE = "公式YouTubeで動画公開日時を確認。配信・放送日時は未検証のため、候補として通知。";
 
 type YouTubeProgram = {
   seriesId: "hikaroom" | "pikanono";
@@ -158,7 +160,7 @@ export function parseYouTubeProgramAtom(xml: string, program: YouTubeProgram): P
     candidates.push(candidate(
       program.seriesId, episode, `${program.seriesTitle} 第${episode}回`, "配信",
       `https://www.youtube.com/watch?v=${videoId}`, publishedAt,
-      "公式YouTube Atomフィードで動画公開日時を確認。配信・放送日時は未検証のため、候補として通知。",
+      YOUTUBE_NOTE,
     ));
   });
 
@@ -179,9 +181,26 @@ export async function scrapeOnsenProgram(): Promise<PatrolCandidate[]> {
 }
 
 export async function scrapeHikaroomProgram(): Promise<PatrolCandidate[]> {
-  return parseHikaroomProgramAtom(await fetchText(HIKAROOM.atomUrl));
+  return scrapeYouTubeProgram(HIKAROOM);
 }
 
 export async function scrapePikanonoProgram(): Promise<PatrolCandidate[]> {
-  return parsePikanonoProgramAtom(await fetchText(PIKANONO.atomUrl));
+  return scrapeYouTubeProgram(PIKANONO);
+}
+
+async function scrapeYouTubeProgram(program: YouTubeProgram): Promise<PatrolCandidate[]> {
+  let xml: string;
+  try {
+    xml = await fetchText(program.atomUrl);
+  } catch (error) {
+    // YouTube sometimes returns 404/5xx for feeds of active channels. Fall back
+    // only on transport errors; invalid feed identities must still fail closed.
+    if (!(error instanceof SourceFetchError)) throw error;
+    console.warn(`[Patrol] ${program.seriesId}: Atom unavailable; checking official channel and video pages.`);
+    return (await fetchYouTubeProgramPages(program)).map(video => candidate(
+      program.seriesId, video.episode, `${program.seriesTitle} 第${video.episode}回`, "配信",
+      `https://www.youtube.com/watch?v=${video.videoId}`, video.publishedAt, YOUTUBE_NOTE,
+    ));
+  }
+  return parseYouTubeProgramAtom(xml, program);
 }

@@ -1,0 +1,139 @@
+import { load } from "cheerio";
+import { fetchText } from "../http";
+
+type Video = { videoId: string; title: string; episode: number };
+type ChannelItem = {
+  richItemRenderer?: { content?: {
+    lockupViewModel?: {
+      contentType?: string;
+      contentId?: string;
+      metadata?: { lockupMetadataViewModel?: { title?: { content?: string } } };
+      rendererContext?: { commandContext?: { onTap?: { innertubeCommand?: { watchEndpoint?: { videoId?: string } } } } };
+    };
+    videoRenderer?: {
+      videoId?: string;
+      title?: { simpleText?: string; runs?: { text: string }[] };
+      navigationEndpoint?: { watchEndpoint?: { videoId?: string } };
+    };
+  } };
+};
+type ChannelData = {
+  metadata?: { channelMetadataRenderer?: { externalId?: string } };
+  contents?: { twoColumnBrowseResultsRenderer?: { tabs?: { tabRenderer?: {
+    selected?: boolean;
+    endpoint?: { commandMetadata?: { webCommandMetadata?: { url?: string } } };
+    content?: { richGridRenderer?: { contents?: ChannelItem[] } };
+  } }[] } };
+};
+type PlayerData = {
+  videoDetails?: { videoId?: string; channelId?: string; title?: string };
+  microformat?: { playerMicroformatRenderer?: { externalChannelId?: string; publishDate?: string } };
+};
+
+/** Read JSON assignments only; never execute scripts supplied by a source page. */
+function pageData<T>(html: string, variable: "ytInitialData" | "ytInitialPlayerResponse"): T {
+  const $ = load(html);
+  const assignment = new RegExp(`^\\s*var\\s+${variable}\\s*=\\s*(\\{[\\s\\S]*\\})\\s*;?\\s*$`, "u");
+  for (const element of $("script").toArray()) {
+    const match = assignment.exec($(element).text());
+    if (match) return JSON.parse(match[1]) as T;
+  }
+  throw new Error("YouTube page is missing its expected JSON data");
+}
+
+export function parseYouTubeChannelPage(
+  html: string,
+  channelId: string,
+  tab: "videos" | "streams",
+  episodeFromTitle: (title: string) => number | null,
+): Video[] {
+  const data = pageData<ChannelData>(html, "ytInitialData");
+  if (data.metadata?.channelMetadataRenderer?.externalId !== channelId) {
+    throw new Error("YouTube page does not identify the official channel");
+  }
+  const selected = data.contents?.twoColumnBrowseResultsRenderer?.tabs
+    ?.map(item => item.tabRenderer).find(item => item?.selected);
+  const url = new URL(selected?.endpoint?.commandMetadata?.webCommandMetadata?.url ?? "/", "https://www.youtube.com");
+  if (url.origin !== "https://www.youtube.com" || !url.pathname.endsWith(`/${tab}`)) {
+    throw new Error("YouTube page does not contain the requested channel tab");
+  }
+  const items = selected?.content?.richGridRenderer?.contents;
+  if (!Array.isArray(items) || !items.length) throw new Error("YouTube channel video grid is missing or empty");
+
+  const videos: Video[] = [];
+  let videoCount = 0;
+  // Restrict extraction to the selected tab's own grid, excluding recommendations.
+  for (const item of items) {
+    const content = item.richItemRenderer?.content;
+    const lockup = content?.lockupViewModel;
+    const renderer = content?.videoRenderer;
+    if (lockup?.contentType !== "LOCKUP_CONTENT_TYPE_VIDEO" && !renderer) continue;
+    videoCount++;
+    const title = lockup?.metadata?.lockupMetadataViewModel?.title?.content
+      ?? renderer?.title?.simpleText ?? renderer?.title?.runs?.map(run => run.text).join("") ?? "";
+    const episode = episodeFromTitle(title);
+    if (!episode) continue;
+    const videoId = lockup?.contentId ?? renderer?.videoId ?? "";
+    const endpointId = lockup?.rendererContext?.commandContext?.onTap?.innertubeCommand?.watchEndpoint?.videoId
+      ?? renderer?.navigationEndpoint?.watchEndpoint?.videoId;
+    if (!/^[\w-]{11}$/u.test(videoId) || endpointId !== videoId) {
+      throw new Error("YouTube channel entry has an invalid video ID");
+    }
+    videos.push({ videoId, title, episode });
+  }
+  if (!videoCount) throw new Error("YouTube channel grid contains no recognizable videos");
+  return videos;
+}
+
+export function parseYouTubeVideoPage(
+  html: string,
+  channelId: string,
+  video: Video,
+  episodeFromTitle: (title: string) => number | null,
+): string {
+  const data = pageData<PlayerData>(html, "ytInitialPlayerResponse");
+  const details = data.videoDetails;
+  const metadata = data.microformat?.playerMicroformatRenderer;
+  if (details?.channelId !== channelId || metadata?.externalChannelId !== channelId
+    || details?.videoId !== video.videoId || episodeFromTitle(details?.title ?? "") !== video.episode) {
+    throw new Error("YouTube video does not match the official channel and program episode");
+  }
+  const published = metadata.publishDate ?? "";
+  // A date alone, relative label, or live start time is not a publication timestamp.
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/u.test(published)
+    || Number.isNaN(Date.parse(published))) {
+    throw new Error("YouTube video is missing an exact publication timestamp");
+  }
+  return new Date(published).toISOString();
+}
+
+export async function fetchYouTubeProgramPages(program: {
+  channelId: string;
+  episodeFromTitle: (title: string) => number | null;
+}) {
+  const tabs = await Promise.all((["videos", "streams"] as const).map(async tab => {
+    const html = await fetchText(`https://www.youtube.com/channel/${program.channelId}/${tab}`);
+    return parseYouTubeChannelPage(html, program.channelId, tab, program.episodeFromTitle);
+  }));
+  // Prefer public videos to members-only copies of the same episode.
+  const byEpisode = new Map<number, Video>();
+  for (const video of tabs.flat()) {
+    const existing = byEpisode.get(video.episode);
+    if (!existing || (/メンバー限定/u.test(existing.title) && !/メンバー限定/u.test(video.title))) {
+      byEpisode.set(video.episode, video);
+    }
+  }
+  const episodes = [...byEpisode.values()]
+    .sort((a, b) => b.episode - a.episode).slice(0, 15);
+  if (!episodes.length) throw new Error("YouTube channel pages contain no matching main episodes");
+
+  const result: Array<Video & { publishedAt: string }> = [];
+  // Bound concurrency and history, keeping the fallback within the patrol timeout.
+  for (let offset = 0; offset < episodes.length; offset += 3) {
+    result.push(...await Promise.all(episodes.slice(offset, offset + 3).map(async video => {
+      const html = await fetchText(`https://www.youtube.com/watch?v=${video.videoId}`);
+      return { ...video, publishedAt: parseYouTubeVideoPage(html, program.channelId, video, program.episodeFromTitle) };
+    })));
+  }
+  return result;
+}

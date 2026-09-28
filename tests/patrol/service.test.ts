@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { SourceFetchError } from "../../scripts/patrol/http";
 import { executePatrol, isRegistered } from "../../scripts/patrol/service";
 import { candidateId, type PatrolCandidate } from "../../scripts/patrol/types";
 import type { KnownAppearance, PatrolStore, QueuedCandidate } from "../../scripts/patrol/store";
@@ -79,6 +80,30 @@ test("all sources failing never reports a clean no-updates run", async () => {
   const report = await executePatrol({ dryRun: true, store: state.store, collectors: [{ name: "offline", collect: async () => { throw new Error("HTTP 503"); } }], notify: async () => {} });
   assert.equal(report.errors.length, 1);
   assert.equal(report.sources[0].error, "offline: source collection failed");
+});
+
+test("typed HTTP failures add a safe status diagnostic", async () => {
+  const state = memoryStore();
+  const report = await executePatrol({ dryRun: true, store: state.store, collectors: [
+    { name: "official", collect: async () => { throw new SourceFetchError("http", 404); } },
+  ], notify: async () => {} });
+  assert.equal(report.sources[0].error, "official: source collection failed (HTTP 404)");
+  assert.equal(report.errors[0], "official: source collection failed (HTTP 404)");
+});
+
+test("generic and prefix-spoofed failures never expose credentials", async () => {
+  const state = memoryStore();
+  const secret = "https://user:password@example.test/path?token=secret";
+  const report = await executePatrol({ dryRun: true, store: state.store, collectors: [
+    { name: "generic", collect: async () => { throw new Error(secret); } },
+    { name: "spoofed", collect: async () => { throw new Error("example.test: HTTP 404 " + secret); } },
+  ], notify: async () => {} });
+  assert.deepEqual(report.sources.map(source => source.error), [
+    "generic: source collection failed",
+    "spoofed: source collection failed",
+  ]);
+  assert.equal(JSON.stringify(report).includes("password"), false);
+  assert.equal(JSON.stringify(report).includes("token=secret"), false);
 });
 
 test("registration matching handles different IDs, typography, and individual source URLs", () => {

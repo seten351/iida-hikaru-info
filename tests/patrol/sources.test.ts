@@ -3,7 +3,7 @@ import test from "node:test";
 import { parseNewsFeed } from "../../scripts/patrol/scrapers/news-feed";
 import { parseRaccoonDogProfile } from "../../scripts/patrol/scrapers/raccoon-dog";
 import { candidateId, publishedAtFromX } from "../../scripts/patrol/types";
-import { fetchText } from "../../scripts/patrol/http";
+import { fetchText, SourceFetchError } from "../../scripts/patrol/http";
 
 test("RSS becomes reviewable candidates without treating RSS dates as official announcements", () => {
   const [candidate] = parseNewsFeed('<rss><channel><item><title><![CDATA[飯田ヒカル A & B]]></title><link>https://news.google.com/rss/articles/example?oc=5</link><pubDate>Thu, 24 Sep 2026 09:00:00 GMT</pubDate></item></channel></rss>');
@@ -36,10 +36,33 @@ test("X timestamps are recovered from Snowflake IDs without inventing a date", (
   assert.equal(publishedAtFromX("https://x.com/onsenradio"), null);
 });
 
-test("HTTP errors and empty pages propagate as collection failures", async (context) => {
+test("HTTP errors and empty pages propagate as typed, sanitized collection failures", async (context) => {
   context.mock.method(globalThis, "fetch", async () => new Response("not found", { status: 404 }));
-  await assert.rejects(fetchText("https://www.onsen.ag/program/umauma"), /HTTP 404/);
+  await assert.rejects(fetchText("https://www.onsen.ag/program/umauma?token=secret"), error => {
+    assert.ok(error instanceof SourceFetchError);
+    assert.equal(error.kind, "http");
+    assert.equal(error.status, 404);
+    assert.equal(error.message, "HTTP 404");
+    assert.equal(error.message.includes("secret"), false);
+    return true;
+  });
   context.mock.restoreAll();
   context.mock.method(globalThis, "fetch", async () => new Response(""));
-  await assert.rejects(fetchText("https://www.onsen.ag/program/umauma"), /empty response/);
+  await assert.rejects(fetchText("https://www.onsen.ag/program/umauma"), error => {
+    assert.ok(error instanceof SourceFetchError);
+    assert.equal(error.kind, "empty-response");
+    assert.equal(error.status, undefined);
+    return true;
+  });
+});
+
+test("raw fetch failures retry before becoming a typed sanitized error", async (context) => {
+  let calls = 0;
+  context.mock.method(globalThis, "fetch", async () => {
+    calls++;
+    if (calls < 3) throw new Error("https://user:password@example.test/path?token=secret");
+    return new Response("ok");
+  });
+  assert.equal(await fetchText("https://example.test/path?token=secret"), "ok");
+  assert.equal(calls, 3);
 });
