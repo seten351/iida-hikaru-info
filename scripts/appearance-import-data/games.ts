@@ -5,7 +5,7 @@ export const gameAppearances = [
   singleDate({
     id: "seifuku-kanojo-3",
     startsOn: "2026-09-10",
-    title: "ゲーム『制服カノジョ3』（八尋実咲 役）",
+    title: "『制服カノジョ3』（八尋実咲 役）",
     seriesId: "seifuku-kanojo",
     category: "ゲーム",
     sourceUrl: "https://www.entergram.co.jp/seikano3/",
@@ -26,7 +26,7 @@ export const gameAppearances = [
   }),
   singleUnknown({
     id: "sugar-lies-game",
-    title: "ゲーム『Sugar Lies』（雪平明星 役・主題歌歌唱）",
+    title: "『Sugar Lies』（雪平明星 役・主題歌歌唱）",
     seriesId: "sugar-lies",
     category: "ゲーム",
     sourceUrl: "https://sugarlies.kogado.com/",
@@ -37,7 +37,7 @@ export const gameAppearances = [
   singleDate({
     id: "bang-dream-our-notes",
     startsOn: "2026-09-24",
-    title: "ゲーム『バンドリ！ アワーノーツ』（沢海奏多 役）",
+    title: "『バンドリ！ アワーノーツ』（沢海奏多 役）",
     seriesId: "bang-dream",
     category: "ゲーム",
     sourceUrl: "https://x.com/Iida_Hikaru_828/status/2103119925682557035",
