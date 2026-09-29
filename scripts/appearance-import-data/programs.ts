@@ -1,5 +1,5 @@
 import type { AppearanceImportItem } from "../../src/domain/appearance";
-import { publishedAt, publishedOn, single } from "./helpers";
+import { publishedAt, single } from "./helpers";
 
 const hikaroomEpisodes = [
   [24, "2025-09-23T21:00:00+09:00"],
@@ -35,6 +35,19 @@ const kannahikaruEpisodes = [
   [15, "2026-09-15T19:00:00+09:00"],
   [16, "2026-09-29T19:00:00+09:00"],
 ] as const;
+
+const kannahikaruSources: Record<number, { url: string; publishedAt: string; tweetId: string }> = {
+  15: {
+    url: "https://x.com/onsenradio/status/2099800669310083073",
+    publishedAt: "2026-09-15T19:01:06.630+09:00",
+    tweetId: "2099800669310083073",
+  },
+  16: {
+    url: "https://x.com/onsenradio/status/2104877138507862070",
+    publishedAt: "2026-09-29T19:13:11.203+09:00",
+    tweetId: "2104877138507862070",
+  },
+};
 
 const pikanonoEpisodes = [
   [1, "2026-05-19T20:00:00+09:00"],
@@ -105,28 +118,20 @@ export const regularProgramAppearances = [
             : `iidahikaroom:episode:${episode}`,
     }),
   ),
-  ...kannahikaruEpisodes.map(([episode, startsAt]) =>
-    single({
+  ...kannahikaruEpisodes.map(([episode, startsAt]) => {
+    const xSource = kannahikaruSources[episode];
+    return single({
       id: `kannahikaru-episode-${episode}`,
       startsAt,
       title: `カンナヒカル（仮）第${episode}回`,
       seriesId: "kannahikaru",
       category: "ラジオ",
-      sourceUrl:
-        episode === 15
-          ? "https://x.com/onsenradio/status/2099800669310083073"
-          : "https://www.onsen.ag/program/umauma",
-      publication:
-        episode === 15
-          ? publishedAt("2026-09-15T19:01:06.630+09:00")
-          : episode === 16
-            ? publishedOn("2026-09-29")
-            : undefined,
-      sourceName: episode === 15 ? "x:onsenradio" : "official:onsen",
-      sourceItemId:
-        episode === 15 ? "2099800669310083073" : `umauma:episode:${episode}`,
-    }),
-  ),
+      sourceUrl: xSource ? xSource.url : "https://www.onsen.ag/program/umauma",
+      publication: xSource ? publishedAt(xSource.publishedAt) : undefined,
+      sourceName: xSource ? "x:onsenradio" : "official:onsen",
+      sourceItemId: xSource ? xSource.tweetId : `umauma:episode:${episode}`,
+    });
+  }),
   ...pikanonoEpisodes.map(([episode, startsAt]) =>
     single({
       id: `pikanono-episode-${episode}`,

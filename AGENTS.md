@@ -31,6 +31,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **情報元URL（`source_url` / Primary Source Link）の個別化・具体化**:
   - 公式サイトのトップページやプラットフォームのトップURL（`https://...` トップ等）など、個別発表内容や日時が判別できない汎用URLは情報元として使用しない。
   - 個別の告知記事・ニュースページが存在しない、または判別できない場合は、公式X（旧Twitter）の告知ポストURL（`https://x.com/.../status/...`）を情報元リンクとして登録すること。
+  - **『カンナヒカル（仮）』各回情報元URL**: 音泉の番組トップページ（`https://www.onsen.ag/program/umauma`）ではなく、**音泉公式X（`@onsenradio`）による各回の配信告知ポストURL（`https://x.com/onsenradio/status/...`）** を情報元URLとすること。発表日時はそのSnowflake IDから算出した正確な日時（`precision: "exact"`）とし、`sourceName` は `"x:onsenradio"`、`sourceItemId` はポストIDとする。
 
 ## Duplicate Prevention Rules (出演情報の二重登録防止)
 - **DB既存レコードとの事前照合（重複防止）の徹底**:
