@@ -27,6 +27,20 @@ function normalizeTitleForDeduplication(value: string) {
     .replace(/[\s\p{P}\p{S}]/gu, "");
 }
 
+function isSharedProgramUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "www.onsen.ag" && parsed.pathname.startsWith("/program/")) return true;
+    if (parsed.hostname === "ch.nicovideo.jp") return true;
+    if (parsed.hostname === "asobichannel.asobistore.jp") return true;
+    if (parsed.hostname === "audee-membership.jp") return true;
+    if (["x.com", "twitter.com"].includes(parsed.hostname) && !parsed.pathname.includes("/status/")) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 async function main() {
   const db = getWriterDb();
 
@@ -87,7 +101,7 @@ async function main() {
   const toAdd = appearanceImportData.filter((item) => !existingMap.has(item.id));
 
   // Duplicate Guard: prevent adding appearances with already registered source URLs or duplicate title+date
-  const allSourceLinks = await db
+  const allActiveSourceLinks = await db
     .select({
       appearanceId: appearanceSourceLinksTable.appearanceId,
       canonicalUrl: sourceItemsTable.canonicalUrl,
@@ -96,23 +110,28 @@ async function main() {
     .innerJoin(
       sourceItemsTable,
       eq(appearanceSourceLinksTable.sourceId, sourceItemsTable.id),
-    );
+    )
+    .where(eq(appearanceSourceLinksTable.active, true));
 
-  const existingSourceUrls = new Map<string, string>();
+  const existingIndividualSourceUrls = new Map<string, string>();
   for (const row of existingRows) {
-    if (row.sourceUrl) existingSourceUrls.set(row.sourceUrl, row.id);
+    if (row.sourceUrl && !isSharedProgramUrl(row.sourceUrl)) {
+      existingIndividualSourceUrls.set(row.sourceUrl, row.id);
+    }
   }
-  for (const link of allSourceLinks) {
-    existingSourceUrls.set(link.canonicalUrl, link.appearanceId);
+  for (const link of allActiveSourceLinks) {
+    if (!isSharedProgramUrl(link.canonicalUrl)) {
+      existingIndividualSourceUrls.set(link.canonicalUrl, link.appearanceId);
+    }
   }
 
   for (const item of toAdd) {
-    // 1. Check exact source URL duplicate
-    if (existingSourceUrls.has(item.sourceUrl)) {
-      const existingId = existingSourceUrls.get(item.sourceUrl)!;
+    // 1. Check exact source URL duplicate for individual sources (e.g. X post, DLsite product, YouTube video)
+    if (!isSharedProgramUrl(item.sourceUrl) && existingIndividualSourceUrls.has(item.sourceUrl)) {
+      const existingId = existingIndividualSourceUrls.get(item.sourceUrl)!;
       if (existingId !== item.id) {
         throw new Error(
-          `[DUPLICATE REJECTED] Cannot add appearance "${item.id}" (${item.title}): sourceUrl "${item.sourceUrl}" is already registered for appearance "${existingId}".`,
+          `[DUPLICATE REJECTED] Cannot add appearance "${item.id}" (${item.title}): individual sourceUrl "${item.sourceUrl}" is already registered for appearance "${existingId}".`,
         );
       }
     }

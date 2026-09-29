@@ -88,6 +88,19 @@ async function main() {
   const normalizedMatches = allRows.filter((row) => {
     if (matchingAppearances.some((m) => m.id === row.id)) return false;
     if (matchingSources.some((m) => m.appearanceId === row.id)) return false;
+
+    // Check date matches (e.g. "2026-09-29")
+    if (row.startsOn && row.startsOn.includes(query)) return true;
+    if (row.startsAt) {
+      const jstDate = new Intl.DateTimeFormat("ja-JP", {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(row.startsAt).replace(/\//g, "-");
+      if (jstDate.includes(query) || row.startsAt.toISOString().includes(query)) return true;
+    }
+
     const normTitle = normalize(row.title);
     return (
       (normQuery.length >= 3 && normTitle.includes(normQuery)) ||

@@ -1,5 +1,5 @@
 import type { AppearanceImportItem } from "../../src/domain/appearance";
-import { publishedAt, single } from "./helpers";
+import { publishedAt, publishedOn, single } from "./helpers";
 
 const hikaroomEpisodes = [
   [24, "2025-09-23T21:00:00+09:00"],
@@ -33,6 +33,7 @@ const kannahikaruEpisodes = [
   [13, "2026-08-18T19:00:00+09:00"],
   [14, "2026-09-01T19:00:00+09:00"],
   [15, "2026-09-15T19:00:00+09:00"],
+  [16, "2026-09-29T19:00:00+09:00"],
 ] as const;
 
 const pikanonoEpisodes = [
@@ -118,7 +119,9 @@ export const regularProgramAppearances = [
       publication:
         episode === 15
           ? publishedAt("2026-09-15T19:01:06.630+09:00")
-          : undefined,
+          : episode === 16
+            ? publishedOn("2026-09-29")
+            : undefined,
       sourceName: episode === 15 ? "x:onsenradio" : "official:onsen",
       sourceItemId:
         episode === 15 ? "2099800669310083073" : `umauma:episode:${episode}`,
