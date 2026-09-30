@@ -243,10 +243,47 @@ export const officialAppearanceSources = {
     hostname: "x.com",
     pathnamePrefix: "/FireEmblemJP/status/",
   },
+  "x:earl-gray": {
+    hostname: "x.com",
+    pathnamePrefix: "/eg_info/status/",
+  },
+  "x:otogi-edit": {
+    hostname: "x.com",
+    pathnamePrefix: "/otogi_edit/status/",
+  },
+  "x:raro-voice": {
+    hostname: "x.com",
+    pathnamePrefix: "/RaRoVoice/status/",
+  },
+  "x:kotoneiro": {
+    hostname: "x.com",
+    pathnamePrefix: "/kotoneiro_ASMR/status/",
+  },
+  "x:incolore": {
+    hostname: "x.com",
+    pathnamePrefix: "/Incolore_Offl/status/",
+  },
+  "x:dangan-studio": {
+    hostname: "x.com",
+    pathnamePrefix: "/danganstudio/status/",
+  },
+  "x:kokorootoya": {
+    hostname: "x.com",
+    pathnamePrefix: "/kokorootoya/status/",
+  },
+  "x:youdeal-asmr": {
+    hostname: "x.com",
+    pathnamePrefix: "/YOUDEAL_ASMR/status/",
+  },
+  "x:bokuyokyodan": {
+    hostname: "x.com",
+    pathnamePrefix: "/Bokuyoukyodan/status/",
+  },
   "x:dear-mf-pr": {
     hostname: "x.com",
     pathnamePrefix: "/DEAR_MF_PR/status/",
   },
+  // 公開日時監査で本文・投稿者を確認した一次情報元。
   "明智璃子公式YouTube": {
     hostname: "www.youtube.com",
     pathnamePrefix: "/watch",

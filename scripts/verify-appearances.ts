@@ -123,7 +123,18 @@ async function main() {
       "iida-hikaru-cooking-stream-2026-03-30",
       "daiyakusai-talkshow-2026",
       "machikane-sai-talkshow-2026",
+      "cat-ear-girl-spoiled",
+      "together-possession-yorigami",
+      "cat-ear-girl-bath",
+      "sisters-friend-weakness",
+      "iyashihime-swimming-ail",
+      "yorigami-sisters-love",
+      "teasing-classmate-week",
+      "small-childhood-friend-night",
+      "bunny-girl-neighbor",
+      "dialect-girl-hakata-junior",
       "toushindai-no-kanojo-school-stay",
+      "succubus-streamer-secret-face",
     ],
   );
   assert.ok(rows.every((row) => row.collectedAt !== null));
@@ -213,7 +224,7 @@ async function main() {
   );
   const cards = buildAppearanceCards(appearances);
 
-  assert.equal(cards.length, 116);
+  assert.equal(cards.length, 127);
   assert.equal(grouped.latest.length, Math.min(3, cards.length));
   assert.equal(grouped.upcoming.length + grouped.past.length, cards.length);
 
