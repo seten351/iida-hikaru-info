@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 
 import { requireAdminWriteRequest } from "@/server/admin/auth";
 import {
@@ -17,6 +17,8 @@ import {
   AdminWriteValidationError,
   parseAdminWriteInput,
 } from "@/server/admin/write-input";
+
+import { enabledPublicCacheScope, publicCacheTag } from "@/server/public-cache/policy";
 
 import type { AdminWriteActionState } from "./write-action-state";
 
@@ -70,7 +72,12 @@ export async function finalizeAdminWriteAction(
     }
     const result =
       decision === "confirm"
-        ? await confirmAdminWrite(preview.input, preview.idempotencyKey)
+        ? await confirmAdminWrite(preview.input, preview.idempotencyKey, undefined, async () => {
+            const scope = enabledPublicCacheScope(process.env);
+            if (!scope) return { status: "skipped" };
+            updateTag(publicCacheTag(scope));
+            return { status: "invalidated" };
+          })
         : await rejectAdminWrite(preview.input, preview.idempotencyKey);
 
     if (result.status === "approved") {
@@ -79,11 +86,13 @@ export async function finalizeAdminWriteAction(
     } else {
       revalidatePath("/admin/proposals");
     }
+    const invalidationFailed = result.publicCacheInvalidation?.status === "failed";
     return {
       stage: "complete",
       status: result.status,
-      message:
-        result.status === "approved"
+      message: invalidationFailed
+        ? "DB変更は確定済みですが、公開キャッシュ失効に失敗しました。同じ操作で再試行してください。"
+        : result.status === "approved"
           ? result.replayed
             ? "この変更は既に確定済みです。"
             : "変更を確定しました。"

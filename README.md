@@ -314,3 +314,6 @@ npm run test:patrol
 
 ローカルでは `.env.local` を読み込みます。dry-runはDB設定がない場合に限りGit管理データとの比較に切り替わり、その比較元を明記します。実行結果はGit管理外の `.patrol-output/report.json`（`PATROL_REPORT_PATH` で変更可）へ出力し、ActionsではジョブのSummaryと14日保存のArtifactから確認できます。Antigravityの起動状態そのものは検知せず、常にDB上の登録結果を基準に補助します。
 
+### 公開DB取得キャッシュ
+
+公開3ページで公開取得結果だけを共有するNext.js 16の`use cache: remote`を導入しています。初期状態は無効で、Admin・Preview・時刻依存の表示判定はキャッシュしません。Productionの設定、Antigravity／CLIの確定後通知、緊急迂回、検証手順は[公開DB取得キャッシュ](docs/public-db-cache.md)を参照してください。`npm run test:public-cache`で失効の安全性を、build後の`npm run test:public-cache-runtime`でローカルの実Nextサーバーによる共有・SQL削減を確認できます。

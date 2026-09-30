@@ -1,4 +1,10 @@
 import "server-only";
+import {
+  invalidateAfterCommit,
+  notifyPublicCacheInvalidation,
+  type PublicCacheInvalidator,
+  type PublicCacheInvalidation,
+} from "../public-cache/invalidation";
 import { emptyGuestInfo, sameGuestInfo } from "@/domain/appearance-guests";
 
 import { createHash } from "node:crypto";
@@ -55,7 +61,7 @@ type RefusedResult = {
   replayed: boolean;
 };
 
-export type AdminWriteResult = ApprovedResult | RefusedResult;
+export type AdminWriteResult = (ApprovedResult | RefusedResult) & { publicCacheInvalidation?: PublicCacheInvalidation };
 
 function stableId(prefix: string, value: string) {
   return `${prefix}_${createHash("sha256").update(value).digest("hex").slice(0, 32)}`;
@@ -1085,9 +1091,10 @@ export async function confirmAdminWrite(
   untrustedInput: unknown,
   idempotencyKey: string,
   database?: ReturnType<typeof getWriterDb>,
+  invalidate?: PublicCacheInvalidator,
 ): Promise<AdminWriteResult> {
   const parsed = parseAdminWriteInput(untrustedInput);
-  return (database ?? getWriterDb()).transaction(async (tx) => {
+  return invalidateAfterCommit(() => (database ?? getWriterDb()).transaction(async (tx) => {
     const input = parseAdminWriteInput(parsed);
     const hash = contentHash(input);
     await lockMutation(tx, `admin-write:${idempotencyKey}`);
@@ -1105,7 +1112,7 @@ export async function confirmAdminWrite(
     if (input.kind === "appearance-group") return confirmAppearanceGroup(tx, input, idempotencyKey, hash);
     if (input.kind === "source") return confirmSource(tx, input, idempotencyKey, hash);
     return confirmSeries(tx, input, idempotencyKey, hash);
-  });
+  }), invalidate ?? (database ? async () => ({ status: "skipped" }) : notifyPublicCacheInvalidation));
 }
 
 export async function rejectAdminWrite(

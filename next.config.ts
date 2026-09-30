@@ -9,6 +9,7 @@ const adminNoStoreHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  cacheComponents: true,
   async headers() {
     return [{ source: "/admin/:path*", headers: adminNoStoreHeaders }];
   },

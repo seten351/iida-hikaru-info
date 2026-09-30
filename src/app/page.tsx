@@ -27,7 +27,7 @@ import {
   paginateAppearanceHistory,
 } from "@/lib/appearance-pagination";
 import { parseAppearanceScheduleView } from "@/lib/appearance-schedule";
-import { getAppearancePageData } from "@/server/appearances/repository";
+import { getPublicPageData } from "@/server/public-cache/reader";
 
 type AppearanceSectionProps = {
   id: string;
@@ -79,13 +79,13 @@ function AppearanceSection({
   );
 }
 
-export default async function Home(props: PageProps<"/">) {
+async function HomeContent(props: PageProps<"/">) {
   await connection();
 
   const now = new Date();
   const [searchParams, { appearances, deadlines, lastUpdatedAt }] = await Promise.all([
     props.searchParams,
-    getAppearancePageData(),
+    getPublicPageData(),
   ]);
   const cards = buildAppearanceCards(appearances);
   const filterOptions = extendDeadlineFilterOptions(getAppearanceFilterOptions(cards), deadlines);
@@ -188,5 +188,13 @@ export default async function Home(props: PageProps<"/">) {
       <SiteFooter />
     </main>
     </DeadlineClockProvider>
+  );
+}
+
+export default function Home(props: PageProps<"/">) {
+  return (
+    <Suspense fallback={<p role="status">読み込み中…</p>}>
+      <HomeContent {...props} />
+    </Suspense>
   );
 }

@@ -10,17 +10,17 @@ import { filterAppearanceCards, getAppearanceFilterOptions, hasAppearanceFilters
 import { getAppearanceHistoryPage, paginateAppearanceHistory } from "@/lib/appearance-pagination";
 import { extendDeadlineFilterOptions } from "@/lib/deadlines";
 import { createPublicListHref } from "@/lib/public-list-navigation";
-import { getAppearancePageData } from "@/server/appearances/repository";
+import { getPublicPageData } from "@/server/public-cache/reader";
 
 export const metadata: Metadata = {
   title: "新着情報一覧 | 飯田ヒカル 出演情報",
   description: "飯田ヒカルさんの出演情報を公式発表日が新しい順に掲載。シリーズ・カテゴリ・出演年で検索できます。",
 };
 
-export default async function NewsPage(props: PageProps<"/news">) {
+async function NewsPageContent(props: PageProps<"/news">) {
   await connection();
   const now = new Date().toISOString();
-  const [searchParams, { appearances, deadlines }] = await Promise.all([props.searchParams, getAppearancePageData()]);
+  const [searchParams, { appearances, deadlines }] = await Promise.all([props.searchParams, getPublicPageData()]);
   const cards = buildAppearanceCards(appearances);
   const options = extendDeadlineFilterOptions(getAppearanceFilterOptions(cards), deadlines);
   const filters = parseAppearanceFilters(searchParams, options);
@@ -40,5 +40,13 @@ export default async function NewsPage(props: PageProps<"/news">) {
         <ListPagination currentPage={page} totalPages={totalPages} currentSearchParams={filterQuery} pathname="/news" label="新着情報のページ送り" />
       </section>
     </PublicListPage>
+  );
+}
+
+export default function NewsPage(props: PageProps<"/news">) {
+  return (
+    <Suspense fallback={<p role="status">読み込み中…</p>}>
+      <NewsPageContent {...props} />
+    </Suspense>
   );
 }

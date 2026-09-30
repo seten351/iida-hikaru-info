@@ -7,17 +7,17 @@ import { PublicListPage } from "@/app/public-list-page";
 import { buildAppearanceCards } from "@/lib/appearances";
 import { getAppearanceFilterOptions, hasAppearanceFilters, parseAppearanceFilters } from "@/lib/appearance-filters";
 import { extendDeadlineFilterOptions, filterDeadlines } from "@/lib/deadlines";
-import { getAppearancePageData } from "@/server/appearances/repository";
+import { getPublicPageData } from "@/server/public-cache/reader";
 
 export const metadata: Metadata = {
   title: "申し込み締切一覧 | 飯田ヒカル 出演情報",
   description: "飯田ヒカルさんに関連するチケット・企画の申し込み締切を日本時間で掲載。締切済みの受付も確認できます。",
 };
 
-export default async function DeadlinesPage(props: PageProps<"/deadlines">) {
+async function DeadlinesPageContent(props: PageProps<"/deadlines">) {
   await connection();
   const now = new Date().toISOString();
-  const [searchParams, { appearances, deadlines }] = await Promise.all([props.searchParams, getAppearancePageData()]);
+  const [searchParams, { appearances, deadlines }] = await Promise.all([props.searchParams, getPublicPageData()]);
   const cards = buildAppearanceCards(appearances);
   const options = extendDeadlineFilterOptions(getAppearanceFilterOptions(cards), deadlines);
   const filters = parseAppearanceFilters(searchParams, options);
@@ -32,5 +32,13 @@ export default async function DeadlinesPage(props: PageProps<"/deadlines">) {
       </Suspense>
       <DeadlineSection items={filtered} now={now} isFiltering={hasAppearanceFilters(filters)} />
     </PublicListPage>
+  );
+}
+
+export default function DeadlinesPage(props: PageProps<"/deadlines">) {
+  return (
+    <Suspense fallback={<p role="status">読み込み中…</p>}>
+      <DeadlinesPageContent {...props} />
+    </Suspense>
   );
 }
