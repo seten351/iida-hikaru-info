@@ -193,6 +193,16 @@ function startValues(fields: AdminAppearanceFields) {
   };
 }
 
+function changedStartValues(fields: AdminAppearanceFields, current: typeof appearancesTable.$inferSelect) {
+  // The editor/CLI reads Dates at millisecond precision. Omit unchanged values
+  // so existing PostgreSQL microseconds never round-trip through a JS Date.
+  return {
+    ...(fields.startsAtPrecision === current.startsAtPrecision ? {} : { startsAtPrecision: fields.startsAtPrecision }),
+    ...(fields.startsAt === (current.startsAt?.toISOString() ?? null) ? {} : { startsAt: fields.startsAt ? new Date(fields.startsAt) : null }),
+    ...(fields.startsOn === current.startsOn ? {} : { startsOn: fields.startsOn }),
+  };
+}
+
 function appearanceFields(
   current: typeof appearancesTable.$inferSelect,
 ): AdminAppearanceFields {
@@ -687,7 +697,7 @@ async function confirmAppearance(
     .set({
       ...(input.operation === "update"
         ? {
-            ...startValues(input.fields),
+            ...changedStartValues(input.fields, current),
             title: input.fields.title,
             seriesId: input.fields.seriesId,
             eventGroupId: input.fields.eventGroupId,
@@ -697,11 +707,9 @@ async function confirmAppearance(
             ...(input.fields.guestInfo === undefined ? {} : { guestInfo: input.fields.guestInfo }),
           }
         : {}),
-      visibilityStatus: nextVisibility,
-      visibilityChangedAt:
-        input.operation === "hide" || input.operation === "restore"
-          ? now
-          : current.visibilityChangedAt,
+      ...(input.operation === "hide" || input.operation === "restore"
+        ? { visibilityStatus: nextVisibility, visibilityChangedAt: now }
+        : {}),
       version: nextVersion,
       updatedAt: now,
     })
