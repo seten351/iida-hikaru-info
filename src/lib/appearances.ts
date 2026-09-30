@@ -347,13 +347,15 @@ export function groupAppearances(items: Appearance[], now: Date) {
   return groupAppearanceCards(buildAppearanceCards(items), now);
 }
 
+export function sortAppearanceCardsByPublication(cards: AppearanceCard[]) {
+  return [...cards].sort((a, b) =>
+    comparePublications(a.publication, b.publication) || a.id.localeCompare(b.id),
+  );
+}
+
 export function groupAppearanceCards(cards: AppearanceCard[], now: Date) {
   return {
-    latest: [...cards]
-      .sort((a, b) =>
-        comparePublications(a.publication, b.publication) || a.id.localeCompare(b.id),
-      )
-      .slice(0, 3),
+    latest: sortAppearanceCardsByPublication(cards).slice(0, 3),
     upcoming: cards
       .filter((card) =>
         card.sessions.some((session) => isAppearanceStartUpcoming(session, now)),

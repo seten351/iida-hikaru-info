@@ -23,6 +23,7 @@ type AppearanceFiltersProps = {
   matchedCount: number;
   deadlineTotalCount?: number;
   deadlineMatchedCount?: number;
+  target?: "all" | "news" | "deadlines";
 };
 
 export function AppearanceFilters({
@@ -32,6 +33,7 @@ export function AppearanceFilters({
   matchedCount,
   deadlineTotalCount = 0,
   deadlineMatchedCount = 0,
+  target = "all",
 }: AppearanceFiltersProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -93,10 +95,10 @@ export function AppearanceFilters({
       <div className="appearance-filters__heading">
         <div>
           <p className="eyebrow">SEARCH & FILTER</p>
-          <h2 id="filters-heading">出演・締切を探す</h2>
+          <h2 id="filters-heading">{target === "news" ? "新着情報を探す" : target === "deadlines" ? "申し込み締切を探す" : "出演・締切を探す"}</h2>
         </div>
         <p aria-live="polite" aria-atomic="true">
-          {isPending ? "検索条件を更新中…" : `出演 ${matchedCount} / ${totalCount}件・締切 ${deadlineMatchedCount} / ${deadlineTotalCount}件`}
+          {isPending ? "検索条件を更新中…" : target === "news" ? `新着 ${matchedCount} / ${totalCount}件` : target === "deadlines" ? `締切 ${deadlineMatchedCount} / ${deadlineTotalCount}件` : `出演 ${matchedCount} / ${totalCount}件・締切 ${deadlineMatchedCount} / ${deadlineTotalCount}件`}
         </p>
       </div>
 
@@ -154,7 +156,7 @@ export function AppearanceFilters({
 
         <div className="appearance-filter-actions-row">
           <label className="appearance-filter-field">
-            <span>年（出演年・締切年）</span>
+            <span>{target === "news" ? "年（出演年）" : target === "deadlines" ? "年（締切年）" : "年（出演年・締切年）"}</span>
             <select
               value={draftFilters.year ?? ""}
               onChange={(event) => updateFacet("year", event.target.value)}

@@ -47,6 +47,14 @@ export function compareDeadlines(a: Deadline, b: Deadline) {
     orderTime(a, aDay) - orderTime(b, bDay) || a.id.localeCompare(b.id);
 }
 
+export function getUpcomingDeadlinePreview(items: Deadline[], now: Date) {
+  return items.filter((item) => !isDeadlineFinished(item, now)).sort(compareDeadlines).slice(0, 3);
+}
+
+export function createDeadlineDetailHref(id: string) {
+  return `/deadlines#deadline-${encodeURIComponent(id)}`;
+}
+
 export function extendDeadlineFilterOptions(options: AppearanceFilterOptions, deadlines: Deadline[]): AppearanceFilterOptions {
   const categories = new Set([...options.categories, ...deadlines.map(item => item.category)]);
   const years = new Set(options.years);

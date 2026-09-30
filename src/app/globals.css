@@ -1467,6 +1467,57 @@ footer {
 .deadline-card__apply { font-weight: 750; }
 .deadline-section__group { margin-top: 2rem; }
 .deadline-section__group > h3, .appearance-calendar__deadline-details > h4 { font-size: 1rem; color: var(--plum); }
+
+/* Home previews share one compact region; the full cards live on their list pages. */
+.home-highlights {
+  padding: 2rem 0 3rem;
+  border-top: 1px solid var(--line);
+}
+
+.home-highlights__tabs { display: none; }
+
+.home-highlights__panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+  align-items: start;
+}
+
+.home-highlights .home-highlights__panel { min-width: 0; padding: 0; border: 0; }
+.home-highlights .section-heading { grid-template-columns: 1fr; gap: 0.65rem; margin-bottom: 1.25rem; }
+.home-highlights .section-heading h2 { font-size: clamp(1.5rem, 2.6vw, 2rem); }
+.home-highlights .section-heading > p { font-size: 0.8rem; }
+.home-highlights .latest-appearance { align-items: flex-start; flex-direction: column; gap: 0.65rem; }
+.home-highlights .latest-appearance__sources { justify-content: flex-start; }
+.home-highlights__deadlines { display: grid; gap: 0.75rem; }
+.deadline-card--summary { min-height: 0; padding: 1rem; border-radius: 14px; }
+.deadline-card--summary h3 { margin-bottom: 0.5rem; font-size: 1rem; }
+.deadline-card--summary .deadline-card__label { margin-bottom: 0.4rem; font-size: 0.78rem; }
+.deadline-card--summary .deadline-card__date { margin-bottom: 0.5rem; font-size: 0.78rem; }
+.deadline-card--summary .appearance-card__sources { margin-top: 0; }
+.deadline-card__detail { text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+.deadline-card__detail:hover { color: var(--accent-dark); }
+.list-more-link, .list-back-link { display: inline-flex; align-items: center; min-height: 2.75rem; gap: 0.5rem; color: var(--accent-dark); font-size: 0.85rem; font-weight: 750; text-underline-offset: 0.25em; }
+.list-more-link { margin-top: 1rem; }
+.public-list-page { padding-bottom: 3rem; }
+.public-list-page__heading { padding: 2rem 0; }
+.public-list-page__heading .eyebrow { margin-top: 1.5rem; }
+.public-list-page__heading h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.3; letter-spacing: -0.045em; }
+.public-list-page__heading > p:last-child { margin: 0.75rem 0 0; color: var(--muted); }
+.public-list-page .appearance-filters { margin-bottom: 2rem; }
+.public-list-page .deadline-section { padding: 2rem 0; }
+.public-list-page nav a[aria-current="page"], .site-header nav a[aria-current="page"] { color: var(--accent-dark); }
+
+@media (max-width: 640px) {
+  .home-highlights { padding: 1.5rem 0 2rem; }
+  .home-highlights__panels { grid-template-columns: 1fr; }
+  .home-highlights__tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem; margin-bottom: 1.25rem; padding: 0.3rem; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-soft); }
+  .home-highlights__tabs button { min-height: 2.75rem; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font: inherit; font-size: 0.86rem; font-weight: 750; cursor: pointer; }
+  .home-highlights__tabs button[aria-selected="true"] { background: var(--surface); color: var(--accent-dark); box-shadow: 0 2px 8px rgba(59, 40, 50, 0.08); }
+  .home-highlights__tabs button:focus-visible, .home-highlights__panel:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .home-highlights[data-active-tab="latest"] #deadlines, .home-highlights[data-active-tab="deadlines"] #latest { display: none; }
+  .public-list-page__heading { padding: 1.5rem 0; }
+}
 .appearance-card__deadlines { width: 100%; margin: 0 0 1rem; padding: 0.8rem 0 0; border-top: 1px solid var(--line); list-style: none; }
 .appearance-card__deadlines li { display: flex; flex-wrap: wrap; gap: 0.35rem 0.5rem; padding-block: 0.25rem; font-size: 0.76rem; }
 .appearance-card__deadlines li > span:last-child { flex-basis: 100%; color: var(--muted); }

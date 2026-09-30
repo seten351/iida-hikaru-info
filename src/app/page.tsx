@@ -1,6 +1,8 @@
 import type { Deadline } from "@/domain/deadline";
 import { DeadlineClockProvider } from "@/app/deadline-clock";
-import { DeadlineSection } from "@/app/deadline-section";
+import { HomeHighlights } from "@/app/home-highlights";
+import { SiteHeader, SiteFooter } from "@/app/site-chrome";
+import { ListPagination } from "@/app/list-pagination";
 import { filterDeadlines, extendDeadlineFilterOptions } from "@/lib/deadlines";
 import { Suspense } from "react";
 import { connection } from "next/server";
@@ -8,7 +10,6 @@ import { connection } from "next/server";
 import { AppearanceFilters } from "@/app/appearance-filters";
 import { AppearanceCard } from "@/app/appearance-card";
 import { AppearanceScheduleSection } from "@/app/appearance-schedule-section";
-import { LatestAppearanceList } from "@/app/latest-appearance-list";
 import {
   type AppearanceCard as AppearanceCardData,
   buildAppearanceCards,
@@ -22,7 +23,6 @@ import {
   parseAppearanceFilters,
 } from "@/lib/appearance-filters";
 import {
-  createAppearanceHistoryPageHref,
   getAppearanceHistoryPage,
   paginateAppearanceHistory,
 } from "@/lib/appearance-pagination";
@@ -79,47 +79,6 @@ function AppearanceSection({
   );
 }
 
-function AppearanceHistoryPagination({
-  currentPage,
-  totalPages,
-  currentSearchParams,
-}: {
-  currentPage: number;
-  totalPages: number;
-  currentSearchParams: string;
-}) {
-  if (totalPages <= 1) return null;
-
-  const hrefFor = (page: number) =>
-    createAppearanceHistoryPageHref("/", currentSearchParams, page);
-
-  return (
-    <nav className="appearance-pagination" aria-label="出演履歴のページ送り">
-      {currentPage > 1 ? (
-        <a className="appearance-pagination__link" href={hrefFor(currentPage - 1)}>
-          前へ
-        </a>
-      ) : (
-        <span className="appearance-pagination__link" aria-disabled="true">
-          前へ
-        </span>
-      )}
-      <p className="appearance-pagination__status" aria-live="polite">
-        <span>{currentPage}</span> / {totalPages} ページ
-      </p>
-      {currentPage < totalPages ? (
-        <a className="appearance-pagination__link" href={hrefFor(currentPage + 1)}>
-          次へ
-        </a>
-      ) : (
-        <span className="appearance-pagination__link" aria-disabled="true">
-          次へ
-        </span>
-      )}
-    </nav>
-  );
-}
-
 export default async function Home(props: PageProps<"/">) {
   await connection();
 
@@ -152,20 +111,7 @@ export default async function Home(props: PageProps<"/">) {
   return (
     <DeadlineClockProvider now={now.toISOString()}>
     <main>
-      <header className="site-header">
-        <div className="site-header__inner">
-          <a className="site-mark" href="#top" aria-label="ページ上部へ戻る">
-            <span aria-hidden="true">IH</span>
-            飯田ヒカル 出演情報
-          </a>
-          <nav aria-label="ページ内ナビゲーション">
-            <a href="#latest">新着</a>
-            <a href="#deadlines">締切</a>
-            <a href="#upcoming">今後の予定</a>
-            <a href="#history">出演履歴</a>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader home />
 
       <div id="top" className="page-shell">
         <section className="intro" aria-labelledby="page-title">
@@ -206,24 +152,7 @@ export default async function Home(props: PageProps<"/">) {
           />
         </Suspense>
 
-        <section className="appearance-section latest-section" id="latest" aria-labelledby="latest-heading">
-          <header className="section-heading latest-section__heading">
-            <div>
-              <p className="eyebrow">LATEST NEWS</p>
-              <h2 id="latest-heading">新着情報</h2>
-            </div>
-            <p>公式発表日が新しい順に表示しています。</p>
-          </header>
-          {latest.length > 0 ? (
-            <LatestAppearanceList items={latest} />
-          ) : (
-            <p className="empty-state">
-              {isFiltering ? noMatchingMessage : "新着情報はまだありません。"}
-            </p>
-          )}
-        </section>
-
-        <DeadlineSection items={filteredDeadlines} now={now.toISOString()} isFiltering={isFiltering} />
+        <HomeHighlights latest={latest} deadlines={filteredDeadlines} now={now.toISOString()} isFiltering={isFiltering} filters={filters} />
 
         <AppearanceScheduleSection
           cards={filteredCards}
@@ -247,30 +176,16 @@ export default async function Home(props: PageProps<"/">) {
           items={paginatedPast}
           emptyMessage={isFiltering ? noMatchingMessage : "過去の出演情報はまだありません。"}
         />
-        <AppearanceHistoryPagination
+        <ListPagination
+          pathname="/"
+          label="出演履歴のページ送り"
           currentPage={page}
           totalPages={totalPages}
           currentSearchParams={currentSearchParams}
         />
       </div>
 
-      <footer>
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <p>飯田ヒカル 出演情報</p>
-            <p>非公式ファンサイト</p>
-          </div>
-          <section
-            className="fan-site-notice"
-            aria-labelledby="fan-site-notice-heading"
-          >
-            <h2 id="fan-site-notice-heading">このサイトについて</h2>
-            <p>
-              当サイトは非公式ファンサイトであり、飯田ヒカルさんご本人、所属事務所、各コンテンツ運営会社とは関係ありません。正確な情報は公式サイト・公式SNSをご確認ください。
-            </p>
-          </section>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
     </DeadlineClockProvider>
   );
