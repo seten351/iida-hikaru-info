@@ -21,6 +21,7 @@ import {
   publishedAtPrecisions,
   startsAtPrecisions,
 } from "../domain/appearance";
+import type { AppearanceGuestInfo } from "../domain/appearance-guests";
 import { deadlinePrecisions, deadlineProjectTypes, deadlineStates } from "../domain/deadline";
 
 export const appearanceCategoryEnum = pgEnum(
@@ -220,6 +221,7 @@ export const appearancesTable = pgTable(
     startsOn: date("starts_on", { mode: "string" }),
     startsAtPrecision: startsAtPrecisionEnum("starts_at_precision").notNull(),
     title: text("title").notNull(),
+    guestInfo: jsonb("guest_info").$type<AppearanceGuestInfo>().default({ isHikaruGuest: null, guestNames: [] }).notNull(),
     seriesId: text("series_id").references(() => appearanceSeriesTable.id, {
       onDelete: "restrict",
     }),
@@ -273,6 +275,13 @@ export const appearancesTable = pgTable(
       sql`(${table.eventGroupId} is null and ${table.eventTitle} is null and ${table.sessionLabel} is null)
         or (${table.eventGroupId} is not null and ${table.eventTitle} is not null and ${table.sessionLabel} is not null)`,
     ),
+    check("appearances_guest_info_valid", sql`(
+      jsonb_typeof(${table.guestInfo}) = 'object'
+      and ${table.guestInfo} ? 'isHikaruGuest' and ${table.guestInfo} ? 'guestNames'
+      and jsonb_typeof(${table.guestInfo}->'isHikaruGuest') in ('boolean', 'null')
+      and jsonb_typeof(${table.guestInfo}->'guestNames') = 'array'
+      and not jsonb_path_exists(${table.guestInfo}, '$.guestNames[*] ? (@.type() != "string" || @ == "")')
+    ) is true`),
     check(
       "appearances_starts_at_precision_valid",
       sql`(${table.startsAtPrecision} = 'exact' and ${table.startsAt} is not null and ${table.startsOn} is null)
@@ -449,6 +458,7 @@ export const appearanceProposalsTable = pgTable(
     startsOn: date("starts_on", { mode: "string" }),
     startsAtPrecision: startsAtPrecisionEnum("starts_at_precision"),
     title: text("title"),
+    guestInfo: jsonb("guest_info").$type<AppearanceGuestInfo>(),
     seriesId: text("series_id").references(() => appearanceSeriesTable.id, {
       onDelete: "restrict",
     }),

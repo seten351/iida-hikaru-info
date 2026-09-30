@@ -1,3 +1,4 @@
+import { normalizeGuestInfo, sameGuestInfo } from "@/domain/appearance-guests";
 import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
@@ -55,6 +56,7 @@ type ExistingAppearance = Pick<
   | "eventTitle"
   | "sessionLabel"
   | "category"
+  | "guestInfo"
 > & {
   sourceUrl: string;
   publishedAt: Date | null;
@@ -79,6 +81,7 @@ function hasContentChanged(
     existing.eventTitle !== incoming.eventTitle ||
     existing.sessionLabel !== incoming.sessionLabel ||
     existing.category !== incoming.category ||
+    (incoming.guestInfo !== undefined && !sameGuestInfo(existing.guestInfo, normalizeGuestInfo(incoming.guestInfo))) ||
     existing.sourceUrl !== canonicalizeSourceUrl(incoming.sourceUrl) ||
     existing.sourceName !== incoming.sourceName ||
     existing.sourceItemId !== incoming.sourceItemId ||
@@ -109,6 +112,7 @@ export async function planAppearanceImport(
       eventTitle: appearancesTable.eventTitle,
       sessionLabel: appearancesTable.sessionLabel,
       category: appearancesTable.category,
+      guestInfo: appearancesTable.guestInfo,
       sourceUrl: sourceItemsTable.canonicalUrl,
       publishedAt: appearanceSourceLinksTable.publishedAt,
       publishedOn: appearanceSourceLinksTable.publishedOn,

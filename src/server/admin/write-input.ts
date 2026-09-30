@@ -1,4 +1,5 @@
 import { appearanceCategories, publishedAtPrecisions } from "@/domain/appearance";
+import { normalizeGuestInfo, sameGuestInfo, type AppearanceGuestInfo } from "@/domain/appearance-guests";
 import { validateDeadlineFields, type AdminDeadlineFields } from "@/domain/deadline";
 export type { AdminDeadlineFields } from "@/domain/deadline";
 
@@ -20,6 +21,7 @@ export type AdminSourceInput = Publication & {
 };
 
 export type AdminAppearanceFields = {
+  guestInfo?: AppearanceGuestInfo;
   id: string;
   startsAtPrecision: "exact" | "date" | "unknown";
   startsAt: string | null;
@@ -46,6 +48,7 @@ export type AdminAppearanceMutationInput =
       appearanceId: string;
       expectedVersion: number;
       fields: AdminAppearanceFields;
+      evidenceSources?: AdminSourceInput[];
     }
   | {
       kind: "appearance";
@@ -230,6 +233,45 @@ function parseSource(value: unknown): AdminSourceInput {
   };
 }
 
+function parseGuestInfo(value: unknown): AppearanceGuestInfo {
+  try {
+    return normalizeGuestInfo(value);
+  } catch (error) {
+    throw new AdminWriteValidationError(error instanceof Error ? error.message : "ゲスト情報が不正です。");
+  }
+}
+
+function parseGuestEvidenceSources(value: unknown): AdminSourceInput[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 20) {
+    throw new AdminWriteValidationError("ゲスト変更の根拠を1〜20件指定してください。");
+  }
+  const sources = value.map((value) => {
+    const input = record(value, "ゲスト変更の根拠");
+    let url: URL;
+    try { url = new URL(requiredString(input.canonicalUrl, "URL", 2048)); }
+    catch { throw new AdminWriteValidationError("ゲストの情報元URLが不正です。"); }
+    if (url.username || url.password || (url.pathname === "/" && !url.search)) {
+      throw new AdminWriteValidationError("ゲストの根拠には個別公式告知URLを指定してください。");
+    }
+    if (["x.com", "www.x.com", "twitter.com", "www.twitter.com"].includes(url.hostname)) {
+      const match = /^\/[^/]+\/status\/(\d+)\/?$/.exec(url.pathname);
+      if (!match || typeof input.sourceName !== "string" || !input.sourceName.startsWith("x:") || input.externalItemId !== match[1]) {
+        throw new AdminWriteValidationError("Xの根拠には告知ポストURL・x:情報源名・ポストIDを指定してください。");
+      }
+      const timestamp = Number((BigInt(match[1]) >> BigInt(22)) + BigInt(1288834974657));
+      if (!Number.isSafeInteger(timestamp) || timestamp > 253402300799999) {
+        throw new AdminWriteValidationError("XポストIDが不正です。");
+      }
+      return parseSource({ ...input, precision: "exact", publishedAt: new Date(timestamp).toISOString(), publishedOn: null });
+    }
+    return parseSource(input);
+  });
+  if (new Set(sources.map(source => `${source.canonicalUrl}\u0000${source.evidenceKey}`)).size !== sources.length) {
+    throw new AdminWriteValidationError("ゲスト変更の根拠が重複しています。");
+  }
+  return sources;
+}
+
 function parseAppearanceFields(value: unknown): AdminAppearanceFields {
   const input = record(value, "出演情報");
   const startsAtPrecision = input.startsAtPrecision;
@@ -271,6 +313,7 @@ function parseAppearanceFields(value: unknown): AdminAppearanceFields {
     );
   }
   return {
+    ...(input.guestInfo === undefined ? {} : { guestInfo: parseGuestInfo(input.guestInfo) }),
     id: normalizedId(input.id, "appearance ID"),
     startsAtPrecision,
     startsAt,
@@ -322,7 +365,9 @@ export function parseAdminWriteInput(value: unknown): AdminWriteInput {
         operation: "create",
         expectedVersion: null,
         fields: parseAppearanceFields(input.fields),
-        source: parseSource(input.source),
+        source: (input.fields && typeof input.fields === "object" && "guestInfo" in input.fields
+          && !sameGuestInfo((input.fields as AdminAppearanceFields).guestInfo, undefined))
+          ? parseGuestEvidenceSources([input.source])[0] : parseSource(input.source),
       };
     }
     if (input.operation === "update") {
@@ -337,6 +382,7 @@ export function parseAdminWriteInput(value: unknown): AdminWriteInput {
         appearanceId,
         expectedVersion: positiveVersion(input.expectedVersion, "version"),
         fields,
+        ...(input.evidenceSources === undefined ? {} : { evidenceSources: parseGuestEvidenceSources(input.evidenceSources) }),
       };
     }
     if (input.operation === "hide" || input.operation === "restore") {

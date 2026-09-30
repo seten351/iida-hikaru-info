@@ -1,4 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
+import type { AppearanceGuestInfo } from "@/domain/appearance-guests";
 
 import {
   appearanceRevisionsTable,
@@ -11,7 +12,7 @@ import {
 import type { WriterTransaction } from "@/server/appearances/source-foundation";
 
 export const appearanceSnapshotSchemaVersion = 1;
-export const currentAppearanceSnapshotSchemaVersion = 3;
+export const currentAppearanceSnapshotSchemaVersion = 4;
 
 export type AppearanceRevisionSnapshotV1 = {
   appearance: {
@@ -79,6 +80,7 @@ export function decodeAppearanceRevisionSnapshot(
   if (
     snapshotSchemaVersion !== appearanceSnapshotSchemaVersion &&
     snapshotSchemaVersion !== 2 &&
+    snapshotSchemaVersion !== 3 &&
     snapshotSchemaVersion !== currentAppearanceSnapshotSchemaVersion
   ) {
     throw new Error(
@@ -92,7 +94,19 @@ export function decodeAppearanceRevisionSnapshot(
   return snapshot as
     | AppearanceRevisionSnapshotV1
     | AppearanceRevisionSnapshotV2
-    | AppearanceRevisionSnapshotV3;
+    | AppearanceRevisionSnapshotV3
+    | AppearanceRevisionSnapshotV4;
+}
+
+export type AppearanceRevisionSnapshotV4 = Omit<AppearanceRevisionSnapshotV3, "appearance"> & {
+  appearance: AppearanceRevisionSnapshotV3["appearance"] & { guestInfo: AppearanceGuestInfo };
+};
+
+export async function buildAppearanceRevisionSnapshotV4(tx: WriterTransaction, appearanceId: string): Promise<AppearanceRevisionSnapshotV4> {
+  const snapshot = await buildAppearanceRevisionSnapshotV3(tx, appearanceId);
+  const [row] = await tx.select({ guestInfo: appearancesTable.guestInfo }).from(appearancesTable).where(eq(appearancesTable.id, appearanceId));
+  if (!row) throw new Error("Appearance missing while creating guest revision.");
+  return { ...snapshot, appearance: { ...snapshot.appearance, guestInfo: row.guestInfo } };
 }
 
 export async function buildAppearanceRevisionSnapshotV3(

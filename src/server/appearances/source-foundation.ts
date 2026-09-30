@@ -1,3 +1,4 @@
+import { emptyGuestInfo, normalizeGuestInfo } from "@/domain/appearance-guests";
 import { createHash } from "node:crypto";
 
 import { and, eq, sql } from "drizzle-orm";
@@ -357,6 +358,7 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
       .select({
         id: appearancesTable.id,
         collectedAt: appearancesTable.collectedAt,
+        guestInfo: appearancesTable.guestInfo,
       })
       .from(appearancesTable)
       .where(eq(appearancesTable.id, item.id))
@@ -373,6 +375,7 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
         startsOn: item.startsOn,
         startsAtPrecision: item.startsAtPrecision,
         title: item.title,
+        guestInfo: item.guestInfo === undefined ? (existingAppearance?.guestInfo ?? emptyGuestInfo()) : normalizeGuestInfo(item.guestInfo),
         seriesId: item.seriesId,
         eventGroupId: item.eventGroupId,
         eventTitle: item.eventTitle,
@@ -398,6 +401,7 @@ export async function dualWriteAppearance(item: AppearanceImportItem) {
           startsOn: item.startsOn,
           startsAtPrecision: item.startsAtPrecision,
           title: item.title,
+          ...(item.guestInfo === undefined ? {} : { guestInfo: normalizeGuestInfo(item.guestInfo) }),
           seriesId: item.seriesId,
           eventGroupId: item.eventGroupId,
           eventTitle: item.eventTitle,

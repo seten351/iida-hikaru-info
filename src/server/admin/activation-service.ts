@@ -118,10 +118,10 @@ function assertRevisionSnapshots(
               typeof link.createdAt !== "string" ||
               typeof link.updatedAt !== "string")),
       ) ||
-      ![1, 2, 3].includes(row.snapshotSchemaVersion) ||
+      ![1, 2, 3, 4].includes(row.snapshotSchemaVersion) ||
       (row.snapshotSchemaVersion >= 2 && !("series" in snapshot)) ||
       (row.actorType === "admin" &&
-        (![2, 3].includes(row.snapshotSchemaVersion) || row.proposalId === null))
+        (![2, 3, 4].includes(row.snapshotSchemaVersion) || row.proposalId === null))
     ) {
       throw new AdminActivationError("appearance revision invariant failed.");
     }

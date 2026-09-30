@@ -5,6 +5,7 @@ import { useId, useState } from "react";
 import type { Deadline } from "@/domain/deadline";
 import { DeadlineCard } from "@/app/deadline-card";
 import { AppearanceCard } from "@/app/appearance-card";
+import { getCalendarGuestMarker } from "@/app/appearance-guest-info";
 import { appearanceCategoryDisplayOrder } from "@/domain/appearance";
 import { categoryClassNames } from "@/lib/appearances";
 import type { AppearanceCalendar as AppearanceCalendarData } from "@/lib/appearance-schedule";
@@ -158,12 +159,15 @@ export function AppearanceCalendar({
                   const categories = appearanceCategoryDisplayOrder.filter((category) =>
                     day.items.some((item) => item.category === category),
                   );
+                  const guestMarker = getCalendarGuestMarker(
+                    day.items.flatMap((item) => item.sessions),
+                  );
                   return (
                     <td key={day.date}>
                       <button
                         className={`appearance-calendar__day${isOutsideMonth ? " appearance-calendar__day--outside-month" : ""}`}
                         type="button"
-                        aria-label={`${day.label}、出演情報${day.items.length}件、締切${day.deadlines?.length ?? 0}件${categories.length > 0 ? `、${categories.join("・")}` : ""}${day.isToday ? "、今日" : ""}`}
+                        aria-label={`${day.label}、出演情報${day.items.length}件、締切${day.deadlines?.length ?? 0}件${categories.length > 0 ? `、${categories.join("・")}` : ""}${guestMarker ? `、${guestMarker}` : ""}${day.isToday ? "、今日" : ""}`}
                         aria-pressed={day.date === selectedDay.date}
                         aria-current={day.isToday ? "date" : undefined}
                         aria-controls={detailsId}
@@ -176,6 +180,7 @@ export function AppearanceCalendar({
                           {day.isToday && <span className="appearance-calendar__today-label">今日</span>}
                         </span>
                         {(day.deadlines?.length ?? 0) > 0 && <span className="appearance-calendar__deadline-count"><span className="appearance-calendar__deadline-dot" aria-hidden="true" />締切{day.deadlines!.length}件</span>}
+                        {guestMarker && <span className="appearance-calendar__guest-marker">{guestMarker}</span>}
                         {day.items.length > 0 && (
                           <>
                             <span className="appearance-calendar__count">出演{day.items.length}件</span>

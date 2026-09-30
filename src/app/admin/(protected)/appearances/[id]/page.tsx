@@ -63,6 +63,15 @@ export default async function AdminAppearanceDetailPage({
             ["start", formatAdminAppearanceStart(appearance)],
             ["start precision", appearance.startsAtPrecision],
             ["category", appearance.category],
+            [
+              "飯田ヒカルの出演区分",
+              appearance.guestInfo.isHikaruGuest === true
+                ? "ゲスト出演"
+                : appearance.guestInfo.isHikaruGuest === false
+                  ? "ゲストではない（確認済み）"
+                  : "未確認",
+            ],
+            ["他のゲスト", appearance.guestInfo.guestNames.join("・") || "—"],
             ["series", seriesName ?? appearance.seriesId],
             ["event group", appearance.eventGroupId],
             ["event title", appearance.eventTitle],

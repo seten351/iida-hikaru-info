@@ -269,10 +269,11 @@ test("Preview token preserves the complete event group batch", () => {
   assert.deepEqual(verifyAdminPreviewToken(token, secret, now)?.input, parsed);
 });
 
-test("Appearance revision decoder keeps v1/v2 compatibility and accepts v3", () => {
+test("Appearance revision decoder keeps v1/v2/v3 compatibility and accepts v4", () => {
   const snapshot = { appearance: { id: "phase2b-test" }, sourceLinks: [] };
   assert.equal(decodeAppearanceRevisionSnapshot(1, snapshot), snapshot);
   assert.equal(decodeAppearanceRevisionSnapshot(2, snapshot), snapshot);
   assert.equal(decodeAppearanceRevisionSnapshot(3, snapshot), snapshot);
-  assert.throws(() => decodeAppearanceRevisionSnapshot(4, snapshot));
+  assert.equal(decodeAppearanceRevisionSnapshot(4, snapshot), snapshot);
+  assert.throws(() => decodeAppearanceRevisionSnapshot(5, snapshot));
 });

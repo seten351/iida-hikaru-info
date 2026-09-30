@@ -92,6 +92,13 @@
       "when": 1790734143991,
       "tag": "0012_add_application_deadlines",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790757811603,
+      "tag": "0013_add_appearance_guests",
+      "breakpoints": true
     }
   ]
 }

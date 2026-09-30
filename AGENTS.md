@@ -41,6 +41,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - すでに同作品・同イベントのレコードがDB上に存在する場合（別IDや役名付きIDで先行登録されている場合など）は、**新規レコードを作成（二重登録）せず、既存レコードに対して `source_links` の追加や開演日時・詳細情報の更新（UPDATE）** を行うこと。
   - `admin-import-appearances.ts`（`npm run db:admin-import`）にも情報元URLおよび正規化タイトル＋日付の二重検知ガードが備わっているが、登録前の事前調査と照合を怠らないこと。
 
+## Guest Information Updates (ゲスト情報)
+- `guestInfo.isHikaruGuest` は本人の区分（`true`: ゲスト出演、`false`: 通常出演と確認済み、`null`: 未確認）、`guestInfo.guestNames` は本人以外のゲスト名の配列とする。ゲスト表記が見つからないだけで `false` にしない。通常更新で未確認へ戻したり、既存ゲスト名を消したりしない。
+- Antigravityの既存巡回で個別の公式根拠を確認したら、新規登録せず照合した既存IDを更新する。最新版の全fieldsと `expectedVersion` を引き継ぎ、変更する `guestInfo` と `evidenceSources` を1件のJSONに入れ、既存 `npm run db:admin-import -- --input <JSONファイル>` を使用する。複数公演は公演ごとに更新する。読み取り例・JSON形式はREADME「ゲスト情報の確認・更新」を参照。
+- dry-runでbefore/afterと根拠を確認し、出力の `inputHash` を `--apply --reviewed-hash <inputHash>` に渡して確定する。競合は最新版を再照合し、通信障害時は同一JSON・hashで冪等に再試行する。ゲスト変更だけで既存の公開日時・新着順・primary情報元を変更しない。直接SQLで通常更新しない。
+- 既存全件の調査・補完、稼働中巡回の切り替え、本番スキーマ適用はゲスト機能の実装とは別作業とする。操作JSONはGit外に置き、終了後に削除する。
+
 ## Deadline Updates (申し込み締切)
 - 既存のAntigravity自動巡回で確認した個別告知に締切情報がある場合、その運用内で登録・更新する。巡回基盤・出演情報の更新経路は変更しない。人間のadmin画面は確認・監査・緊急時の修正を中心とし、手動操作は最終手段とする。
 - 登録前に `npm run check:deadline-duplicate -- "<企画名・受付名・告知URL・ID>"` で照合する。同じ企画・受付の延長は既存IDを更新し、別の受付段階には異なる受付名・evidence keyを使う。ファン企画は `projectType: "fan"` とする。告知日時・個別情報元URLは上記の情報元規則に従い、確認できない締切時刻を推測しない。

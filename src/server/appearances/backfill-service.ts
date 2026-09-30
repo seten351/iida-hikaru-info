@@ -43,6 +43,7 @@ function legacyAppearanceToImportItem(
     startsAt: appearance.startsAt?.toISOString() ?? null,
     startsOn: appearance.startsOn,
     title: appearance.title,
+    guestInfo: appearance.guestInfo,
     seriesId: appearance.seriesId,
     eventGroupId: appearance.eventGroupId,
     eventTitle: appearance.eventTitle,

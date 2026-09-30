@@ -186,6 +186,7 @@ export async function listAdminAppearances() {
     .select({
       id: appearancesTable.id,
       title: appearancesTable.title,
+      guestInfo: appearancesTable.guestInfo,
       startsAt: appearancesTable.startsAt,
       startsOn: appearancesTable.startsOn,
       startsAtPrecision: appearancesTable.startsAtPrecision,

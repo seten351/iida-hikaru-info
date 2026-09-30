@@ -28,6 +28,7 @@ import type {
   AdminSourceMutationInput,
   AdminWriteInput,
 } from "../src/server/admin/write-input";
+import { currentAppearanceSnapshotSchemaVersion } from "../src/server/appearances/revisions";
 
 function key() {
   return randomUUID();
@@ -262,7 +263,7 @@ async function main() {
       })
       .from(appearanceRevisionsTable)
       .where(inArray(appearanceRevisionsTable.appearanceId, [appearanceA, appearanceB]));
-    assert.ok(initialRevisions.every((row) => row.snapshotSchemaVersion === 3));
+    assert.ok(initialRevisions.every((row) => row.snapshotSchemaVersion === currentAppearanceSnapshotSchemaVersion));
     const snapshots = new Map(
       initialRevisions.map((row) => [
         row.appearanceId,
@@ -473,7 +474,7 @@ async function main() {
         (select count(*)::int from appearance_revisions
           where appearance_id in (${appearanceA}, ${appearanceB})
             and actor_type = 'admin'
-            and snapshot_schema_version <> 3
+            and snapshot_schema_version <> ${currentAppearanceSnapshotSchemaVersion}
         ) as bad_admin_revisions,
         (select count(*)::int from appearance_revisions
           where appearance_id in (${appearanceA}, ${appearanceB})

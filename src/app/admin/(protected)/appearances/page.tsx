@@ -31,6 +31,7 @@ export default async function AdminAppearancesPage() {
               <th>title / ID</th>
               <th>start</th>
               <th>category</th>
+              <th>guest</th>
               <th>series</th>
               <th>visibility</th>
               <th>version</th>
@@ -49,6 +50,13 @@ export default async function AdminAppearancesPage() {
                 </td>
                 <td>{formatAdminAppearanceStart(appearance)}</td>
                 <td>{appearance.category}</td>
+                <td>
+                  {appearance.guestInfo?.isHikaruGuest === true ? "ゲスト出演" : null}
+                  {appearance.guestInfo?.guestNames?.length ? (
+                    <small>ゲスト：{appearance.guestInfo.guestNames.join("・")}</small>
+                  ) : null}
+                  {appearance.guestInfo?.isHikaruGuest !== true && !appearance.guestInfo?.guestNames?.length ? "—" : null}
+                </td>
                 <td>{appearance.seriesName ?? "—"}</td>
                 <td>{appearance.visibilityStatus}</td>
                 <td>{appearance.version}</td>

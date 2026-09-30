@@ -1,5 +1,6 @@
 import type { Deadline } from "@/domain/deadline";
 import { RelatedDeadlines } from "@/app/deadline-card";
+import { AppearanceGuestAssignments } from "@/app/appearance-guest-info";
 import {
   type AppearanceCard as AppearanceCardData,
   categoryClassNames,
@@ -53,6 +54,7 @@ export function AppearanceCard({
         )}
       </div>
       <Heading>{item.title}</Heading>
+      <AppearanceGuestAssignments sessions={item.sessions} />
       {item.isGrouped && (
         <ul className="appearance-card__sessions" aria-label={`${item.title}の公演一覧`}>
           {item.sessions.map((session) => (

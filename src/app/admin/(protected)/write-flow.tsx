@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 
 import { appearanceCategoryDisplayOrder } from "@/domain/appearance";
+import { sameGuestInfo } from "@/domain/appearance-guests";
 import type {
   AdminAppearanceFields,
   AdminSourceInput,
@@ -92,8 +93,12 @@ export function AppearanceEditor({
   appearance?: AdminAppearanceFields & { version: number };
   series: Array<{ id: string; displayName: string }>;
 }) {
+  const initialGuestInfo = appearance?.guestInfo ?? {
+    isHikaruGuest: null,
+    guestNames: [],
+  };
   const [fields, setFields] = useState<AdminAppearanceFields>(
-    appearance ?? {
+    appearance ? { ...appearance, guestInfo: undefined } : {
       id: "",
       startsAtPrecision: "exact",
       startsAt: null,
@@ -106,16 +111,35 @@ export function AppearanceEditor({
       category: "その他",
     },
   );
+  const [isHikaruGuest, setIsHikaruGuest] = useState<boolean | null>(
+    initialGuestInfo.isHikaruGuest,
+  );
+  const [guestNamesText, setGuestNamesText] = useState(
+    initialGuestInfo.guestNames.join("\n"),
+  );
   const [source, setSource] = useState(emptySource);
+  const guestInfo = {
+    isHikaruGuest,
+    guestNames: guestNamesText.split(/\r?\n/).map((name) => name.trim()).filter(Boolean),
+  };
+  const guestInfoChanged =
+    !sameGuestInfo(guestInfo, initialGuestInfo);
   const input: AdminWriteInput = appearance
     ? {
         kind: "appearance",
         operation: "update",
         appearanceId: appearance.id,
         expectedVersion: appearance.version,
-        fields,
+        fields: guestInfoChanged ? { ...fields, guestInfo } : fields,
+        ...(guestInfoChanged ? { evidenceSources: [source] } : {}),
       }
-    : { kind: "appearance", operation: "create", expectedVersion: null, fields, source };
+    : {
+        kind: "appearance",
+        operation: "create",
+        expectedVersion: null,
+        fields: { ...fields, guestInfo },
+        source,
+      };
   const { state, dispatch, pending } = usePreview(input);
   if (state.stage === "preview") return <Confirmation state={state} />;
   if (state.stage === "complete") return <Result state={state} />;
@@ -181,6 +205,42 @@ export function AppearanceEditor({
       <label>event group ID<input value={fields.eventGroupId ?? ""} onChange={(event) => update("eventGroupId", event.target.value)} /></label>
       <label>event title<input value={fields.eventTitle ?? ""} onChange={(event) => update("eventTitle", event.target.value)} /></label>
       <label>session label<input value={fields.sessionLabel ?? ""} onChange={(event) => update("sessionLabel", event.target.value)} /></label>
+      <fieldset className="admin-fieldset">
+        <legend>ゲスト情報</legend>
+        <label>
+          飯田ヒカルの出演区分
+          <select
+            value={isHikaruGuest === null ? "unknown" : String(isHikaruGuest)}
+            onChange={(event) => setIsHikaruGuest(
+              event.target.value === "unknown" ? null : event.target.value === "true",
+            )}
+          >
+            <option value="unknown">未確認</option>
+            <option value="false">ゲストではない（確認済み）</option>
+            <option value="true">ゲスト出演</option>
+          </select>
+        </label>
+        <p className="admin-form-note">
+          「ゲストではない」は、公式情報で通常出演と確認できた場合だけ選択します。ゲスト表記が見つからないだけでは選択しません。
+        </p>
+        <label>
+          飯田ヒカル以外のゲスト（1行1名、記載順）
+          <textarea
+            rows={4}
+            value={guestNamesText}
+            onChange={(event) => setGuestNamesText(event.target.value)}
+            placeholder="ゲスト名を1行ずつ入力"
+          />
+        </label>
+        {appearance && guestInfoChanged ? (
+          <>
+            <p className="admin-form-note">
+              ゲスト情報の変更根拠を登録します。保存時に既存の公開日時・primary情報元は維持されます。
+            </p>
+            <SourceFields source={source} update={updateSource} />
+          </>
+        ) : null}
+      </fieldset>
       {!appearance ? <SourceFields source={source} update={updateSource} /> : null}
       <Result state={state} />
       <button disabled={pending} type="submit">{pending ? "検証中…" : "Preview"}</button>

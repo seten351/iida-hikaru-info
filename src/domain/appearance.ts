@@ -1,3 +1,5 @@
+import { normalizeGuestInfo, type AppearanceGuestInfo } from "./appearance-guests";
+
 export const appearanceCategories = [
   "テレビ",
   "ラジオ",
@@ -34,6 +36,7 @@ export type AppearanceSeries = {
 };
 
 export type Appearance = {
+  guestInfo?: AppearanceGuestInfo;
   id: string;
   startsAtPrecision: StartsAtPrecision;
   startsAt: string | null;
@@ -363,6 +366,7 @@ export function validateAppearanceImportItems(
   }
 
   for (const item of items) {
+    if (item.guestInfo !== undefined) normalizeGuestInfo(item.guestInfo);
     if (!item.id.trim() || !item.title.trim() || !item.sourceItemId.trim()) {
       throw new Error("Appearance id, title, and sourceItemId must not be empty.");
     }

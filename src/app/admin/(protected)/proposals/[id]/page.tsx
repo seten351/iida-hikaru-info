@@ -66,6 +66,17 @@ export default async function AdminProposalDetailPage({
             ["expected version", proposal.expectedAppearanceVersion],
             ["start", formatAdminAppearanceStart(proposal)],
             ["start precision", proposal.startsAtPrecision],
+            [
+              "飯田ヒカルの出演区分",
+              proposal.guestInfo?.isHikaruGuest === true
+                ? "ゲスト出演"
+                : proposal.guestInfo?.isHikaruGuest === false
+                  ? "ゲストではない（確認済み）"
+                  : proposal.guestInfo
+                    ? "未確認"
+                    : "変更なし",
+            ],
+            ["他のゲスト", proposal.guestInfo?.guestNames.join("・") || "—"],
             ["series ID", proposal.seriesId],
             ["category", proposal.category],
             ["visibility", proposal.visibilityStatus],

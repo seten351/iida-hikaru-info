@@ -1,21 +1,77 @@
+import { normalizeGuestInfo, sameGuestInfo } from "../src/domain/appearance-guests";
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { getWriterDb } from "../src/db/client";
+import { closeWriterDb, getWriterDb } from "../src/db/client";
 import {
   appearancesTable,
   appearanceSeriesTable,
   appearanceSourceLinksTable,
+  sourceIdentitiesTable,
   sourceItemsTable,
 } from "../src/db/schema";
-import { eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { appearanceImportData } from "./appearance-import-data";
 import { appearanceSeriesData } from "./appearance-series-data";
-import { confirmAdminWrite } from "../src/server/admin/write-service";
+import { confirmAdminWrite, validateAdminWritePreview } from "../src/server/admin/write-service";
 import type {
   AdminAppearanceMutationInput,
   AdminSeriesMutationInput,
   AdminSourceMutationInput,
 } from "../src/server/admin/write-input";
+import {
+  parseAppearanceImportArgs,
+  readAppearanceOperationFile,
+  runAppearanceOperation,
+  type AppearanceOperationSnapshot,
+} from "./admin-appearance-operation";
+
+async function readAppearanceOperationSnapshot(appearanceId: string): Promise<AppearanceOperationSnapshot | null> {
+  const db = getWriterDb();
+  const [row] = await db.select().from(appearancesTable).where(eq(appearancesTable.id, appearanceId));
+  if (!row) return null;
+  const links = await db
+    .select({
+      sourceId: appearanceSourceLinksTable.sourceId,
+      evidenceKey: appearanceSourceLinksTable.evidenceKey,
+      active: appearanceSourceLinksTable.active,
+      isPrimary: appearanceSourceLinksTable.isPrimary,
+      canonicalUrl: sourceItemsTable.canonicalUrl,
+      sourceName: sourceIdentitiesTable.sourceName,
+      externalItemId: sourceIdentitiesTable.externalItemId,
+      precision: appearanceSourceLinksTable.publishedAtPrecision,
+      publishedAt: appearanceSourceLinksTable.publishedAt,
+      publishedOn: appearanceSourceLinksTable.publishedOn,
+    })
+    .from(appearanceSourceLinksTable)
+    .innerJoin(sourceItemsTable, eq(appearanceSourceLinksTable.sourceId, sourceItemsTable.id))
+    .leftJoin(sourceIdentitiesTable, eq(appearanceSourceLinksTable.sourceIdentityId, sourceIdentitiesTable.id))
+    .where(eq(appearanceSourceLinksTable.appearanceId, appearanceId))
+    .orderBy(desc(appearanceSourceLinksTable.active), desc(appearanceSourceLinksTable.isPrimary), asc(appearanceSourceLinksTable.evidenceKey));
+
+  return {
+    id: row.id,
+    version: row.version,
+    visibilityStatus: row.visibilityStatus,
+    fields: {
+      id: row.id, startsAtPrecision: row.startsAtPrecision,
+      startsAt: row.startsAt?.toISOString() ?? null, startsOn: row.startsOn,
+      title: row.title, seriesId: row.seriesId, eventGroupId: row.eventGroupId,
+      eventTitle: row.eventTitle, sessionLabel: row.sessionLabel, category: row.category,
+    },
+    guestInfo: row.guestInfo,
+    publication: {
+      precision: row.publishedAtPrecision,
+      publishedAt: row.publishedAt?.toISOString() ?? null,
+      publishedOn: row.publishedOn,
+    },
+    sourceLinks: links.map((link) => ({
+      ...link,
+      sourceName: link.sourceName ?? null,
+      externalItemId: link.externalItemId ?? null,
+      publishedAt: link.publishedAt?.toISOString() ?? null,
+    })),
+  };
+}
 
 function normalizeTitleForDeduplication(value: string) {
   return value
@@ -42,6 +98,22 @@ function isSharedProgramUrl(url: string) {
 }
 
 async function main() {
+  const args = process.argv.slice(2);
+  if (args.length > 0) {
+    const options = parseAppearanceImportArgs(args);
+    try {
+      await runAppearanceOperation(await readAppearanceOperationFile(options.inputPath!), options, {
+        readAppearance: readAppearanceOperationSnapshot,
+        validatePreview: validateAdminWritePreview,
+        confirm: confirmAdminWrite,
+        log: console.log,
+      });
+    } finally {
+      await closeWriterDb();
+    }
+    return;
+  }
+
   const db = getWriterDb();
 
   // 1. Ensure all series exist
@@ -87,6 +159,7 @@ async function main() {
       eventTitle: appearancesTable.eventTitle,
       sessionLabel: appearancesTable.sessionLabel,
       category: appearancesTable.category,
+      guestInfo: appearancesTable.guestInfo,
       sourceUrl: appearancesTable.sourceUrl,
       sourceName: appearancesTable.sourceName,
       sourceItemId: appearancesTable.sourceItemId,
@@ -190,7 +263,10 @@ async function main() {
       currentPublishedAtMs !== itemPublishedAtMs ||
       current.publishedOn !== item.publishedOn;
 
-    return fieldsDiff || sourceDiff;
+    const guestInfoDiff = item.guestInfo !== undefined &&
+      !sameGuestInfo(current.guestInfo, normalizeGuestInfo(item.guestInfo));
+
+    return fieldsDiff || sourceDiff || guestInfoDiff;
   });
 
   console.log(
@@ -214,6 +290,7 @@ async function main() {
         eventTitle: item.eventTitle,
         sessionLabel: item.sessionLabel,
         category: item.category,
+        ...(item.guestInfo !== undefined ? { guestInfo: item.guestInfo } : {}),
       },
       source: {
         canonicalUrl: item.sourceUrl,
@@ -251,7 +328,10 @@ async function main() {
       current.sessionLabel !== item.sessionLabel ||
       current.category !== item.category;
 
-    if (fieldsDiff) {
+    const guestInfoDiff = item.guestInfo !== undefined &&
+      !sameGuestInfo(current.guestInfo, normalizeGuestInfo(item.guestInfo));
+
+    if (fieldsDiff || guestInfoDiff) {
       console.log(`  Updating fields for ${item.id}...`);
       const input: AdminAppearanceMutationInput = {
         kind: "appearance",
@@ -269,7 +349,21 @@ async function main() {
           eventTitle: item.eventTitle,
           sessionLabel: item.sessionLabel,
           category: item.category,
+          ...(item.guestInfo !== undefined ? { guestInfo: item.guestInfo } : {}),
         },
+        ...(guestInfoDiff
+          ? {
+              evidenceSources: [{
+                canonicalUrl: item.sourceUrl,
+                sourceName: item.sourceName,
+                externalItemId: item.sourceItemId,
+                evidenceKey: "guest-evidence",
+                precision: item.publishedAtPrecision,
+                publishedAt: item.publishedAt,
+                publishedOn: item.publishedOn,
+              }],
+            }
+          : {}),
       };
 
       const res = await confirmAdminWrite(input, randomUUID());
@@ -291,7 +385,9 @@ async function main() {
       currentPublishedAtMs !== itemPublishedAtMs ||
       current.publishedOn !== item.publishedOn;
 
-    if (sourceDiff) {
+    if (sourceDiff && item.guestInfo !== undefined) {
+      console.log(`  Skipping primary source update for ${item.id} so the guest evidence change does not alter publication.`);
+    } else if (sourceDiff) {
       console.log(`  Updating primary source for ${item.id}...`);
       const sourceInput: AdminSourceMutationInput = {
         kind: "source",

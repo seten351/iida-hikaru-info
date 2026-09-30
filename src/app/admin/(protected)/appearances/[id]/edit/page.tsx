@@ -32,6 +32,7 @@ export default async function EditAppearancePage({ params }: { params: Promise<{
             eventTitle: item.eventTitle,
             sessionLabel: item.sessionLabel,
             category: item.category,
+            guestInfo: item.guestInfo,
             version: item.version,
           }}
           series={series}

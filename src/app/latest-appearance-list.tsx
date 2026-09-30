@@ -3,6 +3,7 @@ import {
   categoryClassNames,
   formatPublication,
 } from "@/lib/appearances";
+import { AppearanceGuestAssignments } from "@/app/appearance-guest-info";
 
 type LatestAppearanceListProps = {
   items: AppearanceCard[];
@@ -37,6 +38,7 @@ export function LatestAppearanceList({ items }: LatestAppearanceListProps) {
                   </p>
                 </div>
                 <h3>{item.title}</h3>
+                <AppearanceGuestAssignments sessions={item.sessions} />
               </div>
               <div className="latest-appearance__sources" aria-label={`${item.title}の公式情報元`}>
                 {item.sourceUrls.map((sourceUrl, index) => (

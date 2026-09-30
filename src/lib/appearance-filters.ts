@@ -188,6 +188,10 @@ export function filterAppearanceCards(
           ? []
           : (appearanceSeriesSearchAliases[card.seriesId] ?? [])),
         ...card.sessions.map((session) => session.sessionLabel),
+        ...card.sessions.flatMap((session) => [
+          ...(session.guestInfo?.isHikaruGuest === true ? ["ゲスト出演"] : []),
+          ...(session.guestInfo?.guestNames ?? []).flatMap((name) => [name, `ゲスト：${name}`]),
+        ]),
       ]
         .filter((value): value is string => value !== null)
         .join(" "),

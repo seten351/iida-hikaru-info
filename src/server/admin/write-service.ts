@@ -1,4 +1,5 @@
 import "server-only";
+import { emptyGuestInfo, sameGuestInfo } from "@/domain/appearance-guests";
 
 import { createHash } from "node:crypto";
 
@@ -20,7 +21,7 @@ import {
   sourceItemsTable,
 } from "@/db/schema";
 import {
-  buildAppearanceRevisionSnapshotV3,
+  buildAppearanceRevisionSnapshotV4,
   currentAppearanceSnapshotSchemaVersion,
 } from "@/server/appearances/revisions";
 import {
@@ -180,6 +181,7 @@ function fieldsForGroupUpdate(
     eventTitle,
     sessionLabel: current.sessionLabel,
     category: current.category,
+    guestInfo: current.guestInfo,
   };
 }
 
@@ -205,6 +207,7 @@ function appearanceFields(
     eventTitle: current.eventTitle,
     sessionLabel: current.sessionLabel,
     category: current.category,
+    guestInfo: current.guestInfo,
   };
 }
 
@@ -258,10 +261,11 @@ export async function upsertAdminSource(
   tx: WriterTransaction,
   sourceInput: AdminSourceInput,
   now: Date,
+  preserveCollectionTimes = false,
 ) {
   const canonicalUrl = canonicalizeSourceUrl(sourceInput.canonicalUrl);
   const sourceId = stableId("src", canonicalUrl);
-  await tx
+  const insertSource = tx
     .insert(sourceItemsTable)
     .values({
       id: sourceId,
@@ -269,11 +273,15 @@ export async function upsertAdminSource(
       sourceType: inferSourceType(canonicalUrl),
       firstCollectedAt: now,
       lastCollectedAt: now,
-    })
-    .onConflictDoUpdate({
+    });
+  if (preserveCollectionTimes) {
+    await insertSource.onConflictDoNothing({ target: sourceItemsTable.canonicalUrl });
+  } else {
+    await insertSource.onConflictDoUpdate({
       target: sourceItemsTable.canonicalUrl,
       set: { lastCollectedAt: now, updatedAt: now },
     });
+  }
   const [source] = await tx
     .select({ id: sourceItemsTable.id })
     .from(sourceItemsTable)
@@ -375,6 +383,54 @@ async function upsertAppearanceSourceLink(
     });
 }
 
+async function validateGuestChange(
+  tx: WriterTransaction,
+  input: Extract<AdminWriteInput, { kind: "appearance"; operation: "update" }>,
+  current: typeof appearancesTable.$inferSelect,
+) {
+  if (input.fields.guestInfo === undefined || sameGuestInfo(input.fields.guestInfo, current.guestInfo)) return;
+  if (!input.evidenceSources?.length) {
+    throw new AdminWriteValidationError("ゲスト情報の変更には確認済みの公式根拠が必要です。表記がないだけでfalseにしないでください。");
+  }
+  for (const source of input.evidenceSources) {
+    await assertSourceIdentityAvailable(tx, source);
+    const [existing] = await tx.select({ link: appearanceSourceLinksTable })
+      .from(appearanceSourceLinksTable)
+      .innerJoin(sourceItemsTable, eq(sourceItemsTable.id, appearanceSourceLinksTable.sourceId))
+      .where(and(
+      eq(appearanceSourceLinksTable.appearanceId, current.id),
+      eq(sourceItemsTable.canonicalUrl, canonicalizeSourceUrl(source.canonicalUrl)),
+      eq(appearanceSourceLinksTable.evidenceKey, source.evidenceKey),
+      eq(appearanceSourceLinksTable.active, true),
+    ));
+    const link = existing?.link;
+    if (link && (link.publishedAtPrecision !== source.precision ||
+      (link.publishedAt?.toISOString() ?? null) !== source.publishedAt || link.publishedOn !== source.publishedOn)) {
+      throw new AdminWriteValidationError("既存情報元の公開日時はゲスト更新では変更できません。既存リンクの値を引き継いでください。");
+    }
+  }
+}
+
+async function appendGuestEvidence(tx: WriterTransaction, appearanceId: string, proposalId: string, sources: AdminSourceInput[], now: Date) {
+  for (const sourceInput of sources) {
+    const source = await upsertAdminSource(tx, sourceInput, now, true);
+    const [existing] = await tx.select().from(appearanceSourceLinksTable).where(and(
+      eq(appearanceSourceLinksTable.appearanceId, appearanceId),
+      eq(appearanceSourceLinksTable.sourceId, source.sourceId),
+      eq(appearanceSourceLinksTable.evidenceKey, sourceInput.evidenceKey),
+      eq(appearanceSourceLinksTable.active, true),
+    ));
+    // Reuse existing active evidence, especially primary links, without modifying it.
+    if (!existing) await upsertAppearanceSourceLink(tx, appearanceId, sourceInput, source, false, now);
+    await tx.insert(proposalSourceLinksTable).values({
+      proposalId, sourceId: source.sourceId, sourceIdentityId: source.sourceIdentityId,
+      evidenceKey: sourceInput.evidenceKey, isPrimary: existing?.isPrimary ?? false,
+      publishedAt: sourceInput.publishedAt ? new Date(sourceInput.publishedAt) : null,
+      publishedOn: sourceInput.publishedOn, publishedAtPrecision: sourceInput.precision,
+    });
+  }
+}
+
 async function assertAppearanceInvariant(tx: WriterTransaction, appearanceId: string) {
   await tx.execute(sql`select phase1c_assert_appearance_invariants(${appearanceId})`);
   const [groupViolation] = await tx.execute<{ violation: boolean }>(sql`
@@ -405,7 +461,7 @@ async function insertRevision(
   operation: "create" | "update" | "hide" | "restore",
   linkedProposalId: string,
 ) {
-  const snapshot = await buildAppearanceRevisionSnapshotV3(tx, appearanceId);
+  const snapshot = await buildAppearanceRevisionSnapshotV4(tx, appearanceId);
   await tx.insert(appearanceRevisionsTable).values({
     appearanceId,
     version,
@@ -498,6 +554,7 @@ async function insertAppearanceProposal(
     eventTitle: values.fields?.eventTitle ?? null,
     sessionLabel: values.fields?.sessionLabel ?? null,
     category: values.fields?.category ?? null,
+    guestInfo: values.fields?.guestInfo ?? null,
     visibilityStatus: values.visibilityStatus ?? null,
     matchStatus: values.operation === "create" ? "new" : "targeted_update",
     reviewedContentHash: values.hash,
@@ -548,6 +605,7 @@ async function confirmAppearance(
       eventTitle: input.fields.eventTitle,
       sessionLabel: input.fields.sessionLabel,
       category: input.fields.category,
+      guestInfo: input.fields.guestInfo ?? emptyGuestInfo(),
       sourceUrl: source.canonicalUrl,
       sourceName: input.source.sourceName,
       sourceItemId: input.source.externalItemId,
@@ -615,6 +673,7 @@ async function confirmAppearance(
   if (input.operation === "update") {
     await validateSeries(tx, input.fields.seriesId);
     await validateEventGroup(tx, input.fields, current.id);
+    await validateGuestChange(tx, input, current);
   }
   const nextVersion = current.version + 1;
   const nextVisibility =
@@ -635,6 +694,7 @@ async function confirmAppearance(
             eventTitle: input.fields.eventTitle,
             sessionLabel: input.fields.sessionLabel,
             category: input.fields.category,
+            ...(input.fields.guestInfo === undefined ? {} : { guestInfo: input.fields.guestInfo }),
           }
         : {}),
       visibilityStatus: nextVisibility,
@@ -648,7 +708,7 @@ async function confirmAppearance(
     .where(eq(appearancesTable.id, current.id));
   const fields: AdminAppearanceFields =
     input.operation === "update"
-      ? input.fields
+      ? { ...input.fields, guestInfo: input.fields.guestInfo ?? current.guestInfo }
       : appearanceFields(current);
   const id = await insertAppearanceProposal(tx, {
     key,
@@ -660,6 +720,9 @@ async function confirmAppearance(
     fields,
     visibilityStatus: nextVisibility,
   });
+  if (input.operation === "update" && input.fields.guestInfo !== undefined && !sameGuestInfo(input.fields.guestInfo, current.guestInfo)) {
+    await appendGuestEvidence(tx, current.id, id, input.evidenceSources!, now);
+  }
   await assertAppearanceInvariant(tx, current.id);
   await insertRevision(tx, current.id, nextVersion, input.operation, id);
   return { status: "approved", proposalIds: [id], targets: [{ id: current.id, version: nextVersion }], replayed: false };
@@ -1141,6 +1204,7 @@ export async function validateAdminWritePreview(untrustedInput: unknown, databas
         if (input.operation === "update") {
           await validateSeries(tx, input.fields.seriesId);
           await validateEventGroup(tx, input.fields, current.id);
+          await validateGuestChange(tx, input, current);
         }
       }
     } else if (input.kind === "appearance-group") {

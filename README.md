@@ -69,6 +69,88 @@ Admin activation完了後はレガシーな `db:import --apply` がロックさ�
 npm run db:admin-import
 ```
 
+### ゲスト情報の確認・更新
+
+`drizzle/0013_add_appearance_guests.sql` で出演と提案にゲスト情報を追加します。既存出演は未確認の初期値になり、公開日時・情報元・versionは変更しません。アプリの切り替え前に接続先を確認して `npm run db:migrate` を実行してください。機能実装時は隔離したPostgresで検証し、2026-09-30に別Neonプロジェクトへ本番DBをコピーして最終検証後、本番0013適用とアプリの昇格を完了しました。既存170件のゲスト情報は未確認のままで、本番データの補完はしていません。詳細は [本番反映結果](docs/guest-production-rollout-2026-09-30.md) を参照してください。ゲスト機能の回帰テストは `npm run test:guests` で実行できます。
+
+出演レコードの `guestInfo` は `isHikaruGuest` と `guestNames` を持ちます。`isHikaruGuest: null` は未確認、`true` は飯田ヒカルさん本人のゲスト出演、`false` は公式情報でゲストではないことを確認済みの状態です。告知にゲスト表記が見つからないだけでは `false` にせず、未確認のままにします。`guestNames` には飯田ヒカルさん以外のゲストだけを公式記載順で入れ、複数名は配列にします。ゲスト情報が未確認の既存レコードには公開表示を追加しません。
+
+Antigravityが既存出演のゲスト情報を変更するときは、最初に対象IDの最新版を読み取り専用SQLで確認します。`a.*` で現在の全fieldsとversionを、`guest_info` でゲスト状態を、`source_links` で情報元とprimary・公開日時を確認できます。
+
+```sql
+BEGIN READ ONLY;
+SELECT
+  a.*,
+  COALESCE((
+    SELECT jsonb_agg(jsonb_build_object(
+      'sourceId', asl.source_id,
+      'evidenceKey', asl.evidence_key,
+      'active', asl.active,
+      'isPrimary', asl.is_primary,
+      'canonicalUrl', si.canonical_url,
+      'sourceName', sid.source_name,
+      'externalItemId', sid.external_item_id,
+      'precision', asl.published_at_precision,
+      'publishedAt', asl.published_at,
+      'publishedOn', asl.published_on
+    ) ORDER BY asl.active DESC, asl.is_primary DESC, asl.evidence_key)
+    FROM appearance_source_links AS asl
+    JOIN source_items AS si ON si.id = asl.source_id
+    LEFT JOIN source_identities AS sid ON sid.id = asl.source_identity_id
+    WHERE asl.appearance_id = a.id
+  ), '[]'::jsonb) AS source_links
+FROM appearances AS a
+WHERE a.id = 'antigravity-guest-example-0001';
+COMMIT;
+```
+
+既存レコードの更新は `db:admin-import --input` に1件のJSONを渡します。`fields` は上の読み取り結果から全項目を引き継ぎ、`expectedVersion` も取得した値に固定します。公式の個別告知を `evidenceSources` に指定し、`publishedAt` は告知日時を使います。Xの告知はポストIDのSnowflakeから正確な日時を復元してください。ゲスト情報以外の更新では `guestInfo` を省略でき、省略時は既存値を保持します。ゲスト更新だけでprimary情報元や公開日時を変更しません。本人のゲスト出演と他ゲストは同時に登録できます。
+
+```json
+{
+  "kind": "appearance",
+  "operation": "update",
+  "appearanceId": "antigravity-guest-example-0001",
+  "expectedVersion": 7,
+  "fields": {
+    "id": "antigravity-guest-example-0001",
+    "startsAtPrecision": "date",
+    "startsAt": null,
+    "startsOn": "2026-10-01",
+    "title": "番組名 第1回",
+    "seriesId": "example-program",
+    "eventGroupId": null,
+    "eventTitle": null,
+    "sessionLabel": null,
+    "category": "ラジオ",
+    "guestInfo": {
+      "isHikaruGuest": true,
+      "guestNames": ["ゲストA", "ゲストB"]
+    }
+  },
+  "evidenceSources": [
+    {
+      "canonicalUrl": "https://example.com/news/individual-guest-announcement",
+      "sourceName": "official:example",
+      "externalItemId": "guest-announcement-2026-10-01",
+      "evidenceKey": "guest-announcement",
+      "precision": "exact",
+      "publishedAt": "2026-09-30T12:00:00+09:00",
+      "publishedOn": null
+    }
+  ]
+}
+```
+
+まず読み取り専用dry-runを実行し、ID・version・ゲスト情報のbefore／after・根拠リンク・primary情報元と公開日時が保たれていることを確認します。出力された `inputHash` と同じJSONで確定します。例のID・告知URL・人物名・日時はすべて架空です。`.env.local` の接続先を確認してから実行してください。
+
+```bash
+npm run db:admin-import -- --input /tmp/appearance-guest-operation.json
+npm run db:admin-import -- --input /tmp/appearance-guest-operation.json --apply --reviewed-hash "<dry-runのinputHash>"
+```
+
+競合で `superseded` になった場合は最新レコードと告知を再確認し、全fieldsと `expectedVersion` を更新してdry-runからやり直します。確定結果が通信障害で不明な場合は、同じJSON・同じhashで再試行すると冪等キーで結果を取得できます。複数公演は公演ごとに1件ずつ処理し、確定済みの分は保持されます。この機能導入では既存170件を一括調査・補完しません。
+
 旧サンプルデータの削除は通常importと分離されています。実データの投入と表示を確認した後にdry-runし、既知のサンプル行だけが対象であることを確認してから実行します。
 
 ```bash

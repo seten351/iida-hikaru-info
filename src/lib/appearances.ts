@@ -4,6 +4,7 @@ import type {
   PublishedAtPrecision,
   StartsAtPrecision,
 } from "@/domain/appearance";
+import type { AppearanceGuestInfo } from "@/domain/appearance-guests";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
   timeZone: "Asia/Tokyo",
@@ -90,6 +91,7 @@ export type AppearanceCardSession = {
   startsAt: string | null;
   startsOn: string | null;
   sessionLabel: string | null;
+  guestInfo?: AppearanceGuestInfo;
 };
 
 export type AppearanceCard = {
@@ -274,6 +276,7 @@ export function buildAppearanceCards(items: Appearance[]): AppearanceCard[] {
       startsAt: item.startsAt,
       startsOn: item.startsOn,
       sessionLabel: item.sessionLabel,
+      guestInfo: item.guestInfo,
     };
 
     if (existing) {
