@@ -316,4 +316,4 @@ npm run test:patrol
 
 ### 公開DB取得キャッシュ
 
-公開3ページで公開取得結果だけを共有するNext.js 16の`use cache: remote`を導入しています。初期状態は無効で、Admin・Preview・時刻依存の表示判定はキャッシュしません。Productionの設定、Antigravity／CLIの確定後通知、緊急迂回、検証手順は[公開DB取得キャッシュ](docs/public-db-cache.md)を参照してください。`npm run test:public-cache`で失効の安全性を、build後の`npm run test:public-cache-runtime`でローカルの実Nextサーバーによる共有・SQL削減を確認できます。
+公開3ページで公開取得結果だけを共有するNext.js 16の`use cache: remote`を導入しています。設定欠落時は無効で、Admin・Preview・時刻依存の表示判定はキャッシュしません。2026-10-01にOFFで回帰確認後、本番で有効化しました（[本番反映記録](docs/public-db-cache-production-rollout-2026-10-01.md)）。Productionの設定、Antigravity／CLIの確定後通知、緊急迂回、検証手順は[公開DB取得キャッシュ](docs/public-db-cache.md)を参照してください。`npm run test:public-cache`で失効の安全性を、build後の`npm run test:public-cache-runtime`でローカルの実Nextサーバーによる共有・SQL削減を確認できます。

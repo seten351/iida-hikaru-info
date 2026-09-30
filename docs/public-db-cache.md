@@ -14,7 +14,7 @@ Next.js 16.3.4のCache Componentsを有効化し、`getPublicPageData()`内の�
 
 ## 設定と導入手順
 
-本番反映はこの作業では実施しない。初期状態はキャッシュ無効。以下を導入前に行う。
+2026-10-01にキャッシュOFFで本番回帰確認後、Productionで有効化した。[本番反映記録](public-db-cache-production-rollout-2026-10-01.md)を参照。設定欠落時は無効。新しい実行環境へ導入する場合は以下を確認する。
 
 1. 本番DBに対応する接続設定で`npm run cache:scope`を実行し、出力したSHA-256を控える。このコマンドはDBへ接続せず、接続文字列や認証情報を出力しない。プール／直接接続のNeonホストは同じスコープになる。
 2. 公開アプリのProduction環境に`PUBLIC_CACHE_DB_SCOPE`と、32文字以上の専用`PUBLIC_CACHE_INVALIDATION_SECRET`を設定する。`PUBLIC_DB_CACHE_ENABLED=1`で有効化する。`VERCEL_ENV=production`かつDBスコープ一致が必要で、不一致・設定欠落・Preview・Developmentは非キャッシュ取得へ迂回する。
@@ -41,9 +41,9 @@ Admin Server Actionでは`updateTag()`を使用する。CLIでは認証付きPOS
 - `npm run build`後に`npm run test:public-cache-runtime`: 実際のProductionビルドをローカル起動し、fake DATABASE_URLとlocalhostのNeon HTTP代替だけを使用する。`.env.local`を実行環境へ読み込まず、本番DBを使わない。時計前進は一時preload内だけで行い、アプリのTTLを変更しない。一時ディレクトリと子プロセスは終了時に整理する。
 - 既存のゲスト日時精度修正、締切、公開日時、Admin write、巡回、公開UI、検索・フィルターの回帰テスト、lint、型チェック、Webpack buildを確認する。
 
-Vercelでの利用料・共有handler・複数インスタンス／リージョン間失効は未反映のため、上記の隔離環境での導入前確認が残る。クエリ数は1つのキャッシュ領域での定常ヒットを基準とし、同時初回アクセスやリージョンごとの取得を含めて全世界で6件だけとは見積もらない。
+本番Vercelでの公開3ページ共有・失効・実時間TTLは本番反映記録に整理する。複数リージョン間の伝播と継続的な利用量・費用の確認は別途必要。クエリ数は1つのキャッシュ領域での定常ヒットを基準とし、同時初回アクセスやリージョンごとの取得を含めて全世界で6件だけとは見積もらない。
 
-### この作業での検証結果
+### 本番反映前の実装検証結果
 
 - 既存回帰テスト178件、新規policy／実transactionテスト6件、実Nextサーバーテスト4件、計188件が通過。
 - 実サーバーでは初回6 SELECT→公開3ページの追加取得0件。検索パラメータを含む予定表示でも共有し、失効後6件を再取得して更新タイトルを反映した。
