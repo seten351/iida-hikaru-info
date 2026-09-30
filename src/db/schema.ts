@@ -21,6 +21,7 @@ import {
   publishedAtPrecisions,
   startsAtPrecisions,
 } from "../domain/appearance";
+import { deadlinePrecisions, deadlineProjectTypes, deadlineStates } from "../domain/deadline";
 
 export const appearanceCategoryEnum = pgEnum(
   "appearance_category",
@@ -89,6 +90,94 @@ export const seriesRevisionOperationEnum = pgEnum(
   "series_revision_operation",
   ["create", "update"],
 );
+
+export const deadlinePrecisionEnum = pgEnum("deadline_precision", deadlinePrecisions);
+export const deadlineStateEnum = pgEnum("deadline_state", deadlineStates);
+export const deadlineProjectTypeEnum = pgEnum("deadline_project_type", deadlineProjectTypes);
+
+// Deadlines are independent content; related appearances are references, never synthetic events.
+export const deadlinesTable = pgTable("deadlines", {
+  id: text("id").primaryKey(),
+  label: text("label").notNull(),
+  projectTitle: text("project_title").notNull(),
+  organizer: text("organizer").notNull(),
+  projectType: deadlineProjectTypeEnum("project_type").notNull(),
+  seriesId: text("series_id").references(() => appearanceSeriesTable.id, { onDelete: "restrict" }),
+  deadlinePrecision: deadlinePrecisionEnum("deadline_precision").notNull(),
+  deadlineAt: timestamp("deadline_at", { withTimezone: true, mode: "date" }),
+  deadlineOn: date("deadline_on", { mode: "string" }),
+  applicationUrl: text("application_url"),
+  note: text("note"),
+  state: deadlineStateEnum("state").default("scheduled").notNull(),
+  fingerprint: text("fingerprint").notNull(),
+  visibilityStatus: appearanceVisibilityStatusEnum("visibility_status").default("public").notNull(),
+  version: integer("version").default(1).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+}, table => [
+  check("deadlines_id_normalized", sql`${table.id} ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'`),
+  check("deadlines_required_text", sql`length(trim(${table.label})) > 0 and length(trim(${table.projectTitle})) > 0 and length(trim(${table.organizer})) > 0`),
+  check("deadlines_version_positive", sql`${table.version} > 0`),
+  check("deadlines_precision_valid", sql`(${table.deadlinePrecision} = 'exact' and ${table.deadlineAt} is not null and ${table.deadlineOn} is null)
+    or (${table.deadlinePrecision} = 'date' and ${table.deadlineAt} is null and ${table.deadlineOn} is not null)
+    or (${table.deadlinePrecision} = 'unknown' and ${table.deadlineAt} is null and ${table.deadlineOn} is null)`),
+  uniqueIndex("deadlines_fingerprint_unique").on(table.fingerprint),
+  index("deadlines_cutoff_idx").on(table.deadlineAt, table.deadlineOn),
+]);
+
+export const deadlineAppearanceLinksTable = pgTable("deadline_appearance_links", {
+  deadlineId: text("deadline_id").notNull().references(() => deadlinesTable.id, { onDelete: "cascade" }),
+  appearanceId: text("appearance_id").notNull().references(() => appearancesTable.id, { onDelete: "restrict" }),
+}, table => [primaryKey({ columns: [table.deadlineId, table.appearanceId] }), index("deadline_appearance_links_appearance_idx").on(table.appearanceId)]);
+
+export const deadlineSourceLinksTable = pgTable("deadline_source_links", {
+  deadlineId: text("deadline_id").notNull().references(() => deadlinesTable.id, { onDelete: "cascade" }),
+  sourceId: text("source_id").notNull().references(() => sourceItemsTable.id, { onDelete: "restrict" }),
+  sourceIdentityId: text("source_identity_id").notNull(),
+  evidenceKey: text("evidence_key").notNull(),
+  active: boolean("active").default(true).notNull(),
+  isPrimary: boolean("is_primary").default(false).notNull(),
+  publishedAtPrecision: publishedAtPrecisionEnum("published_at_precision").notNull(),
+  publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }),
+  publishedOn: date("published_on", { mode: "string" }),
+  collectedAt: timestamp("collected_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+}, table => [
+  primaryKey({ columns: [table.deadlineId, table.sourceId, table.evidenceKey] }),
+  foreignKey({ name: "deadline_source_links_identity_source_fk", columns: [table.sourceIdentityId, table.sourceId], foreignColumns: [sourceIdentitiesTable.id, sourceIdentitiesTable.sourceId] }).onDelete("restrict"),
+  check("deadline_source_links_evidence_normalized", sql`${table.evidenceKey} ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'`),
+  check("deadline_source_links_precision_valid", sql`(${table.publishedAtPrecision} = 'exact' and ${table.publishedAt} is not null and ${table.publishedOn} is null)
+    or (${table.publishedAtPrecision} = 'date' and ${table.publishedAt} is null and ${table.publishedOn} is not null)
+    or (${table.publishedAtPrecision} = 'unknown' and ${table.publishedAt} is null and ${table.publishedOn} is null)`),
+  uniqueIndex("deadline_source_links_one_active_primary").on(table.deadlineId).where(sql`${table.active} = true and ${table.isPrimary} = true`),
+  uniqueIndex("deadline_source_links_active_evidence_unique").on(table.sourceId, table.evidenceKey).where(sql`${table.active} = true`),
+  index("deadline_source_links_source_idx").on(table.sourceId),
+]);
+
+export const deadlineProposalsTable = pgTable("deadline_proposals", {
+  id: text("id").primaryKey(),
+  deadlineId: text("deadline_id").references(() => deadlinesTable.id, { onDelete: "set null" }),
+  targetDeadlineId: text("target_deadline_id").notNull(),
+  operation: proposalOperationEnum("operation").notNull(),
+  status: proposalStatusEnum("status").notNull(),
+  expectedVersion: integer("expected_version"),
+  input: jsonb("input").$type<Record<string, unknown>>().notNull(),
+  reviewedContentHash: text("reviewed_content_hash").notNull(),
+  idempotencyKey: text("idempotency_key").notNull(),
+  reviewNote: text("review_note"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+}, table => [uniqueIndex("deadline_proposals_idempotency_unique").on(table.idempotencyKey), index("deadline_proposals_target_idx").on(table.targetDeadlineId)]);
+
+export const deadlineRevisionsTable = pgTable("deadline_revisions", {
+  id: text("id").primaryKey(),
+  deadlineId: text("deadline_id").notNull().references(() => deadlinesTable.id, { onDelete: "restrict" }),
+  proposalId: text("proposal_id").notNull().references(() => deadlineProposalsTable.id, { onDelete: "restrict" }),
+  version: integer("version").notNull(),
+  snapshotSchemaVersion: integer("snapshot_schema_version").default(1).notNull(),
+  snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+}, table => [uniqueIndex("deadline_revisions_version_unique").on(table.deadlineId, table.version)]);
 
 export const appearanceSeriesTable = pgTable(
   "appearance_series",

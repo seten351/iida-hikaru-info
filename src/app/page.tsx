@@ -1,3 +1,7 @@
+import type { Deadline } from "@/domain/deadline";
+import { DeadlineClockProvider } from "@/app/deadline-clock";
+import { DeadlineSection } from "@/app/deadline-section";
+import { filterDeadlines, extendDeadlineFilterOptions } from "@/lib/deadlines";
 import { Suspense } from "react";
 import { connection } from "next/server";
 
@@ -33,6 +37,8 @@ type AppearanceSectionProps = {
   items: AppearanceCardData[];
   emptyMessage: string;
   featured?: boolean;
+  deadlines?: Deadline[];
+  now?: string;
 };
 
 function AppearanceSection({
@@ -43,6 +49,8 @@ function AppearanceSection({
   items,
   emptyMessage,
   featured = false,
+  deadlines = [],
+  now,
 }: AppearanceSectionProps) {
   return (
     <section
@@ -61,7 +69,7 @@ function AppearanceSection({
       {items.length > 0 ? (
         <div className="appearance-grid">
           {items.map((item) => (
-            <AppearanceCard item={item} key={item.id} />
+            <AppearanceCard item={item} key={item.id} deadlines={deadlines} now={now} />
           ))}
         </div>
       ) : (
@@ -116,13 +124,14 @@ export default async function Home(props: PageProps<"/">) {
   await connection();
 
   const now = new Date();
-  const [searchParams, { appearances, lastUpdatedAt }] = await Promise.all([
+  const [searchParams, { appearances, deadlines, lastUpdatedAt }] = await Promise.all([
     props.searchParams,
     getAppearancePageData(),
   ]);
   const cards = buildAppearanceCards(appearances);
-  const filterOptions = getAppearanceFilterOptions(cards);
+  const filterOptions = extendDeadlineFilterOptions(getAppearanceFilterOptions(cards), deadlines);
   const filters = parseAppearanceFilters(searchParams, filterOptions);
+  const filteredDeadlines = filterDeadlines(deadlines, filters);
   const filteredCards = filterAppearanceCards(cards, filters);
   const { latest, upcoming, past } = groupAppearanceCards(filteredCards, now);
   const scheduleView = parseAppearanceScheduleView(searchParams.view);
@@ -141,6 +150,7 @@ export default async function Home(props: PageProps<"/">) {
   const noMatchingMessage = "条件に一致する出演情報はありません。";
 
   return (
+    <DeadlineClockProvider now={now.toISOString()}>
     <main>
       <header className="site-header">
         <div className="site-header__inner">
@@ -150,6 +160,7 @@ export default async function Home(props: PageProps<"/">) {
           </a>
           <nav aria-label="ページ内ナビゲーション">
             <a href="#latest">新着</a>
+            <a href="#deadlines">締切</a>
             <a href="#upcoming">今後の予定</a>
             <a href="#history">出演履歴</a>
           </nav>
@@ -190,6 +201,8 @@ export default async function Home(props: PageProps<"/">) {
             options={filterOptions}
             totalCount={cards.length}
             matchedCount={filteredCards.length}
+            deadlineTotalCount={deadlines.length}
+            deadlineMatchedCount={filteredDeadlines.length}
           />
         </Suspense>
 
@@ -210,8 +223,12 @@ export default async function Home(props: PageProps<"/">) {
           )}
         </section>
 
+        <DeadlineSection items={filteredDeadlines} now={now.toISOString()} isFiltering={isFiltering} />
+
         <AppearanceScheduleSection
           cards={filteredCards}
+          deadlines={filteredDeadlines}
+          relatedDeadlines={deadlines}
           upcoming={upcoming}
           availableYears={filterOptions.years}
           view={scheduleView}
@@ -221,6 +238,8 @@ export default async function Home(props: PageProps<"/">) {
         />
 
         <AppearanceSection
+          deadlines={deadlines}
+          now={now.toISOString()}
           id="history"
           eyebrow="ARCHIVE"
           title="過去の出演履歴"
@@ -253,5 +272,6 @@ export default async function Home(props: PageProps<"/">) {
         </div>
       </footer>
     </main>
+    </DeadlineClockProvider>
   );
 }

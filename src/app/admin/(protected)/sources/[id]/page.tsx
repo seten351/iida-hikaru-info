@@ -21,7 +21,7 @@ export default async function AdminSourceDetailPage({
   const { id } = await params;
   const result = await getAdminSource(id);
   if (!result) notFound();
-  const { source, identities, appearanceLinks, proposalLinks } = result;
+  const { source, identities, appearanceLinks, proposalLinks, deadlineLinks } = result;
 
   return (
     <>
@@ -82,6 +82,13 @@ export default async function AdminSourceDetailPage({
             ))}
           </ul>
         )}
+      </section>
+      <section className="admin-panel">
+        <h2>締切 ({deadlineLinks.length})</h2>
+        {deadlineLinks.length ? <ul className="admin-link-list">{deadlineLinks.map(link => <li key={link.deadlineId + ":" + link.evidenceKey}>
+          <Link href={`/admin/deadlines/${link.deadlineId}`} prefetch={false}>{link.title}</Link>
+          <span>{link.evidenceKey} · active {String(link.active)} · primary {String(link.isPrimary)}</span>
+        </li>)}</ul> : <EmptyState>締切への参照はありません。</EmptyState>}
       </section>
       <section className="admin-panel">
         <h2>Proposals ({proposalLinks.length})</h2>

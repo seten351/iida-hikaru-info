@@ -11,6 +11,10 @@
     "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
     "db:import": "dotenv -e .env.local -- tsx scripts/import-appearances.ts",
     "db:admin-import": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/admin-import-appearances.ts",
+    "db:admin-import-deadlines": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- node --import tsx scripts/admin-import-deadlines.ts",
+    "check:deadline-duplicate": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- node --import tsx scripts/check-deadline-duplicate.ts",
+    "test:deadlines": "node --import tsx --test tests/deadline-*.test.ts tests/deadline-*.test.tsx",
+    "test:deadlines-db": "node --conditions=react-server --import tsx --test tests/deadline-db.integration.ts",
     "check:duplicate": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/check-appearance-duplicate.ts",
     "patrol": "NODE_OPTIONS=--conditions=react-server tsx scripts/patrol/run-patrol.ts",
     "patrol:dry-run": "NODE_OPTIONS=--conditions=react-server tsx scripts/patrol/run-patrol.ts --dry-run",
@@ -42,6 +46,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -12,6 +12,10 @@ import {
   appearanceSourceLinksTable,
   appearancesTable,
   contentManagementStateTable,
+  deadlineProposalsTable,
+  deadlineRevisionsTable,
+  deadlineSourceLinksTable,
+  deadlinesTable,
   proposalSourceLinksTable,
   sourceIdentitiesTable,
   sourceItemsTable,
@@ -41,18 +45,21 @@ const appearanceStartOrder = [
 export async function getAdminOverview() {
   await requireAdminSession();
   const db = getDb();
-  const [appearances, proposals, sources, series, revisions, state] =
+  const [appearances, proposals, sources, series, revisions, deadlineRevisions, deadlines, state] =
     await Promise.all([
       db.select({ value: count() }).from(appearancesTable),
       db.execute<{ value: number }>(sql`
         select (
           (select count(*) from appearance_proposals) +
-          (select count(*) from appearance_series_proposals)
+          (select count(*) from appearance_series_proposals) +
+          (select count(*) from deadline_proposals)
         )::int as value
       `),
       db.select({ value: count() }).from(sourceItemsTable),
       db.select({ value: count() }).from(appearanceSeriesTable),
       db.select({ value: count() }).from(appearanceRevisionsTable),
+      db.select({ value: count() }).from(deadlineRevisionsTable),
+      db.select({ value: count() }).from(deadlinesTable),
       db.select().from(contentManagementStateTable).limit(1),
     ]);
 
@@ -61,7 +68,8 @@ export async function getAdminOverview() {
     proposals: proposals.rows[0]?.value ?? 0,
     sources: sources[0].value,
     series: series[0].value,
-    revisions: revisions[0].value,
+    revisions: revisions[0].value + deadlineRevisions[0].value,
+    deadlines: deadlines[0].value,
     contentMode: state[0]?.contentMode ?? "unknown",
   };
 }
@@ -69,7 +77,7 @@ export async function getAdminOverview() {
 export async function listAdminProposals() {
   await requireAdminSession();
   const db = getDb();
-  const [appearances, series] = await Promise.all([db
+  const [appearances, series, deadlines] = await Promise.all([db
     .select({
       kind: sql<"appearance">`'appearance'`,
       id: appearanceProposalsTable.id,
@@ -103,8 +111,25 @@ export async function listAdminProposals() {
       sourceCount: sql<number>`0`,
     })
     .from(appearanceSeriesProposalsTable)
-    .orderBy(desc(appearanceSeriesProposalsTable.updatedAt), asc(appearanceSeriesProposalsTable.id))]);
-  return [...appearances, ...series].sort(
+    .orderBy(desc(appearanceSeriesProposalsTable.updatedAt), asc(appearanceSeriesProposalsTable.id)),
+  db
+    .select({
+      kind: sql<"deadline">`'deadline'`,
+      id: deadlineProposalsTable.id,
+      origin: sql<"admin">`'admin'`,
+      operation: deadlineProposalsTable.operation,
+      status: deadlineProposalsTable.status,
+      matchStatus: sql<"new" | "targeted_update">`case when ${deadlineProposalsTable.operation} = 'create' then 'new' else 'targeted_update' end`,
+      title: sql<string | null>`coalesce(${deadlineProposalsTable.input}->'fields'->>'projectTitle', ${deadlineProposalsTable.input}->'fields'->>'label', ${deadlinesTable.projectTitle})`,
+      appearanceId: sql<string | null>`null`,
+      expectedAppearanceVersion: deadlineProposalsTable.expectedVersion,
+      updatedAt: deadlineProposalsTable.reviewedAt,
+      sourceCount: sql<number>`case when ${deadlineProposalsTable.input}->'source' is not null then 1 else 0 end`.mapWith(Number),
+    })
+    .from(deadlineProposalsTable)
+    .leftJoin(deadlinesTable, eq(deadlineProposalsTable.deadlineId, deadlinesTable.id))
+    .orderBy(desc(deadlineProposalsTable.reviewedAt), asc(deadlineProposalsTable.id))]);
+  return [...appearances, ...series, ...deadlines].sort(
     (left, right) => right.updatedAt.getTime() - left.updatedAt.getTime(),
   );
 }
@@ -276,6 +301,10 @@ export async function listAdminSources() {
         select count(distinct appearance_id)::int from appearance_source_links
         where source_id = ${sourceItemsTable.id}
       )`.mapWith(Number),
+      deadlineCount: sql<number>`(
+        select count(distinct deadline_id)::int from deadline_source_links
+        where source_id = ${sourceItemsTable.id}
+      )`.mapWith(Number),
       proposalCount: sql<number>`(
         select count(distinct proposal_id)::int from proposal_source_links
         where source_id = ${sourceItemsTable.id}
@@ -294,7 +323,7 @@ export async function getAdminSource(sourceId: string) {
     .where(eq(sourceItemsTable.id, sourceId));
   if (!source) return null;
 
-  const [identities, appearanceLinks, proposalLinks] = await Promise.all([
+  const [identities, appearanceLinks, proposalLinks, deadlineLinks] = await Promise.all([
     db
       .select()
       .from(sourceIdentitiesTable)
@@ -329,9 +358,13 @@ export async function getAdminSource(sourceId: string) {
       )
       .where(eq(proposalSourceLinksTable.sourceId, sourceId))
       .orderBy(asc(proposalSourceLinksTable.proposalId)),
+    db.select({ deadlineId: deadlineSourceLinksTable.deadlineId, title: deadlinesTable.projectTitle,
+      evidenceKey: deadlineSourceLinksTable.evidenceKey, active: deadlineSourceLinksTable.active, isPrimary: deadlineSourceLinksTable.isPrimary })
+      .from(deadlineSourceLinksTable).innerJoin(deadlinesTable, eq(deadlineSourceLinksTable.deadlineId, deadlinesTable.id))
+      .where(eq(deadlineSourceLinksTable.sourceId, sourceId)).orderBy(asc(deadlineSourceLinksTable.deadlineId)),
   ]);
 
-  return { source, identities, appearanceLinks, proposalLinks };
+  return { source, identities, appearanceLinks, proposalLinks, deadlineLinks };
 }
 
 export async function listAdminSeries() {

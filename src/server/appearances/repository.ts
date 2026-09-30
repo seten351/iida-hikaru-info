@@ -10,10 +10,13 @@ import {
   sourceItemsTable,
 } from "@/db/schema";
 import type { Appearance } from "@/domain/appearance";
+import type { Deadline } from "@/domain/deadline";
+import { getPublicDeadlineData } from "@/server/deadlines/repository";
 import { publicAppearanceCondition } from "@/server/appearances/visibility";
 
 export async function getAppearancePageData(): Promise<{
   appearances: Appearance[];
+  deadlines: Deadline[];
   lastUpdatedAt: string | null;
 }> {
   const rows = await getDb()
@@ -103,8 +106,7 @@ export async function getAppearancePageData(): Promise<{
     null,
   );
 
-  return {
-    appearances: rows.map((row) => ({
+  const appearances: Appearance[] = rows.map((row) => ({
       id: row.id,
       startsAt: row.startsAt?.toISOString() ?? null,
       startsOn: row.startsOn,
@@ -122,7 +124,8 @@ export async function getAppearancePageData(): Promise<{
       publishedOn: row.publishedOn,
       publishedAtPrecision: row.publishedAtPrecision,
       collectedAt: row.collectedAt.toISOString(),
-    })),
-    lastUpdatedAt: lastUpdatedAt?.toISOString() ?? null,
-  };
+    }));
+  const deadlineData = await getPublicDeadlineData(appearances);
+  const updateTimes = [lastUpdatedAt?.toISOString(), deadlineData.lastUpdatedAt].filter((value): value is string => Boolean(value));
+  return { appearances, deadlines: deadlineData.deadlines, lastUpdatedAt: updateTimes.length ? updateTimes.sort().at(-1)! : null };
 }

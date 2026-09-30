@@ -1,3 +1,5 @@
+import type { Deadline } from "@/domain/deadline";
+import { RelatedDeadlines } from "@/app/deadline-card";
 import {
   type AppearanceCard as AppearanceCardData,
   categoryClassNames,
@@ -28,10 +30,14 @@ export function AppearanceCard({
   item,
   agenda = false,
   headingLevel = 3,
+  deadlines = [],
+  now,
 }: {
   item: AppearanceCardData;
   agenda?: boolean;
   headingLevel?: 3 | 4;
+  deadlines?: Deadline[];
+  now?: string;
 }) {
   const Heading = headingLevel === 4 ? "h4" : "h3";
   const hasMultipleSources = item.sourceUrls.length > 1;
@@ -57,6 +63,7 @@ export function AppearanceCard({
           ))}
         </ul>
       )}
+      {now && <RelatedDeadlines items={deadlines.filter((deadline) => item.sessions.some((session) => deadline.appearanceIds.includes(session.id)))} now={now} />}
       <p className="appearance-card__published">
         {item.isGrouped ? "最新公式発表" : "公式発表"}{" "}
         {formatPublication(item.publication)}

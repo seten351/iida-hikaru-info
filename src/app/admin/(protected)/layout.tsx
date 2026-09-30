@@ -8,6 +8,7 @@ import { logoutAction } from "../login/actions";
 const navigation = [
   ["提案", "/admin/proposals"],
   ["出演", "/admin/appearances"],
+  ["申し込み締切", "/admin/deadlines"],
   ["情報源", "/admin/sources"],
   ["シリーズ", "/admin/series"],
   ["実行履歴", "/admin/runs"],

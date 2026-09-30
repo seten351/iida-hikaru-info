@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 
+import type { Deadline } from "@/domain/deadline";
+import { useDeadlineNow } from "@/app/deadline-clock";
 import { AppearanceCard } from "@/app/appearance-card";
 import { AppearanceCalendar } from "@/app/appearance-calendar";
 import type { AppearanceCard as AppearanceCardData } from "@/lib/appearances";
@@ -20,6 +22,8 @@ const viewLabels = {
 
 export function AppearanceScheduleSection({
   cards,
+  deadlines = [],
+  relatedDeadlines = deadlines,
   upcoming,
   availableYears,
   view,
@@ -28,6 +32,8 @@ export function AppearanceScheduleSection({
   isFiltering,
 }: {
   cards: AppearanceCardData[];
+  deadlines?: Deadline[];
+  relatedDeadlines?: Deadline[];
   upcoming: AppearanceCardData[];
   availableYears: string[];
   view: AppearanceScheduleView;
@@ -35,11 +41,13 @@ export function AppearanceScheduleSection({
   currentSearchParams: string;
   isFiltering: boolean;
 }) {
+  const [showDeadlines, setShowDeadlines] = useState(true);
+  const currentTime = useDeadlineNow(now);
   const [period, setPeriod] = useState<string | null>(null);
-  const schedule = getAppearanceSchedule(cards, new Date(now), view, {
+  const schedule = getAppearanceSchedule(cards, currentTime, view, {
     month: period ?? undefined,
     week: period ?? undefined,
-  });
+  }, showDeadlines ? deadlines : []);
   const emptyMessage = isFiltering
     ? "条件に一致する出演情報はありません。"
     : view === "month"
@@ -60,7 +68,7 @@ export function AppearanceScheduleSection({
           <h2 id="upcoming-heading">{schedule.title}</h2>
         </div>
         <div className="appearance-schedule__summary">
-          <p>{schedule.description}</p>
+          <p>{schedule.calendar && showDeadlines ? "日付を選ぶと、その日の出演情報と申し込み締切を確認できます。" : schedule.description}</p>
         </div>
       </header>
 
@@ -77,9 +85,13 @@ export function AppearanceScheduleSection({
         ))}
       </nav>
 
+      {schedule.calendar !== null && <label className="deadline-toggle"><input type="checkbox" checked={showDeadlines} onChange={(event) => setShowDeadlines(event.target.checked)} />締切も表示</label>}
       {schedule.calendar !== null ? (
         <AppearanceCalendar
           calendar={schedule.calendar}
+          relatedDeadlines={relatedDeadlines}
+          showDeadlines={showDeadlines}
+          now={now}
           availableYears={availableYears}
           onPeriodChange={setPeriod}
           emptyMessage={emptyMessage}
@@ -87,7 +99,7 @@ export function AppearanceScheduleSection({
       ) : upcoming.length > 0 ? (
         <div className="appearance-grid">
           {upcoming.map((item) => (
-            <AppearanceCard item={item} key={item.id} />
+            <AppearanceCard item={item} key={item.id} deadlines={relatedDeadlines} now={now} />
           ))}
         </div>
       ) : (

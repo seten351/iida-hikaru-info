@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getAdminAppearance } from "@/server/admin/repository";
 import { listAdminSeries } from "@/server/admin/repository";
 import { requireAdminSession } from "@/server/admin/auth";
+import { listAdminDeadlines } from "@/server/deadlines/repository";
 
 import {
   AdminPageHeader,
@@ -25,13 +26,15 @@ export default async function AdminAppearanceDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [{ config }, result, series] = await Promise.all([
+  const [{ config }, result, series, allDeadlines] = await Promise.all([
     requireAdminSession(),
     getAdminAppearance(id),
     listAdminSeries(),
+    listAdminDeadlines(),
   ]);
   if (!result) notFound();
   const { appearance, seriesName, sourceLinks, revisions } = result;
+  const deadlines = allDeadlines.filter((deadline) => deadline.appearanceIds.includes(appearance.id));
 
   return (
     <>
@@ -44,6 +47,7 @@ export default async function AdminAppearanceDetailPage({
       {config.writeEnabled ? (
         <div className="admin-page-actions">
           <Link href={`/admin/appearances/${appearance.id}/edit`} prefetch={false}>基本情報を編集</Link>
+          <Link href={`/admin/deadlines/new?appearanceId=${encodeURIComponent(appearance.id)}`} prefetch={false}>申し込み締切を追加</Link>
           {appearance.eventGroupId ? (
             <Link href={`/admin/event-groups/${encodeURIComponent(appearance.eventGroupId)}/edit`} prefetch={false}>
               同じevent groupを一括編集
@@ -70,6 +74,18 @@ export default async function AdminAppearanceDetailPage({
             ["updated", formatAdminDate(appearance.updatedAt)],
           ]}
         />
+      </section>
+      <section className="admin-panel">
+        <h2>関連する申し込み締切 ({deadlines.length})</h2>
+        <ul className="admin-link-list">
+          {deadlines.map((deadline) => (
+            <li key={deadline.id}>
+              <Link href={`/admin/deadlines/${deadline.id}`} prefetch={false}>{deadline.projectTitle} · {deadline.label}</Link>
+              <span>{deadline.visibilityStatus} · v{deadline.version}</span>
+            </li>
+          ))}
+        </ul>
+        {!deadlines.length ? <p className="admin-form-note">この出演に関連する申し込み締切はありません。</p> : null}
       </section>
       {config.writeEnabled ? (
         <section className="admin-panel">

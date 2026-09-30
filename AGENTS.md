@@ -41,3 +41,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - すでに同作品・同イベントのレコードがDB上に存在する場合（別IDや役名付きIDで先行登録されている場合など）は、**新規レコードを作成（二重登録）せず、既存レコードに対して `source_links` の追加や開演日時・詳細情報の更新（UPDATE）** を行うこと。
   - `admin-import-appearances.ts`（`npm run db:admin-import`）にも情報元URLおよび正規化タイトル＋日付の二重検知ガードが備わっているが、登録前の事前調査と照合を怠らないこと。
 
+## Deadline Updates (申し込み締切)
+- 既存のAntigravity自動巡回で確認した個別告知に締切情報がある場合、その運用内で登録・更新する。巡回基盤・出演情報の更新経路は変更しない。人間のadmin画面は確認・監査・緊急時の修正を中心とし、手動操作は最終手段とする。
+- 登録前に `npm run check:deadline-duplicate -- "<企画名・受付名・告知URL・ID>"` で照合する。同じ企画・受付の延長は既存IDを更新し、別の受付段階には異なる受付名・evidence keyを使う。ファン企画は `projectType: "fan"` とする。告知日時・個別情報元URLは上記の情報元規則に従い、確認できない締切時刻を推測しない。
+- 通常操作は既存の `npm run db:admin-import-deadlines` に `--input <JSONファイル>` を渡す。JSONは `AdminDeadlineMutationInput` 1件で、登録は `create`、更新・延長・受付終了・中止は `update`（全fieldsとsourceを指定、`state` は `scheduled` / `closed` / `cancelled`）、非公開化は `hide`、復元は `restore`。更新・非公開化・復元には照合時の `expectedVersion` を固定して指定する。最新レコードの読み取り例・JSON形式はREADME「締切情報」を参照。
+- まず `npm run db:admin-import-deadlines -- --input <JSONファイル>` で読み取り専用dry-runを実行し、エージェント自身が対象ID・version・before/after・情報元・関連出演を確認する。その出力の `inputHash` を `--apply --reviewed-hash <inputHash>` に指定して確定する。人間承認は必須ではない。入力変更後は再度dry-run・確認する。手動UIと共通のAdmin write検証・競合検知・冪等性・変更履歴を利用し、直接SQLで通常更新しない。
+- `superseded` / `rejected` は未反映として扱い、最新レコードと告知を再照合して入力を修正し、dry-runからやり直す。接続障害で結果が不明な場合は同じJSON・同じハッシュで確定を再試行する（承認済みなら冪等に結果を再取得）。確定は1件ずつで、完了分は残る。
+- 巡回から見つからなくなっただけで非公開化しない。非公開化・復元は根拠を確認した明示操作に限定し、非公開レコードを自動復元しない。操作JSONはGit外の一時ファイルに置き、終了後に削除する。接続先を確認し、稼働中巡回の切り替えや本番スキーマ適用は通常の締切更新とは別作業として扱う。

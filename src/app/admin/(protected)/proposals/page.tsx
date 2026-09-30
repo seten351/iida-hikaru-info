@@ -23,10 +23,11 @@ export default async function AdminProposalsPage() {
       <section className="admin-stats" aria-label="データ件数">
         {[
           ["出演", overview.appearances],
+          ["締切", overview.deadlines],
           ["提案", overview.proposals],
           ["情報源", overview.sources],
           ["シリーズ", overview.series],
-          ["出演revision", overview.revisions],
+          ["出演・締切revision", overview.revisions],
         ].map(([label, value]) => (
           <div key={label}>
             <span>{label}</span>
@@ -58,7 +59,7 @@ export default async function AdminProposalsPage() {
               {proposals.map((proposal) => (
                 <tr key={proposal.id}>
                   <td>
-                    <Link href={`/admin/proposals/${proposal.id}`} prefetch={false}>
+                    <Link href={proposal.kind === "deadline" ? `/admin/deadlines/proposals/${proposal.id}` : `/admin/proposals/${proposal.id}`} prefetch={false}>
                       {proposal.title ?? proposal.id}
                     </Link>
                     {proposal.title ? <small>{proposal.id}</small> : null}

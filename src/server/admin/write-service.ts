@@ -14,6 +14,7 @@ import {
   appearanceSourceLinksTable,
   appearancesTable,
   contentManagementStateTable,
+  deadlineAppearanceLinksTable,
   proposalSourceLinksTable,
   sourceIdentitiesTable,
   sourceItemsTable,
@@ -37,6 +38,7 @@ import {
   type AdminSourceMutationInput,
   type AdminWriteInput,
 } from "./write-input";
+import { confirmDeadlineWrite, readDeadlineReplay, rejectDeadlineWrite, validateDeadlineWrite } from "@/server/deadlines/write-service";
 
 type ApprovedResult = {
   status: "approved";
@@ -117,6 +119,19 @@ async function validateEventGroup(
   fields: AdminAppearanceFields,
   excludeAppearanceId?: string,
 ) {
+  if (excludeAppearanceId) {
+    const linked = await tx.select({ deadlineId: deadlineAppearanceLinksTable.deadlineId }).from(deadlineAppearanceLinksTable)
+      .where(eq(deadlineAppearanceLinksTable.appearanceId, excludeAppearanceId));
+    if (linked.length) {
+      const peers = await tx.select({ appearance: appearancesTable }).from(deadlineAppearanceLinksTable)
+        .innerJoin(appearancesTable, eq(appearancesTable.id, deadlineAppearanceLinksTable.appearanceId))
+        .where(and(inArray(deadlineAppearanceLinksTable.deadlineId, linked.map(item => item.deadlineId)), ne(appearancesTable.id, excludeAppearanceId)));
+      if (peers.some(({ appearance }) => !fields.eventGroupId || appearance.eventGroupId !== fields.eventGroupId ||
+        appearance.eventTitle !== fields.eventTitle || appearance.seriesId !== fields.seriesId || appearance.category !== fields.category)) {
+        throw new AdminWriteValidationError("共通締切が関連付けられています。先に締切の対象公演を変更してください。");
+      }
+    }
+  }
   if (!fields.eventGroupId) return;
   const predicates = [eq(appearancesTable.eventGroupId, fields.eventGroupId)];
   if (excludeAppearanceId) predicates.push(ne(appearancesTable.id, excludeAppearanceId));
@@ -239,7 +254,7 @@ async function readAndValidateEventGroup(
   return { rows, targets };
 }
 
-async function upsertAdminSource(
+export async function upsertAdminSource(
   tx: WriterTransaction,
   sourceInput: AdminSourceInput,
   now: Date,
@@ -998,13 +1013,18 @@ async function confirmSeries(
 export async function confirmAdminWrite(
   untrustedInput: unknown,
   idempotencyKey: string,
+  database?: ReturnType<typeof getWriterDb>,
 ): Promise<AdminWriteResult> {
   const parsed = parseAdminWriteInput(untrustedInput);
-  return getWriterDb().transaction(async (tx) => {
+  return (database ?? getWriterDb()).transaction(async (tx) => {
     const input = parseAdminWriteInput(parsed);
     const hash = contentHash(input);
     await lockMutation(tx, `admin-write:${idempotencyKey}`);
     await assertContentState(tx, true);
+    if (input.kind === "deadline") {
+      const replay = await readDeadlineReplay(tx, idempotencyKey, hash);
+      return replay ?? confirmDeadlineWrite(tx, input, idempotencyKey, hash);
+    }
     const replay =
       input.kind === "series"
         ? await readSeriesReplay(tx, idempotencyKey, hash)
@@ -1020,13 +1040,18 @@ export async function confirmAdminWrite(
 export async function rejectAdminWrite(
   untrustedInput: unknown,
   idempotencyKey: string,
+  database?: ReturnType<typeof getWriterDb>,
 ): Promise<AdminWriteResult> {
   const parsed = parseAdminWriteInput(untrustedInput);
-  return getWriterDb().transaction(async (tx) => {
+  return (database ?? getWriterDb()).transaction(async (tx) => {
     const input = parseAdminWriteInput(parsed);
     const hash = contentHash(input);
     await lockMutation(tx, `admin-write:${idempotencyKey}`);
     await assertContentState(tx, true);
+    if (input.kind === "deadline") {
+      const replay = await readDeadlineReplay(tx, idempotencyKey, hash);
+      return replay ?? rejectDeadlineWrite(tx, input, idempotencyKey, hash);
+    }
     const replay = input.kind === "series" ? await readSeriesReplay(tx, idempotencyKey, hash) : await readAppearanceReplay(tx, idempotencyKey, hash);
     if (replay) return replay;
     if (input.kind === "series") {
@@ -1079,11 +1104,15 @@ async function assertSourceIdentityAvailable(
   }
 }
 
-export async function validateAdminWritePreview(untrustedInput: unknown) {
+export async function validateAdminWritePreview(untrustedInput: unknown, database?: ReturnType<typeof getWriterDb>) {
   const parsed = parseAdminWriteInput(untrustedInput);
-  return getWriterDb().transaction(async (tx) => {
+  return (database ?? getWriterDb()).transaction(async (tx) => {
     const input = parseAdminWriteInput(parsed);
     await assertContentState(tx);
+    if (input.kind === "deadline") {
+      await validateDeadlineWrite(tx, input);
+      return input;
+    }
     if (input.kind === "appearance") {
       if (input.operation === "create") {
         const [existing] = await tx

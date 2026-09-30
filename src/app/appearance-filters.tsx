@@ -21,6 +21,8 @@ type AppearanceFiltersProps = {
   options: AppearanceFilterOptions;
   totalCount: number;
   matchedCount: number;
+  deadlineTotalCount?: number;
+  deadlineMatchedCount?: number;
 };
 
 export function AppearanceFilters({
@@ -28,6 +30,8 @@ export function AppearanceFilters({
   options,
   totalCount,
   matchedCount,
+  deadlineTotalCount = 0,
+  deadlineMatchedCount = 0,
 }: AppearanceFiltersProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -89,10 +93,10 @@ export function AppearanceFilters({
       <div className="appearance-filters__heading">
         <div>
           <p className="eyebrow">SEARCH & FILTER</p>
-          <h2 id="filters-heading">出演情報を探す</h2>
+          <h2 id="filters-heading">出演・締切を探す</h2>
         </div>
         <p aria-live="polite" aria-atomic="true">
-          {isPending ? "検索条件を更新中…" : `全${totalCount}件中 ${matchedCount}件`}
+          {isPending ? "検索条件を更新中…" : `出演 ${matchedCount} / ${totalCount}件・締切 ${deadlineMatchedCount} / ${deadlineTotalCount}件`}
         </p>
       </div>
 
@@ -109,7 +113,7 @@ export function AppearanceFilters({
             value={draftFilters.q}
             onChange={updateQuery}
             maxLength={100}
-            placeholder="番組名・イベント名など"
+            placeholder="番組名・企画名・主催者など"
             disabled={isPending}
           />
         </label>
@@ -150,7 +154,7 @@ export function AppearanceFilters({
 
         <div className="appearance-filter-actions-row">
           <label className="appearance-filter-field">
-            <span>年</span>
+            <span>年（出演年・締切年）</span>
             <select
               value={draftFilters.year ?? ""}
               onChange={(event) => updateFacet("year", event.target.value)}

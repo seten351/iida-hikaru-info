@@ -1,4 +1,6 @@
 import { appearanceCategories, publishedAtPrecisions } from "@/domain/appearance";
+import { validateDeadlineFields, type AdminDeadlineFields } from "@/domain/deadline";
+export type { AdminDeadlineFields } from "@/domain/deadline";
 
 const normalizedIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const timezoneSuffixPattern = /(?:Z|[+-]\d{2}:\d{2})$/;
@@ -93,7 +95,13 @@ export type AdminWriteInput =
   | AdminAppearanceMutationInput
   | AdminAppearanceGroupMutationInput
   | AdminSourceMutationInput
-  | AdminSeriesMutationInput;
+  | AdminSeriesMutationInput
+  | AdminDeadlineMutationInput;
+
+export type AdminDeadlineMutationInput =
+  | { kind: "deadline"; operation: "create"; expectedVersion: null; fields: AdminDeadlineFields; source: AdminSourceInput }
+  | { kind: "deadline"; operation: "update"; deadlineId: string; expectedVersion: number; fields: AdminDeadlineFields; source: AdminSourceInput }
+  | { kind: "deadline"; operation: "hide" | "restore"; deadlineId: string; expectedVersion: number };
 
 export class AdminWriteValidationError extends Error {
   constructor(message: string) {
@@ -280,6 +288,33 @@ function parseAppearanceFields(value: unknown): AdminAppearanceFields {
 
 export function parseAdminWriteInput(value: unknown): AdminWriteInput {
   const input = record(value, "変更内容");
+  if (input.kind === "deadline") {
+    if (input.operation === "hide" || input.operation === "restore") {
+      return { kind: "deadline", operation: input.operation, deadlineId: normalizedId(input.deadlineId, "締切ID"), expectedVersion: positiveVersion(input.expectedVersion, "version") };
+    }
+    if (input.operation !== "create" && input.operation !== "update") throw new AdminWriteValidationError("締切操作が不正です。");
+    try {
+      const fields = validateDeadlineFields(input.fields);
+      const sourceInput = record(input.source, "情報源");
+      const url = new URL(requiredString(sourceInput.canonicalUrl, "URL", 2048));
+      if (url.username || url.password || (url.pathname === "/" && !url.search)) throw new Error("締切の情報元は個別告知URLを指定してください。");
+      let normalizedSource = sourceInput;
+      if (["x.com", "www.x.com", "twitter.com", "www.twitter.com"].includes(url.hostname)) {
+        const match = /^\/[^/]+\/status\/(\d+)\/?$/.exec(url.pathname);
+        if (!match || typeof sourceInput.sourceName !== "string" || !sourceInput.sourceName.startsWith("x:") || sourceInput.externalItemId !== match[1]) throw new Error("X情報元には告知ポストURL・x:で始まる情報源名・ポストIDを指定してください。");
+        const timestamp = Number((BigInt(match[1]) >> BigInt(22)) + BigInt(1288834974657));
+        if (!Number.isSafeInteger(timestamp) || timestamp < 1288834974657 || timestamp > 253402300799999) throw new Error("XポストIDが不正です。");
+        normalizedSource = { ...sourceInput, precision: "exact", publishedAt: new Date(timestamp).toISOString(), publishedOn: null };
+      }
+      const source = parseSource(normalizedSource);
+      if (input.operation === "create") return { kind: "deadline", operation: "create", expectedVersion: null, fields, source };
+      const deadlineId = normalizedId(input.deadlineId, "締切ID");
+      if (fields.id !== deadlineId) throw new Error("締切IDは変更できません。");
+      return { kind: "deadline", operation: "update", deadlineId, expectedVersion: positiveVersion(input.expectedVersion, "version"), fields, source };
+    } catch (error) {
+      throw new AdminWriteValidationError(error instanceof Error ? error.message : "締切情報が不正です。");
+    }
+  }
   if (input.kind === "appearance") {
     if (input.operation === "create") {
       return {

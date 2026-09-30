@@ -82,7 +82,7 @@
 
 .admin-stats {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
@@ -211,6 +211,11 @@
 .admin-write-result-rejected,
 .admin-write-result-superseded { background: #fff1f2; }
 .admin-form-note { color: #717986; font-size: 0.75rem; }
+
+.admin-deadline-appearance-options { max-height: 22rem; overflow-y: auto; display: grid; gap: 0.65rem; }
+.admin-write-form .admin-deadline-appearance-option { display: flex; align-items: flex-start; gap: 0.65rem; padding: 0.5rem; }
+.admin-write-form .admin-deadline-appearance-option input { width: auto; margin-top: 0.2rem; }
+.admin-deadline-appearance-option small { display: block; margin-top: 0.2rem; color: #717986; overflow-wrap: anywhere; }
 
 .admin-activation-warning {
   margin-bottom: 1rem;

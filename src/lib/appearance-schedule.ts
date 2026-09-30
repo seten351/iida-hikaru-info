@@ -1,3 +1,5 @@
+import type { Deadline } from "@/domain/deadline";
+import { getDeadlineDay, compareDeadlines } from "@/lib/deadlines";
 import type { AppearanceCard } from "@/lib/appearances";
 import {
   compareAppearanceStartsAscending,
@@ -12,6 +14,7 @@ export type AppearanceScheduleDay = {
   date: string;
   label: string;
   items: AppearanceCard[];
+  deadlines?: Deadline[];
 };
 
 export type AppearanceCalendarDay = AppearanceScheduleDay & {
@@ -227,6 +230,21 @@ function groupCardsByDay(
     }));
 }
 
+function addDeadlinesToDays(days: AppearanceScheduleDay[], deadlines: Deadline[], startDay: string, endDay: string) {
+  if (deadlines.length === 0) return days;
+  const byDay = new Map(days.map((day) => [day.date, day]));
+  const seen = new Set<string>();
+  for (const item of deadlines) {
+    const date = getDeadlineDay(item);
+    if (!date || date < startDay || date > endDay || seen.has(item.id)) continue;
+    seen.add(item.id);
+    const day: AppearanceScheduleDay = byDay.get(date) ?? { date, label: dayLabelFormatter.format(calendarDate(date)!), items: [] };
+    day.deadlines = [...(day.deadlines ?? []), item];
+    byDay.set(date, day);
+  }
+  return [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date)).map((day) => ({ ...day, ...(day.deadlines ? { deadlines: day.deadlines.sort(compareDeadlines) } : {}) }));
+}
+
 function createCalendarDay(
   date: string,
   today: string,
@@ -237,6 +255,7 @@ function createCalendarDay(
     date,
     label: scheduledDay?.label ?? dayLabelFormatter.format(calendarDate(date)!),
     items: scheduledDay?.items ?? [],
+    ...(scheduledDay?.deadlines ? { deadlines: scheduledDay.deadlines } : {}),
     dayNumber: calendarDate(date)!.getUTCDate(),
     isToday: date === today,
   };
@@ -364,6 +383,7 @@ export function getAppearanceSchedule(
   now: Date,
   view: AppearanceScheduleView,
   options: AppearanceScheduleOptions = {},
+  deadlines: Deadline[] = [],
 ): AppearanceSchedule {
   if (view === "upcoming") {
     return {
@@ -391,7 +411,7 @@ export function getAppearanceSchedule(
       ? requestedPeriod
       : currentWeek;
     const endDay = addDays(period, 6)!;
-    const days = groupCardsByDay(cards, period, endDay);
+    const days = addDeadlinesToDays(groupCardsByDay(cards, period, endDay), deadlines, period, endDay);
     const calendar = createCalendar("week", period, today, currentWeek, days);
 
     return {
@@ -413,7 +433,7 @@ export function getAppearanceSchedule(
   const endDay = endOfMonth(period)!;
   const gridStartDay = startOfWeek(startDay) ?? startDay;
   const gridEndDay = addDays(endDay, 6 - calendarDate(endDay)!.getUTCDay()) ?? endDay;
-  const calendarDays = groupCardsByDay(cards, gridStartDay, gridEndDay);
+  const calendarDays = addDeadlinesToDays(groupCardsByDay(cards, gridStartDay, gridEndDay), deadlines, gridStartDay, gridEndDay);
   const days = calendarDays.filter((day) => day.date >= startDay && day.date <= endDay);
   const calendar = createCalendar("month", period, today, currentMonth, calendarDays);
 
