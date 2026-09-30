@@ -71,7 +71,7 @@ npm run db:admin-import
 
 ### ゲスト情報の確認・更新
 
-`drizzle/0013_add_appearance_guests.sql` で出演と提案にゲスト情報を追加します。既存出演は未確認の初期値になり、公開日時・情報元・versionは変更しません。アプリの切り替え前に接続先を確認して `npm run db:migrate` を実行してください。機能実装時は隔離したPostgresで検証し、2026-09-30に別Neonプロジェクトへ本番DBをコピーして最終検証後、本番0013適用とアプリの昇格を完了しました。既存170件のゲスト情報は未確認のままで、本番データの補完はしていません。詳細は [本番反映結果](docs/guest-production-rollout-2026-09-30.md) を参照してください。ゲスト機能の回帰テストは `npm run test:guests` で実行できます。
+`drizzle/0013_add_appearance_guests.sql` で出演と提案にゲスト情報を追加します。既存出演は未確認の初期値になり、公開日時・情報元・versionは変更しません。アプリの切り替え前に接続先を確認して `npm run db:migrate` を実行してください。機能実装時は隔離したPostgresで検証し、2026-09-30に別Neonプロジェクトへ本番DBをコピーして最終検証後、本番0013適用とアプリの昇格を完了しました。機能導入時は既存170件を未確認のまま維持しました。その後の少数データ確認では1件を更新し、日時精度低下の検出により残りの投入を停止しています。[日時精度修正・復旧記録](docs/guest-timestamp-precision-repair-2026-09-30.md) と [機能の本番反映結果](docs/guest-production-rollout-2026-09-30.md) を参照してください。ゲスト機能の回帰テストは `npm run test:guests` で実行できます。
 
 出演レコードの `guestInfo` は `isHikaruGuest` と `guestNames` を持ちます。`isHikaruGuest: null` は未確認、`true` は飯田ヒカルさん本人のゲスト出演、`false` は公式情報でゲストではないことを確認済みの状態です。告知にゲスト表記が見つからないだけでは `false` にせず、未確認のままにします。`guestNames` には飯田ヒカルさん以外のゲストだけを公式記載順で入れ、複数名は配列にします。公開UIでは本人が `true` の場合だけ「ゲスト出演」を表示し、`false` と `null` はどちらも本人の出演形態を表示しません。他ゲスト名がある場合は本人の区分にかかわらず「ゲスト：○○」を表示し、本人もゲストなら両方を表示します。DB・管理画面では確認済みと未確認の区別を維持します。
 
@@ -105,6 +105,8 @@ COMMIT;
 ```
 
 既存レコードの更新は `db:admin-import --input` に1件のJSONを渡します。`fields` は上の読み取り結果から全項目を引き継ぎ、`expectedVersion` も取得した値に固定します。公式の個別告知を `evidenceSources` に指定し、`publishedAt` は告知日時を使います。Xの告知はポストIDのSnowflakeから正確な日時を復元してください。ゲスト情報以外の更新では `guestInfo` を省略でき、省略時は既存値を保持します。ゲスト更新だけでprimary情報元や公開日時を変更しません。本人のゲスト出演と他ゲストは同時に登録できます。
+
+通常の出演更新ではvisibility関連日時を更新せず、既存の出演日時と入力が同じ場合も日時カラムを更新しません。これにより、管理画面・CLIがJavaScriptのミリ秒精度で読み取ってもDBのマイクロ秒精度を保持します。`visibility_changed_at` は非公開化・復元時だけ変更します。精度の監査はJavaScriptの`Date`同士ではなく、読み取り専用SQLの`to_jsonb(a)`などでDBの生の値を比較してください。残り3件の確認用投入と全件補完は再開していません。
 
 ```json
 {
@@ -311,3 +313,4 @@ npm run test:patrol
 ```
 
 ローカルでは `.env.local` を読み込みます。dry-runはDB設定がない場合に限りGit管理データとの比較に切り替わり、その比較元を明記します。実行結果はGit管理外の `.patrol-output/report.json`（`PATROL_REPORT_PATH` で変更可）へ出力し、ActionsではジョブのSummaryと14日保存のArtifactから確認できます。Antigravityの起動状態そのものは検知せず、常にDB上の登録結果を基準に補助します。
+
