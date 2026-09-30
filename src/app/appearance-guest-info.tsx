@@ -1,9 +1,17 @@
 import type { AppearanceGuestInfo } from "@/domain/appearance-guests";
-import { sameGuestInfo } from "@/domain/appearance-guests";
 import type { AppearanceCardSession } from "@/lib/appearances";
 
 function hasVisibleGuestInfo(info: AppearanceGuestInfo | undefined) {
   return info?.isHikaruGuest === true || (info?.guestNames.length ?? 0) > 0;
+}
+
+// Confirmed non-guest and unconfirmed roles have the same public presentation.
+function sameVisibleGuestInfo(a: AppearanceGuestInfo | undefined, b: AppearanceGuestInfo | undefined) {
+  const leftNames = a?.guestNames ?? [];
+  const rightNames = b?.guestNames ?? [];
+  return (a?.isHikaruGuest === true) === (b?.isHikaruGuest === true) &&
+    leftNames.length === rightNames.length &&
+    leftNames.every((name, index) => name === rightNames[index]);
 }
 
 function AppearanceGuestInfoDisplay({ info }: { info: AppearanceGuestInfo | undefined }) {
@@ -32,7 +40,7 @@ export function AppearanceGuestAssignments({
   if (sessions.length === 0) return null;
 
   const firstInfo = sessions[0].guestInfo;
-  if (sessions.every((session) => sameGuestInfo(firstInfo, session.guestInfo))) {
+  if (sessions.every((session) => sameVisibleGuestInfo(firstInfo, session.guestInfo))) {
     return <AppearanceGuestInfoDisplay info={firstInfo} />;
   }
 
@@ -56,19 +64,11 @@ export function AppearanceGuestAssignments({
 }
 
 export function getCalendarGuestMarker(sessions: AppearanceCardSession[]) {
-  if (sessions.length === 0) return null;
-
-  const firstInfo = sessions[0].guestInfo;
-  const hasAnyGuest = sessions.some(({ guestInfo }) => hasVisibleGuestInfo(guestInfo));
-  if (!hasAnyGuest) return null;
-
-  if (!sessions.every((session) => sameGuestInfo(firstInfo, session.guestInfo))) {
-    return "ゲスト情報あり";
-  }
-
+  const isHikaruGuest = sessions.some(({ guestInfo }) => guestInfo?.isHikaruGuest === true);
+  const guestNames = [...new Set(sessions.flatMap(({ guestInfo }) => guestInfo?.guestNames ?? []))];
   const labels = [
-    ...(firstInfo?.isHikaruGuest === true ? ["ゲスト出演"] : []),
-    ...((firstInfo?.guestNames.length ?? 0) > 0 ? ["ゲストあり"] : []),
+    ...(isHikaruGuest ? ["ゲスト出演"] : []),
+    ...(guestNames.length > 0 ? [`ゲスト：${guestNames.join("・")}`] : []),
   ];
   return labels.join("・") || null;
 }

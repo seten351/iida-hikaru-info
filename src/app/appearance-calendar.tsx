@@ -183,7 +183,6 @@ export function AppearanceCalendar({
                         {guestMarker && <span className="appearance-calendar__guest-marker">{guestMarker}</span>}
                         {day.items.length > 0 && (
                           <>
-                            <span className="appearance-calendar__count">出演{day.items.length}件</span>
                             <span className="appearance-calendar__category-markers" aria-hidden="true">
                               {categories.map((category) => (
                                 <span

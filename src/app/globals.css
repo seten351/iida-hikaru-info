@@ -794,7 +794,6 @@ nav a:hover {
   overflow-wrap: anywhere;
 }
 
-.appearance-calendar__count,
 .appearance-calendar__category-markers {
   display: none;
 }
@@ -1412,17 +1411,6 @@ footer {
     display: none;
   }
 
-  .appearance-calendar__count {
-    display: block;
-    padding-inline: 0.3rem;
-    border-radius: 4px;
-    background: var(--surface-soft);
-    color: var(--plum);
-    font-size: 0.62rem;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-
   .appearance-calendar__category-markers {
     display: flex;
     max-width: 2.1rem;
@@ -1430,10 +1418,6 @@ footer {
     justify-content: center;
     gap: 0.2rem;
     margin-top: 0.05rem;
-  }
-
-  .appearance-calendar__day[aria-pressed="true"] .appearance-calendar__count {
-    background: var(--surface);
   }
 
   .appearance-calendar__hint {
@@ -1597,8 +1581,6 @@ footer {
   .appearance-calendar__deadline-count .appearance-calendar__deadline-dot { width: 0.3rem; height: 0.3rem; }
   .appearance-calendar__details-heading { flex-wrap: wrap; }
 }
-
-.appearance-calendar__count { display: block; color: var(--muted); font-size: 0.67rem; }
 
 @media (max-width: 420px) {
   .appearance-calendar__deadline-count { display: block; white-space: nowrap; }
