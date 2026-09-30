@@ -156,6 +156,7 @@ export const officialAppearanceSources = {
   },
   "official:anirave": {
     hostname: "animeravefestival.com",
+    hostnameAliases: ["www.animeravefestival.com"],
     pathnamePrefix: "/",
   },
   "official:animate": {
@@ -241,6 +242,114 @@ export const officialAppearanceSources = {
   "x:fire-emblem": {
     hostname: "x.com",
     pathnamePrefix: "/FireEmblemJP/status/",
+  },
+  "x:dear-mf-pr": {
+    hostname: "x.com",
+    pathnamePrefix: "/DEAR_MF_PR/status/",
+  },
+  "明智璃子公式YouTube": {
+    hostname: "www.youtube.com",
+    pathnamePrefix: "/watch",
+  },
+  "x:Iida_Hikaru_828": {
+    hostname: "x.com",
+    pathnamePrefix: "/Iida_Hikaru_828/status/",
+  },
+  "x:beat_since2016": {
+    hostname: "x.com",
+    pathnamePrefix: "/beat_since2016/status/",
+  },
+  "x:futsu_vg": {
+    hostname: "x.com",
+    pathnamePrefix: "/futsu_vg/status/",
+  },
+  "x:gekirock_shop": {
+    hostname: "x.com",
+    pathnamePrefix: "/gekirock_shop/status/",
+  },
+  "x:PodcastsMs_jp": {
+    hostname: "x.com",
+    pathnamePrefix: "/PodcastsMs_jp/status/",
+  },
+  "youtube:idolmaster-channel": {
+    hostname: "www.youtube.com",
+    pathnamePrefix: "/watch",
+  },
+  "x:voicegarage_ch": {
+    hostname: "x.com",
+    pathnamePrefix: "/voicegarage_ch/status/",
+  },
+  "x:ngtk_itagochi": {
+    hostname: "x.com",
+    pathnamePrefix: "/ngtk_itagochi/status/",
+  },
+  "x:iyapan_anime": {
+    hostname: "x.com",
+    pathnamePrefix: "/iyapan_anime/status/",
+  },
+  "official:bushiroad": {
+    hostname: "bushiroad.com",
+    pathnamePrefix: "/",
+  },
+  "x:Marine__girls": {
+    hostname: "x.com",
+    pathnamePrefix: "/Marine__girls/status/",
+  },
+  "野中ここなのREC中！公式X": {
+    hostname: "x.com",
+    pathnamePrefix: "/kokona_rec/status/",
+  },
+  "official:dialogue-music": {
+    hostname: "dialogue-music.jp",
+    pathnamePrefix: "/",
+  },
+  "x:voice_lounge": {
+    hostname: "x.com",
+    pathnamePrefix: "/voice_lounge/status/",
+  },
+  "x:sashibana_vg": {
+    hostname: "x.com",
+    pathnamePrefix: "/sashibana_vg/status/",
+  },
+  "x:seifukubu_love": {
+    hostname: "x.com",
+    pathnamePrefix: "/seifukubu_love/status/",
+  },
+  "x:gkmas_official": {
+    hostname: "x.com",
+    pathnamePrefix: "/gkmas_official/status/",
+  },
+  "日本ファルコム公式ニュース": {
+    hostname: "www.falcom.co.jp",
+    pathnamePrefix: "/",
+  },
+  "x:nihonfalcom": {
+    hostname: "x.com",
+    pathnamePrefix: "/nihonfalcom/status/",
+  },
+  "スターセイヴァー公式YouTube": {
+    hostname: "www.youtube.com",
+    pathnamePrefix: "/watch",
+  },
+  "x:StellaSoraJP": {
+    hostname: "x.com",
+    pathnamePrefix: "/StellaSoraJP/status/",
+  },
+  "qureate公式X": {
+    hostname: "x.com",
+    pathnamePrefix: "/qureate/status/",
+  },
+  "youtube:Tetra Voice Station": {
+    hostname: "www.youtube.com",
+    pathnamePrefix: "/watch",
+  },
+  "x:su_kawa_vg": {
+    hostname: "x.com",
+    pathnamePrefix: "/su_kawa_vg/status/",
+  },
+  "youtube:ボイスガレッジチャンネル in YouTube": {
+    hostname: "www.youtube.com",
+    pathnamePrefix: "/watch",
   },
 } as const;
 
@@ -434,10 +543,14 @@ export function validateAppearanceImportItems(
 
     const source = officialAppearanceSources[item.sourceName];
     const sourceUrl = new URL(item.sourceUrl);
+    const matchesHostname =
+      sourceUrl.hostname === source.hostname ||
+      ("hostnameAliases" in source &&
+        source.hostnameAliases.some((hostname) => hostname === sourceUrl.hostname));
 
     if (
       sourceUrl.protocol !== "https:" ||
-      sourceUrl.hostname !== source.hostname ||
+      !matchesHostname ||
       !sourceUrl.pathname.startsWith(source.pathnamePrefix)
     ) {
       throw new Error(

@@ -1,0 +1,1818 @@
+{
+  "completedAt": "2026-09-30T08:17:27.834Z",
+  "scope": "既存appearanceの汎用情報元を公式個別発表へ改善。新規appearanceなし。既存Admin writeのみ。",
+  "initialSourceLinks": 320,
+  "policy": [
+    "通常ログイン済みChromeでX本文・投稿者・status・編集表示・表示日時を確認しSnowflakeからUTC日時を復元",
+    "開催日・発売日・配信開始を公開日時の代用にしない",
+    "汎用トップ／番組トップ／topics一覧／全作品プロフィールを個別発表へ改善。専用キャラクター詳細・個別商品販売ページ・日程と出演者が明確な公演専用ページは一律に汎用としない",
+    "replaceで一旦inactiveとなる有効な別個別情報元はappendで復元。対象外155件・開始日時など公開日時以外のフィールドは変更しない"
+  ],
+  "confirmedSources": [
+    {
+      "ids": [
+        "saesuzu-event-2026"
+      ],
+      "url": "https://x.com/onsenradio/status/2074840747455766865",
+      "sourceName": "x:onsenradio",
+      "item": "2074840747455766865",
+      "precision": "exact",
+      "publishedAt": "2026-07-08T12:59:17.527Z",
+      "evidence": "通常ログイン済みChromeで音泉公式@onsenradio本文・status・2026/7/8 21:59 JSTを確認、編集済み表示なし。11/21開催、第一部ゲスト飯田ヒカルを明記。初回開催決定投稿。"
+    },
+    {
+      "ids": [
+        "onsen-kannahikaru-event-2026",
+        "onsen-one-and-only-event-2026"
+      ],
+      "url": "https://x.com/onsenradio/status/2059212952524460108",
+      "sourceName": "x:onsenradio",
+      "item": "2059212952524460108",
+      "precision": "exact",
+      "publishedAt": "2026-05-26T10:00:00.865Z",
+      "evidence": "通常Chromeで音泉公式の初開催告知本文・status・2026/5/26 19:00 JSTを確認、編集表示なし。画像に2026/9/20、せいせきアウラホール、第一部長月あおい+ゲスト飯田ヒカル中村カンナ、第二部カンナヒカル+ゲスト長月あおいを確認。"
+    },
+    {
+      "ids": [
+        "seifuku-kanojo-3"
+      ],
+      "url": "https://x.com/seifukubu_love/status/2047239180934398110",
+      "sourceName": "x:seifukubu_love",
+      "item": "2047239180934398110",
+      "precision": "exact",
+      "publishedAt": "2026-04-23T09:00:31.256Z",
+      "evidence": "root通常Chromeで公式@seifukubu_love本文の制服カノジョ3・八尋実咲CV飯田ヒカル、2026/4/23 18:00 JST、status・未編集確認。画像はセンシティブ警告だが本文は公開閲覧可。発売日代用なし。"
+    },
+    {
+      "ids": [
+        "sugar-lies-game"
+      ],
+      "url": "https://x.com/DEAR_MF_PR/status/2092899927751836101",
+      "sourceName": "x:dear-mf-pr",
+      "item": "2092899927751836101",
+      "precision": "exact",
+      "publishedAt": "2026-08-27T09:00:01.633Z",
+      "evidence": "root通常ChromeでS:OWLS公式@DEAR_MF_PR作品CAST告知、雪平明星飯田ヒカル、2026/8/27 18:00 JST、status・未編集確認。"
+    },
+    {
+      "ids": [
+        "gkmas-2nd-period-day1",
+        "gkmas-2nd-period-day2"
+      ],
+      "url": "https://idolmaster-official.jp/news/01_17315",
+      "sourceName": "official:idolmaster",
+      "item": "news:01_17315",
+      "precision": "date",
+      "publishedOn": "2025-11-15",
+      "evidence": "root公式HTML HTTP200、記事上部2025.11.15、Hatsuboshi IDOL FESTIVAL 2026/6/6・7横浜アリーナ、出演者飯田ヒカル(藤田ことね役)明記。従来INFORMATIONの開催発表個別記事へ改善。"
+    },
+    {
+      "ids": [
+        "gkmas-music-festival-day1",
+        "gkmas-music-festival-day2"
+      ],
+      "url": "https://idolmaster-official.jp/news/01_16742",
+      "sourceName": "official:idolmaster",
+      "item": "news:01_16742",
+      "precision": "date",
+      "publishedOn": "2025-09-21",
+      "evidence": "root公式HTML HTTP200、記事上部2025.09.21、初星音楽祭開催決定と対応するイベント詳細へのリンクを明記。リンク先INFORMATIONで2026/2/28・3/1、飯田ヒカル出演を照合。"
+    },
+    {
+      "ids": [
+        "gkmas-undokai-2025-day1",
+        "gkmas-undokai-2025-day2"
+      ],
+      "url": "https://idolmaster-official.jp/news/01_15744",
+      "sourceName": "official:idolmaster",
+      "item": "news:01_15744",
+      "precision": "date",
+      "publishedOn": "2025-06-01",
+      "evidence": "通常Chromeで公式imas_official status1929140888934244777の初開催発表を確認。本文のt.co/6x8yHWTmGsが公式news/01_15744へ到達、HTTP200記事上部2025.06.01、2025/9/20・21国立代々木第一体育館、出演者飯田ヒカル明記。"
+    }
+  ],
+  "prunedSupplementary": [
+    {
+      "id": "le-mirage-mystique-ahes",
+      "removeUrls": [
+        "https://licobits-game.com/mirage/product/"
+      ],
+      "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。"
+    },
+    {
+      "id": "tokyo-valkyries-mamika-kanesaki",
+      "removeUrls": [
+        "https://qureate.co.jp/TokyoValkyries/"
+      ],
+      "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。"
+    },
+    {
+      "id": "sora-the-2nd-tita",
+      "removeUrls": [
+        "https://www.falcom.co.jp/sora2/topics/"
+      ],
+      "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。"
+    },
+    {
+      "id": "touhou-lostword-koishi",
+      "removeUrls": [
+        "https://www.raccoon-dog.co.jp/talent/r18-iida.html"
+      ],
+      "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。"
+    }
+  ],
+  "records": [
+    {
+      "id": "gkmas-2nd-period-day1",
+      "beforeVersion": 1,
+      "afterVersion": 2,
+      "fieldsChanged": [
+        "source_url",
+        "source_item_id",
+        "updated_at",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_17315",
+          "primary": true,
+          "precision": "date",
+          "publishedAt": null,
+          "publishedOn": "2025-11-14T15:00:00.000Z"
+        }
+      ],
+      "title": "学園アイドルマスター The 2nd Period Hatsuboshi IDOL FESTIVAL DAY1",
+      "beforeSource": "https://idolmaster-official.jp/live_event/gkmas_2ndperiod/information/",
+      "afterSource": "https://idolmaster-official.jp/news/01_17315",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 1,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "gkmas-2nd-period-day1",
+                "expectedVersion": 1
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://idolmaster-official.jp/news/01_17315",
+              "sourceName": "official:idolmaster",
+              "externalItemId": "news:01_17315",
+              "evidenceKey": "day1",
+              "precision": "date",
+              "publishedAt": null,
+              "publishedOn": "2025-11-15"
+            }
+          },
+          "inputHash": "56c8ad22d14a2a8062b79e7bae14c9243eb1337546319d0544edb6d366f5a3b6",
+          "reason": "root公式HTML HTTP200、記事上部2025.11.15、Hatsuboshi IDOL FESTIVAL 2026/6/6・7横浜アリーナ、出演者飯田ヒカル(藤田ことね役)明記。従来INFORMATIONの開催発表個別記事へ改善。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_1d5ad51a7fb44d3d4d60f9d77396aa30"
+          ],
+          "targets": [
+            {
+              "id": "gkmas-2nd-period-day1",
+              "version": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gkmas-2nd-period-day2",
+      "beforeVersion": 1,
+      "afterVersion": 2,
+      "fieldsChanged": [
+        "source_url",
+        "source_item_id",
+        "updated_at",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_17315",
+          "primary": true,
+          "precision": "date",
+          "publishedAt": null,
+          "publishedOn": "2025-11-14T15:00:00.000Z"
+        }
+      ],
+      "title": "学園アイドルマスター The 2nd Period Hatsuboshi IDOL FESTIVAL DAY2",
+      "beforeSource": "https://idolmaster-official.jp/live_event/gkmas_2ndperiod/information/",
+      "afterSource": "https://idolmaster-official.jp/news/01_17315",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 1,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "gkmas-2nd-period-day2",
+                "expectedVersion": 1
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://idolmaster-official.jp/news/01_17315",
+              "sourceName": "official:idolmaster",
+              "externalItemId": "news:01_17315",
+              "evidenceKey": "day2",
+              "precision": "date",
+              "publishedAt": null,
+              "publishedOn": "2025-11-15"
+            }
+          },
+          "inputHash": "72e466211e824e5362e68232ffeeb951e4224de6cdb57c5a1566768f65b23680",
+          "reason": "root公式HTML HTTP200、記事上部2025.11.15、Hatsuboshi IDOL FESTIVAL 2026/6/6・7横浜アリーナ、出演者飯田ヒカル(藤田ことね役)明記。従来INFORMATIONの開催発表個別記事へ改善。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_cbf8219a26d90465010b8a16a5920049"
+          ],
+          "targets": [
+            {
+              "id": "gkmas-2nd-period-day2",
+              "version": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gkmas-music-festival-day1",
+      "beforeVersion": 1,
+      "afterVersion": 2,
+      "fieldsChanged": [
+        "source_url",
+        "source_item_id",
+        "updated_at",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_16742",
+          "primary": true,
+          "precision": "date",
+          "publishedAt": null,
+          "publishedOn": "2025-09-20T15:00:00.000Z"
+        }
+      ],
+      "title": "学園アイドルマスター 初星音楽祭 DAY1",
+      "beforeSource": "https://idolmaster-official.jp/live_event/gkmas_musicfestival/information/",
+      "afterSource": "https://idolmaster-official.jp/news/01_16742",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 1,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "gkmas-music-festival-day1",
+                "expectedVersion": 1
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://idolmaster-official.jp/news/01_16742",
+              "sourceName": "official:idolmaster",
+              "externalItemId": "news:01_16742",
+              "evidenceKey": "day1",
+              "precision": "date",
+              "publishedAt": null,
+              "publishedOn": "2025-09-21"
+            }
+          },
+          "inputHash": "770c2785bb139da5c0348c927494bd01126ee126a7342060dd2d162171700af1",
+          "reason": "root公式HTML HTTP200、記事上部2025.09.21、初星音楽祭開催決定と対応するイベント詳細へのリンクを明記。リンク先INFORMATIONで2026/2/28・3/1、飯田ヒカル出演を照合。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_eab1b04dccc99fb0853c825a1ab6f1da"
+          ],
+          "targets": [
+            {
+              "id": "gkmas-music-festival-day1",
+              "version": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gkmas-music-festival-day2",
+      "beforeVersion": 1,
+      "afterVersion": 2,
+      "fieldsChanged": [
+        "source_url",
+        "source_item_id",
+        "updated_at",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_16742",
+          "primary": true,
+          "precision": "date",
+          "publishedAt": null,
+          "publishedOn": "2025-09-20T15:00:00.000Z"
+        }
+      ],
+      "title": "学園アイドルマスター 初星音楽祭 DAY2",
+      "beforeSource": "https://idolmaster-official.jp/live_event/gkmas_musicfestival/information/",
+      "afterSource": "https://idolmaster-official.jp/news/01_16742",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 1,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "gkmas-music-festival-day2",
+                "expectedVersion": 1
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://idolmaster-official.jp/news/01_16742",
+              "sourceName": "official:idolmaster",
+              "externalItemId": "news:01_16742",
+              "evidenceKey": "day2",
+              "precision": "date",
+              "publishedAt": null,
+              "publishedOn": "2025-09-21"
+            }
+          },
+          "inputHash": "cc1512812d87e1aab5984b4b385ffadb49b766b0843ce13154d22c4e89b46b71",
+          "reason": "root公式HTML HTTP200、記事上部2025.09.21、初星音楽祭開催決定と対応するイベント詳細へのリンクを明記。リンク先INFORMATIONで2026/2/28・3/1、飯田ヒカル出演を照合。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_981740bd2efecdc3330ddbcd609df98a"
+          ],
+          "targets": [
+            {
+              "id": "gkmas-music-festival-day2",
+              "version": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gkmas-undokai-2025-day1",
+      "beforeVersion": 1,
+      "afterVersion": 2,
+      "fieldsChanged": [
+        "source_url",
+        "source_item_id",
+        "updated_at",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_15744",
+          "primary": true,
+          "precision": "date",
+          "publishedAt": null,
+          "publishedOn": "2025-05-31T15:00:00.000Z"
+        }
+      ],
+      "title": "学園アイドルマスター クラス対抗初星大運動会 DAY1",
+      "beforeSource": "https://idolmaster-official.jp/live_event/gkmas_undokai/",
+      "afterSource": "https://idolmaster-official.jp/news/01_15744",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 1,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "gkmas-undokai-2025-day1",
+                "expectedVersion": 1
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://idolmaster-official.jp/news/01_15744",
+              "sourceName": "official:idolmaster",
+              "externalItemId": "news:01_15744",
+              "evidenceKey": "day1",
+              "precision": "date",
+              "publishedAt": null,
+              "publishedOn": "2025-06-01"
+            }
+          },
+          "inputHash": "0585ccbf8a204d2aae7d209a39fd9625b55bfb59140effed297ab46d1e6d1039",
+          "reason": "通常Chromeで公式imas_official status1929140888934244777の初開催発表を確認。本文のt.co/6x8yHWTmGsが公式news/01_15744へ到達、HTTP200記事上部2025.06.01、2025/9/20・21国立代々木第一体育館、出演者飯田ヒカル明記。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_4e07c17fb9d34dc64223c9e32f5849e3"
+          ],
+          "targets": [
+            {
+              "id": "gkmas-undokai-2025-day1",
+              "version": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gkmas-undokai-2025-day2",
+      "beforeVersion": 1,
+      "afterVersion": 2,
+      "fieldsChanged": [
+        "source_url",
+        "source_item_id",
+        "updated_at",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_15744",
+          "primary": true,
+          "precision": "date",
+          "publishedAt": null,
+          "publishedOn": "2025-05-31T15:00:00.000Z"
+        }
+      ],
+      "title": "学園アイドルマスター クラス対抗初星大運動会 DAY2",
+      "beforeSource": "https://idolmaster-official.jp/live_event/gkmas_undokai/",
+      "afterSource": "https://idolmaster-official.jp/news/01_15744",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 1,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "gkmas-undokai-2025-day2",
+                "expectedVersion": 1
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://idolmaster-official.jp/news/01_15744",
+              "sourceName": "official:idolmaster",
+              "externalItemId": "news:01_15744",
+              "evidenceKey": "day2",
+              "precision": "date",
+              "publishedAt": null,
+              "publishedOn": "2025-06-01"
+            }
+          },
+          "inputHash": "01fd9dcf639a9d7c8fe2c6069abc33d39d93f050da02d35a4cac52aae8f664e1",
+          "reason": "通常Chromeで公式imas_official status1929140888934244777の初開催発表を確認。本文のt.co/6x8yHWTmGsが公式news/01_15744へ到達、HTTP200記事上部2025.06.01、2025/9/20・21国立代々木第一体育館、出演者飯田ヒカル明記。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_2769a45dda76974ab7f1d16f19e6fc34"
+          ],
+          "targets": [
+            {
+              "id": "gkmas-undokai-2025-day2",
+              "version": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "le-mirage-mystique-ahes",
+      "beforeVersion": 2,
+      "afterVersion": 4,
+      "fieldsChanged": [
+        "updated_at",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://x.com/Le_Mirage_jp/status/2034465382149374376",
+          "primary": true,
+          "precision": "exact",
+          "publishedAt": "2026-03-19T03:02:00.000Z",
+          "publishedOn": null
+        },
+        {
+          "url": "https://x.com/Le_Mirage_jp/status/2104406246661230879",
+          "primary": false,
+          "precision": "exact",
+          "publishedAt": "2026-09-28T03:02:01.838Z",
+          "publishedOn": null
+        }
+      ],
+      "title": "Le Mirage Mystique（アエス）",
+      "beforeSource": "https://x.com/Le_Mirage_jp/status/2034465382149374376",
+      "afterSource": "https://x.com/Le_Mirage_jp/status/2034465382149374376",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 2,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "le-mirage-mystique-ahes",
+                "expectedVersion": 2
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/Le_Mirage_jp/status/2034465382149374376",
+              "sourceName": "Le Mirage Mystique 公式X",
+              "externalItemId": "2034465382149374376",
+              "evidenceKey": "default",
+              "precision": "exact",
+              "publishedAt": "2026-03-19T03:02:00.000Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "35f3057b912700222c6363c320f195577a2a30bd21b2e436290ddaefabbe6e15",
+          "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_ccbcfcb756cf3e3c5454cbe4684a426a"
+          ],
+          "targets": [
+            {
+              "id": "le-mirage-mystique-ahes",
+              "version": 3
+            }
+          ]
+        },
+        {
+          "operation": "append",
+          "expectedVersion": 3,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "append",
+            "targets": [
+              {
+                "appearanceId": "le-mirage-mystique-ahes",
+                "expectedVersion": 3
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/Le_Mirage_jp/status/2104406246661230879",
+              "sourceName": "x:le-mirage",
+              "externalItemId": "2104406246661230879",
+              "evidenceKey": "default",
+              "precision": "exact",
+              "publishedAt": "2026-09-28T03:02:01.838Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "1a89b61f5c9301b4aa0abd813d40f407703c5a1bfe028920be472a533888a6d0",
+          "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_12083a9e9b3b762f4fdd04db9c2773d2"
+          ],
+          "targets": [
+            {
+              "id": "le-mirage-mystique-ahes",
+              "version": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "onsen-kannahikaru-event-2026",
+      "beforeVersion": 1,
+      "afterVersion": 2,
+      "fieldsChanged": [
+        "source_url",
+        "published_at",
+        "source_name",
+        "source_item_id",
+        "updated_at",
+        "published_on",
+        "published_at_precision",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://x.com/onsenradio/status/2059212952524460108",
+          "primary": true,
+          "precision": "exact",
+          "publishedAt": "2026-05-26T10:00:00.865Z",
+          "publishedOn": null
+        }
+      ],
+      "title": "カンナヒカル（仮）イベント",
+      "beforeSource": "https://www.onsen.ag/program/umauma",
+      "afterSource": "https://x.com/onsenradio/status/2059212952524460108",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 1,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "onsen-kannahikaru-event-2026",
+                "expectedVersion": 1
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/onsenradio/status/2059212952524460108",
+              "sourceName": "x:onsenradio",
+              "externalItemId": "2059212952524460108",
+              "evidenceKey": "default",
+              "precision": "exact",
+              "publishedAt": "2026-05-26T10:00:00.865Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "f8150cdf3d3d34ee203e76235a465e0670c4797f64550cb182fa901bfd9b15ad",
+          "reason": "通常Chromeで音泉公式の初開催告知本文・status・2026/5/26 19:00 JSTを確認、編集表示なし。画像に2026/9/20、せいせきアウラホール、第一部長月あおい+ゲスト飯田ヒカル中村カンナ、第二部カンナヒカル+ゲスト長月あおいを確認。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_1110bbb72220d8cd2536610f76b60fd2"
+          ],
+          "targets": [
+            {
+              "id": "onsen-kannahikaru-event-2026",
+              "version": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "onsen-one-and-only-event-2026",
+      "beforeVersion": 1,
+      "afterVersion": 2,
+      "fieldsChanged": [
+        "source_url",
+        "published_at",
+        "source_name",
+        "source_item_id",
+        "updated_at",
+        "published_on",
+        "published_at_precision",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://x.com/onsenradio/status/2059212952524460108",
+          "primary": true,
+          "precision": "exact",
+          "publishedAt": "2026-05-26T10:00:00.865Z",
+          "publishedOn": null
+        }
+      ],
+      "title": "長月あおいのONE AND ONLY イベント",
+      "beforeSource": "https://www.onsen.ag/program/aoi",
+      "afterSource": "https://x.com/onsenradio/status/2059212952524460108",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 1,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "onsen-one-and-only-event-2026",
+                "expectedVersion": 1
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/onsenradio/status/2059212952524460108",
+              "sourceName": "x:onsenradio",
+              "externalItemId": "2059212952524460108",
+              "evidenceKey": "default",
+              "precision": "exact",
+              "publishedAt": "2026-05-26T10:00:00.865Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "800776b04d2ef9d724cf779fa5588e9564c1b4af4c5998399f1444bfedb66a03",
+          "reason": "通常Chromeで音泉公式の初開催告知本文・status・2026/5/26 19:00 JSTを確認、編集表示なし。画像に2026/9/20、せいせきアウラホール、第一部長月あおい+ゲスト飯田ヒカル中村カンナ、第二部カンナヒカル+ゲスト長月あおいを確認。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_10fa3a954144b0d0a29567e4a0e043dd"
+          ],
+          "targets": [
+            {
+              "id": "onsen-one-and-only-event-2026",
+              "version": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "saesuzu-event-2026",
+      "beforeVersion": 1,
+      "afterVersion": 2,
+      "fieldsChanged": [
+        "source_url",
+        "published_at",
+        "source_name",
+        "source_item_id",
+        "updated_at",
+        "published_on",
+        "published_at_precision",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://x.com/onsenradio/status/2074840747455766865",
+          "primary": true,
+          "precision": "exact",
+          "publishedAt": "2026-07-08T12:59:17.527Z",
+          "publishedOn": null
+        }
+      ],
+      "title": "さえすずイベント",
+      "beforeSource": "https://www.onsen.ag/program/saesuzu",
+      "afterSource": "https://x.com/onsenradio/status/2074840747455766865",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 1,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "saesuzu-event-2026",
+                "expectedVersion": 1
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/onsenradio/status/2074840747455766865",
+              "sourceName": "x:onsenradio",
+              "externalItemId": "2074840747455766865",
+              "evidenceKey": "default",
+              "precision": "exact",
+              "publishedAt": "2026-07-08T12:59:17.527Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "d6a29c20a3b6678febdd6c0aef016ba7fead174772c226c7f82eac6a8a93208b",
+          "reason": "通常ログイン済みChromeで音泉公式@onsenradio本文・status・2026/7/8 21:59 JSTを確認、編集済み表示なし。11/21開催、第一部ゲスト飯田ヒカルを明記。初回開催決定投稿。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_03057093ecfd9fd79ba0c1bd0da6f327"
+          ],
+          "targets": [
+            {
+              "id": "saesuzu-event-2026",
+              "version": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seifuku-kanojo-3",
+      "beforeVersion": 3,
+      "afterVersion": 4,
+      "fieldsChanged": [
+        "source_url",
+        "published_at",
+        "source_name",
+        "source_item_id",
+        "updated_at",
+        "published_on",
+        "published_at_precision",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://x.com/seifukubu_love/status/2047239180934398110",
+          "primary": true,
+          "precision": "exact",
+          "publishedAt": "2026-04-23T09:00:31.256Z",
+          "publishedOn": null
+        }
+      ],
+      "title": "『制服カノジョ3』（八尋実咲 役）",
+      "beforeSource": "https://www.entergram.co.jp/seikano3/",
+      "afterSource": "https://x.com/seifukubu_love/status/2047239180934398110",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 3,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "seifuku-kanojo-3",
+                "expectedVersion": 3
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/seifukubu_love/status/2047239180934398110",
+              "sourceName": "x:seifukubu_love",
+              "externalItemId": "2047239180934398110",
+              "evidenceKey": "default",
+              "precision": "exact",
+              "publishedAt": "2026-04-23T09:00:31.256Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "133c514ce430958915497d1c5dc8bf67678d10e1c46e80860e4bbb5abdd7de57",
+          "reason": "root通常Chromeで公式@seifukubu_love本文の制服カノジョ3・八尋実咲CV飯田ヒカル、2026/4/23 18:00 JST、status・未編集確認。画像はセンシティブ警告だが本文は公開閲覧可。発売日代用なし。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_0b48d6f0038ff0a36096eaf22a7e2342"
+          ],
+          "targets": [
+            {
+              "id": "seifuku-kanojo-3",
+              "version": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sora-the-2nd-tita",
+      "beforeVersion": 4,
+      "afterVersion": 6,
+      "fieldsChanged": [
+        "updated_at",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://x.com/nihonfalcom/status/2097146125652480254",
+          "primary": true,
+          "precision": "exact",
+          "publishedAt": "2026-09-08T02:12:54.103Z",
+          "publishedOn": null
+        },
+        {
+          "url": "https://www.falcom.co.jp/sora2/character/tita.html",
+          "primary": false,
+          "precision": "unknown",
+          "publishedAt": null,
+          "publishedOn": null
+        }
+      ],
+      "title": "空の軌跡 the 2nd（ティータ・ラッセル）",
+      "beforeSource": "https://x.com/nihonfalcom/status/2097146125652480254",
+      "afterSource": "https://x.com/nihonfalcom/status/2097146125652480254",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 4,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "sora-the-2nd-tita",
+                "expectedVersion": 4
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/nihonfalcom/status/2097146125652480254",
+              "sourceName": "x:nihonfalcom",
+              "externalItemId": "2097146125652480254",
+              "evidenceKey": "publication-confirmation",
+              "precision": "exact",
+              "publishedAt": "2026-09-08T02:12:54.103Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "6f4796f19e27d1b35186c87a6e1d0e16d3f5c651662d84eec074639f6f6bc04e",
+          "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_4ab7f6f7d0c9a785528f7fa5ebb8458f"
+          ],
+          "targets": [
+            {
+              "id": "sora-the-2nd-tita",
+              "version": 5
+            }
+          ]
+        },
+        {
+          "operation": "append",
+          "expectedVersion": 5,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "append",
+            "targets": [
+              {
+                "appearanceId": "sora-the-2nd-tita",
+                "expectedVersion": 5
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://www.falcom.co.jp/sora2/character/tita.html",
+              "sourceName": "Falcom公式",
+              "externalItemId": "sora2-tita",
+              "evidenceKey": "default",
+              "precision": "unknown",
+              "publishedAt": null,
+              "publishedOn": null
+            }
+          },
+          "inputHash": "4d81effa0c9f5cf49d41df0873580dd85963cb72df337c44d6b49fff645c4656",
+          "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_f81fee2f907a1cb8c1b5d9d154bfbeeb"
+          ],
+          "targets": [
+            {
+              "id": "sora-the-2nd-tita",
+              "version": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sugar-lies-game",
+      "beforeVersion": 3,
+      "afterVersion": 6,
+      "fieldsChanged": [
+        "source_url",
+        "published_at",
+        "source_name",
+        "source_item_id",
+        "updated_at",
+        "published_on",
+        "published_at_precision",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://x.com/DEAR_MF_PR/status/2093896488975995152",
+          "primary": false,
+          "precision": "exact",
+          "publishedAt": "2026-08-30T03:00:00.344Z",
+          "publishedOn": null
+        },
+        {
+          "url": "https://x.com/DEAR_MF_PR/status/2092899927751836101",
+          "primary": true,
+          "precision": "exact",
+          "publishedAt": "2026-08-27T09:00:01.633Z",
+          "publishedOn": null
+        },
+        {
+          "url": "https://x.com/DEAR_MF_PR/status/2102238960579723482",
+          "primary": false,
+          "precision": "exact",
+          "publishedAt": "2026-09-22T03:30:00.570Z",
+          "publishedOn": null
+        }
+      ],
+      "title": "『Sugar Lies』（雪平明星 役・主題歌歌唱）",
+      "beforeSource": "https://sugarlies.kogado.com/",
+      "afterSource": "https://x.com/DEAR_MF_PR/status/2092899927751836101",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 3,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "sugar-lies-game",
+                "expectedVersion": 3
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/DEAR_MF_PR/status/2092899927751836101",
+              "sourceName": "x:dear-mf-pr",
+              "externalItemId": "2092899927751836101",
+              "evidenceKey": "default",
+              "precision": "exact",
+              "publishedAt": "2026-08-27T09:00:01.633Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "35b99b56b6b9a7864f127af6c4b6c9c5d44ad045d9cd29b4f7979f8bbd15e76a",
+          "reason": "root通常ChromeでS:OWLS公式@DEAR_MF_PR作品CAST告知、雪平明星飯田ヒカル、2026/8/27 18:00 JST、status・未編集確認。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_66934cf5252040359b2f65c1c93551f5"
+          ],
+          "targets": [
+            {
+              "id": "sugar-lies-game",
+              "version": 4
+            }
+          ]
+        },
+        {
+          "operation": "append",
+          "expectedVersion": 4,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "append",
+            "targets": [
+              {
+                "appearanceId": "sugar-lies-game",
+                "expectedVersion": 4
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/DEAR_MF_PR/status/2093896488975995152",
+              "sourceName": "x:dear-mf-pr",
+              "externalItemId": "status:2093896488975995152",
+              "evidenceKey": "default",
+              "precision": "exact",
+              "publishedAt": "2026-08-30T03:00:00.344Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "8119a1316224647748c2f6ed2173b7e313e9f83c3bf07c5684eeb664852afd65",
+          "reason": "個別キャラ紹介を保持。root通常Chromeで2026/8/30 12:00 JST、本文・投稿者・status・未編集確認。誤った8/27日時をSnowflakeによる正確な日時へ修正。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_411daee5e307f091a64e1973d224e00d"
+          ],
+          "targets": [
+            {
+              "id": "sugar-lies-game",
+              "version": 5
+            }
+          ]
+        },
+        {
+          "operation": "append",
+          "expectedVersion": 5,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "append",
+            "targets": [
+              {
+                "appearanceId": "sugar-lies-game",
+                "expectedVersion": 5
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/DEAR_MF_PR/status/2102238960579723482",
+              "sourceName": "x:dear-mf-pr",
+              "externalItemId": "2102238960579723482",
+              "evidenceKey": "theme-song",
+              "precision": "exact",
+              "publishedAt": "2026-09-22T03:30:00.570Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "4ed5d8e73c2c64e3dad6c26e94320a6f860279d61c71b11a521fb2e1656d2e73",
+          "reason": "汎用作品TOPに代わる歌唱根拠。通常Chromeで公式主題歌True or Lies・雪平明星CV飯田ヒカル歌唱・2026/9/22 12:30 JST・status・未編集確認。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_8c4a31d1eb0cee73979b2706be87bb82"
+          ],
+          "targets": [
+            {
+              "id": "sugar-lies-game",
+              "version": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tokyo-valkyries-mamika-kanesaki",
+      "beforeVersion": 4,
+      "afterVersion": 5,
+      "fieldsChanged": [
+        "updated_at",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://x.com/qureate/status/2071881436336976219",
+          "primary": true,
+          "precision": "exact",
+          "publishedAt": "2026-06-30T09:00:02.775Z",
+          "publishedOn": null
+        }
+      ],
+      "title": "東京ワルキューレ（金咲真未花）",
+      "beforeSource": "https://x.com/qureate/status/2071881436336976219",
+      "afterSource": "https://x.com/qureate/status/2071881436336976219",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 4,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "tokyo-valkyries-mamika-kanesaki",
+                "expectedVersion": 4
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/qureate/status/2071881436336976219",
+              "sourceName": "qureate公式X",
+              "externalItemId": "2071881436336976219",
+              "evidenceKey": "publication-confirmation",
+              "precision": "exact",
+              "publishedAt": "2026-06-30T09:00:02.775Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "35949a1dde5347e8a81513c947c857833b7f77c8b37ad7de479d380660a26e8c",
+          "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_93222f4433ce02cf509afaca0bd6aa0d"
+          ],
+          "targets": [
+            {
+              "id": "tokyo-valkyries-mamika-kanesaki",
+              "version": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "touhou-lostword-koishi",
+      "beforeVersion": 4,
+      "afterVersion": 6,
+      "fieldsChanged": [
+        "updated_at",
+        "version"
+      ],
+      "sourceLinks": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/2049835657439420537",
+          "primary": true,
+          "precision": "exact",
+          "publishedAt": "2026-04-30T12:57:59.495Z",
+          "publishedOn": null
+        },
+        {
+          "url": "https://touhoulostword.com/2026/04/30/228022/",
+          "primary": false,
+          "precision": "unknown",
+          "publishedAt": null,
+          "publishedOn": null
+        }
+      ],
+      "title": "東方LostWord（古明地こいし）",
+      "beforeSource": "https://x.com/Iida_Hikaru_828/status/2049835657439420537",
+      "afterSource": "https://x.com/Iida_Hikaru_828/status/2049835657439420537",
+      "operations": [
+        {
+          "operation": "replace",
+          "expectedVersion": 4,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "replace",
+            "targets": [
+              {
+                "appearanceId": "touhou-lostword-koishi",
+                "expectedVersion": 4
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://x.com/Iida_Hikaru_828/status/2049835657439420537",
+              "sourceName": "x:Iida_Hikaru_828",
+              "externalItemId": "2049835657439420537",
+              "evidenceKey": "publication-confirmation",
+              "precision": "exact",
+              "publishedAt": "2026-04-30T12:57:59.495Z",
+              "publishedOn": null
+            }
+          },
+          "inputHash": "c53cee847158d46fb28e61100d116fd0c964980eb6ad7fcbef2e58afc159fd62",
+          "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_43efc7f596ac7772f5ae9d7a126d663b"
+          ],
+          "targets": [
+            {
+              "id": "touhou-lostword-koishi",
+              "version": 5
+            }
+          ]
+        },
+        {
+          "operation": "append",
+          "expectedVersion": 5,
+          "normalizedInput": {
+            "kind": "source",
+            "operation": "append",
+            "targets": [
+              {
+                "appearanceId": "touhou-lostword-koishi",
+                "expectedVersion": 5
+              }
+            ],
+            "source": {
+              "canonicalUrl": "https://touhoulostword.com/2026/04/30/228022/",
+              "sourceName": "東方LostWord公式サイト",
+              "externalItemId": "228022",
+              "evidenceKey": "default",
+              "precision": "unknown",
+              "publishedAt": null,
+              "publishedOn": null
+            }
+          },
+          "inputHash": "00ec3680010ec2a503a0d1b56603a76e735c02b637c179a595364d715b268a76",
+          "reason": "個別告知primaryが既存で有効。作品製品ページ・トップ・ニュース一覧・汎用プロフィールを公開情報元から外し、他の有効な個別情報元は保持。",
+          "status": "approved",
+          "proposalIds": [
+            "prp_e31ef43ea530e1ccfa59b1c07127c650"
+          ],
+          "targets": [
+            {
+              "id": "touhou-lostword-koishi",
+              "version": 6
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "remainingGenericFallbacks": [
+    {
+      "id": "grand-blue-season-2",
+      "url": "https://www.raccoon-dog.co.jp/talent/r18-iida.html",
+      "reason": "出演を確認できる一次情報は事務所プロフィール。前回と今回の公式告知検索で対応する個別発表を特定できず、唯一の出演根拠を削除しない。公開日時unknownを維持。"
+    },
+    {
+      "id": "kaii-shojo-hanako",
+      "url": "https://www.raccoon-dog.co.jp/talent/r18-iida.html",
+      "reason": "primaryは作品を特定するApp Store詳細。補助の事務所プロフィールに役名リン／ハナコの出演実績があり、個別キャスト告知を特定できない。録音会社の個別実績ページlogicalbeat.co.jp/work-info/21456/には飯田ヒカルの記載なしのため代替しない。公開日時unknownを維持。"
+    },
+    {
+      "id": "kanteishi-dungeon-tisse",
+      "url": "https://sunsoft.games/kanteishikari-game/top",
+      "reason": "公式作品ページにティセCV飯田ヒカルの出演根拠はあるが、独立した個別キャスト記事／対応する公式告知投稿を特定できない。日付のない作品ページを根拠として維持し、公開日時unknownを維持。"
+    }
+  ],
+  "retainedSpecificPages": [
+    "gkmas-tour-fukuoka-day1/day2:福岡公演専用INFORMATION、両日・出演者明記",
+    "odaiba-itasha-tengoku-2025-autumn:当該2025秋開催の専用イベントページ",
+    "sora-the-1st-tita/2nd:ティータ個別キャラクターページ",
+    "各DLsite作品固有販売URL・個別App Storeページ"
+  ],
+  "verification": {
+    "database": {
+      "verifiedAt": "2026-09-30T08:15:24.952Z",
+      "total": 170,
+      "updated": 15,
+      "unaffected": 155,
+      "approvedRevisions": 20,
+      "nonPublicationFieldsUnchanged": true,
+      "primaryMirrorsMatch": true,
+      "unknown": [
+        "grand-blue-season-2",
+        "kaii-shojo-hanako",
+        "kanteishi-dungeon-tisse"
+      ]
+    },
+    "publicDisplay": {
+      "verifiedAt": "2026-09-30T08:15:53.315Z",
+      "url": "https://iida-hikaru-info.vercel.app/news",
+      "pagesRead": 6,
+      "verifiedAppearances": 15,
+      "verifiedCards": 12,
+      "activeSourcesPresent": true,
+      "inactiveSourcesAbsent": true,
+      "publicationMatchesDb": true,
+      "records": [
+        {
+          "id": "gkmas-2nd-period-day1",
+          "page": 4,
+          "title": "学園アイドルマスター The 2nd Period Hatsuboshi IDOL FESTIVAL",
+          "publication": "2025-11-15",
+          "display": "2025年11月15日（日付のみ）",
+          "urls": [
+            "https://idolmaster-official.jp/news/01_17315"
+          ]
+        },
+        {
+          "id": "gkmas-2nd-period-day2",
+          "page": 4,
+          "title": "学園アイドルマスター The 2nd Period Hatsuboshi IDOL FESTIVAL",
+          "publication": "2025-11-15",
+          "display": "2025年11月15日（日付のみ）",
+          "urls": [
+            "https://idolmaster-official.jp/news/01_17315"
+          ]
+        },
+        {
+          "id": "gkmas-music-festival-day1",
+          "page": 5,
+          "title": "学園アイドルマスター 初星音楽祭",
+          "publication": "2025-09-21",
+          "display": "2025年9月21日（日付のみ）",
+          "urls": [
+            "https://idolmaster-official.jp/news/01_16742"
+          ]
+        },
+        {
+          "id": "gkmas-music-festival-day2",
+          "page": 5,
+          "title": "学園アイドルマスター 初星音楽祭",
+          "publication": "2025-09-21",
+          "display": "2025年9月21日（日付のみ）",
+          "urls": [
+            "https://idolmaster-official.jp/news/01_16742"
+          ]
+        },
+        {
+          "id": "gkmas-undokai-2025-day1",
+          "page": 5,
+          "title": "学園アイドルマスター クラス対抗初星大運動会",
+          "publication": "2025-06-01",
+          "display": "2025年6月1日（日付のみ）",
+          "urls": [
+            "https://idolmaster-official.jp/news/01_15744"
+          ]
+        },
+        {
+          "id": "gkmas-undokai-2025-day2",
+          "page": 5,
+          "title": "学園アイドルマスター クラス対抗初星大運動会",
+          "publication": "2025-06-01",
+          "display": "2025年6月1日（日付のみ）",
+          "urls": [
+            "https://idolmaster-official.jp/news/01_15744"
+          ]
+        },
+        {
+          "id": "le-mirage-mystique-ahes",
+          "page": 3,
+          "title": "Le Mirage Mystique（アエス）",
+          "publication": "2026-03-19T03:02:00.000Z",
+          "display": "2026/03/19 12:02",
+          "urls": [
+            "https://x.com/Le_Mirage_jp/status/2034465382149374376",
+            "https://x.com/Le_Mirage_jp/status/2104406246661230879"
+          ]
+        },
+        {
+          "id": "onsen-kannahikaru-event-2026",
+          "page": 3,
+          "title": "カンナヒカル（仮）イベント",
+          "publication": "2026-05-26T10:00:00.865Z",
+          "display": "2026/05/26 19:00",
+          "urls": [
+            "https://x.com/onsenradio/status/2059212952524460108"
+          ]
+        },
+        {
+          "id": "onsen-one-and-only-event-2026",
+          "page": 3,
+          "title": "長月あおいのONE AND ONLY イベント",
+          "publication": "2026-05-26T10:00:00.865Z",
+          "display": "2026/05/26 19:00",
+          "urls": [
+            "https://x.com/onsenradio/status/2059212952524460108"
+          ]
+        },
+        {
+          "id": "saesuzu-event-2026",
+          "page": 2,
+          "title": "さえすずイベント",
+          "publication": "2026-07-08T12:59:17.527Z",
+          "display": "2026/07/08 21:59",
+          "urls": [
+            "https://x.com/onsenradio/status/2074840747455766865"
+          ]
+        },
+        {
+          "id": "seifuku-kanojo-3",
+          "page": 3,
+          "title": "『制服カノジョ3』（八尋実咲 役）",
+          "publication": "2026-04-23T09:00:31.256Z",
+          "display": "2026/04/23 18:00",
+          "urls": [
+            "https://x.com/seifukubu_love/status/2047239180934398110"
+          ]
+        },
+        {
+          "id": "sora-the-2nd-tita",
+          "page": 1,
+          "title": "空の軌跡 the 2nd（ティータ・ラッセル）",
+          "publication": "2026-09-08T02:12:54.103Z",
+          "display": "2026/09/08 11:12",
+          "urls": [
+            "https://x.com/nihonfalcom/status/2097146125652480254",
+            "https://www.falcom.co.jp/sora2/character/tita.html"
+          ]
+        },
+        {
+          "id": "sugar-lies-game",
+          "page": 1,
+          "title": "『Sugar Lies』（雪平明星 役・主題歌歌唱）",
+          "publication": "2026-08-27T09:00:01.633Z",
+          "display": "2026/08/27 18:00",
+          "urls": [
+            "https://x.com/DEAR_MF_PR/status/2092899927751836101",
+            "https://x.com/DEAR_MF_PR/status/2093896488975995152",
+            "https://x.com/DEAR_MF_PR/status/2102238960579723482"
+          ]
+        },
+        {
+          "id": "tokyo-valkyries-mamika-kanesaki",
+          "page": 2,
+          "title": "東京ワルキューレ（金咲真未花）",
+          "publication": "2026-06-30T09:00:02.775Z",
+          "display": "2026/06/30 18:00",
+          "urls": [
+            "https://x.com/qureate/status/2071881436336976219"
+          ]
+        },
+        {
+          "id": "touhou-lostword-koishi",
+          "page": 3,
+          "title": "東方LostWord（古明地こいし）",
+          "publication": "2026-04-30T12:57:59.495Z",
+          "display": "2026/04/30 21:57",
+          "urls": [
+            "https://x.com/Iida_Hikaru_828/status/2049835657439420537",
+            "https://touhoulostword.com/2026/04/30/228022/"
+          ]
+        }
+      ],
+      "normalChromeVisualCheck": "カンナヒカル（仮）イベントに2026/05/26 19:00とonsenradio/status/2059212952524460108を確認"
+    },
+    "quality": {
+      "date": "2026-09-30",
+      "scope": "Independent validation requested by parent; no repository files or database changed.",
+      "checks": [
+        {
+          "name": "validateAppearanceImportItems static import seed",
+          "command": "node --import tsx --input-type=module -e '...validateAppearanceImportItems(appearanceImportData, appearanceSeriesData)...'",
+          "result": "PASS",
+          "details": "Validated 153 appearance import rows against 39 series, including publication corrections."
+        },
+        {
+          "name": "regular root tests",
+          "command": "node --import tsx --test tests/*.test.ts tests/*.test.tsx",
+          "result": "PASS",
+          "tests": 64,
+          "failed": 0,
+          "details": "Root-level test globs do not include integration-only files or tests/patrol."
+        },
+        {
+          "name": "admin tests under react-server conditions",
+          "command": "NODE_OPTIONS=--conditions=react-server node --import tsx --test tests/admin/*.test.ts",
+          "result": "PASS",
+          "tests": 25,
+          "failed": 0,
+          "details": "Includes tests/admin/write.test.ts and tests/admin/security.test.ts."
+        },
+        {
+          "name": "npm run verify:filters",
+          "command": "npm run verify:filters",
+          "result": "BLOCKED_BY_SANDBOX_PIPE_EP﻿ERM",
+          "details": "tsx CLI could not create its IPC pipe under /var/folders/.../T/tsx-501 (listen EPERM). Equivalent script execution bypassing the tsx CLI succeeded: node --import tsx scripts/verify-appearance-filters.ts -> 'Verified appearance filter logic and navigation behavior.'"
+        }
+      ],
+      "totals": {
+        "passed_tests": 89,
+        "failed_tests": 0,
+        "filter_script_equivalent": "PASS"
+      },
+      "lint": "passed",
+      "typecheck": "passed",
+      "build": "passed",
+      "finalStaticSeedValidation": "153 passed",
+      "diffCheck": "passed",
+      "finalStaticTargetsMatchDb": true
+    },
+    "knownPreexistingGlobalIssues": {
+      "check": "verify:production-readonly failed",
+      "missingCanonicalSourceIdentities": 12,
+      "revisionGaps": [
+        "bang-dream-our-notes version3欠落、current revisionなし",
+        "seifuku-kanojo-3 version3欠落。今回version4 revisionは存在",
+        "sugar-lies-game version3欠落。今回version4/5/6 revisionは存在"
+      ],
+      "newApprovedRevisionsVerified": 20
+    }
+  },
+  "research": {
+    "onsen": {
+      "task": "official_event_source_research_for_generic_onsen_program_urls",
+      "researched_at": "2026-09-30",
+      "scope": [
+        "onsen-kannahikaru-event-2026",
+        "onsen-one-and-only-event-2026",
+        "saesuzu-event-2026"
+      ],
+      "policy": "No DB or code changes. Official event pages and official Onsen program announcement pages only. X searches were attempted but did not return a matching verified status URL; no X URL or ID is inferred.",
+      "findings": [
+        {
+          "appearance_id": "onsen-one-and-only-event-2026",
+          "event": "あおわん・カンナヒカル（仮）番組イベント 第1部（長月あおいのOne and Only）",
+          "current_generic_source": "https://www.onsen.ag/program/aoi",
+          "recommended_event_specific_source": "https://eplus.jp/sf/detail/4540300001-P0030001P021001?P6=001",
+          "alternative_official_event_source": "https://eplus.jp/sf/detail/4540300002-P0030002P021001?P6=001",
+          "evidence": [
+            {
+              "url": "https://eplus.jp/sf/detail/4540300001-P0030001P021001?P6=001",
+              "publisher": "eplus official ticket listing",
+              "verified_facts": "Event title あおわん･カンナヒカル(仮)番組イベント; 2026-09-20 14:00, AURA Hall; first part lists 長月あおい, 中村カンナ(guest), 飯田ヒカル(guest). Search result content is specific to the 14:00 performance."
+            },
+            {
+              "url": "https://www.onsen.ag/program/aoi",
+              "publisher": "Onsen official program page",
+              "verified_facts": "Topic 2026.08.10 announces the joint event stream and explicitly lists Iida Hikaru as guest for the Aowan event (part 1); topic 2026.08.03 gives goods and event details, including both parts and venue/date. These are topic entries embedded in the generic program page, not independently addressable article URLs in the page/search results."
+            }
+          ],
+          "date_information": "The official Onsen topic date for the role-confirming stream announcement is 2026-08-10 (date precision only; topic has no publication time). The eplus page confirms the matching event and role but does not establish its initial posting date. Do not use event date 2026-09-20 as publication date.",
+          "x_research": "Official Onsen X handle searches for the event title/date and Iida Hikaru returned no matching post URL, author/body/status ID. No X source can be recommended from this web search.",
+          "limitations": "The direct eplus physical-performance page is a verified, event-specific official ticket source. Onsen confirms the cast and corresponding event but its topic has no standalone article permalink discoverable in web search."
+        },
+        {
+          "appearance_id": "onsen-kannahikaru-event-2026",
+          "event": "あおわん・カンナヒカル（仮）番組イベント 第2部（カンナヒカル（仮））",
+          "current_generic_source": "https://www.onsen.ag/program/umauma",
+          "recommended_event_specific_source": "https://eplus.jp/sf/detail/4540300001-P0030001P021002?P6=001",
+          "alternative_official_event_source": "https://eplus.jp/sf/detail/4540300002-P0030003P021001?P6=001",
+          "evidence": [
+            {
+              "url": "https://eplus.jp/sf/detail/4540300001-P0030001P021002?P6=001",
+              "publisher": "eplus official ticket listing",
+              "verified_facts": "Event title あおわん･カンナヒカル(仮)番組イベント; 2026-09-20 17:00, AURA Hall; event detail lists part 2 as 中村カンナ, 飯田ヒカル, with 長月あおい guest. Search result content is specific to the 17:00 performance."
+            },
+            {
+              "url": "https://www.onsen.ag/program/umauma",
+              "publisher": "Onsen official program page",
+              "verified_facts": "Topic 2026.08.10 announces the joint event stream and lists Iida Hikaru as a main performer in the Kannahikaru segment (part 2); topic 2026.08.18 lists the goods and both event segments, including date, venue and cast."
+            }
+          ],
+          "date_information": "The official Onsen topic date for the role-confirming stream announcement is 2026-08-10 (date precision only; topic has no publication time). The eplus page confirms the matching event and role but does not establish its initial posting date. Do not use event date 2026-09-20 as publication date.",
+          "x_research": "Official Onsen X handle searches for the event title/date and Iida Hikaru returned no matching post URL, author/body/status ID. No X source can be recommended from this web search.",
+          "limitations": "The direct eplus physical-performance page is a verified, event-specific official ticket source. Onsen confirms the cast and corresponding event but its topic has no standalone article permalink discoverable in web search."
+        },
+        {
+          "appearance_id": "saesuzu-event-2026",
+          "event": "佐伯伊織・涼本あきほの『だまされたと思って聞いてみな！』～みんなの様子が！おかしい！～ 第1部",
+          "current_generic_source": "https://www.onsen.ag/program/saesuzu",
+          "recommended_event_specific_source": "https://eplus.jp/sf/detail/4317370001-P0030003P021001?P6=001",
+          "alternative_official_event_source": "https://eplus.jp/sf/detail/4317370001",
+          "evidence": [
+            {
+              "url": "https://eplus.jp/sf/detail/4317370001-P0030003P021001?P6=001",
+              "publisher": "eplus official ticket listing",
+              "verified_facts": "Specific 2026-11-21 show; title matches the event; first-part guests 中村カンナ and 飯田ヒカル are named. Query result contains the official listing details and general lottery window starting 2026-09-02 19:00."
+            },
+            {
+              "url": "https://eplus.jp/sf/detail/4317370001",
+              "publisher": "eplus official event page",
+              "verified_facts": "Lists both 14:00 and 18:00 performances on 2026-11-21; confirms first-part guest 中村カンナ and 飯田ヒカル."
+            },
+            {
+              "url": "https://www.onsen.ag/program/saesuzu",
+              "publisher": "Onsen official program page",
+              "verified_facts": "Topic 2026.09.02 title is '11/21イベントのチケット一般抽選受付開始！'; body confirms the event, 2026-11-21, and first-part guests 中村カンナ and 飯田ヒカル. Earlier topic 2026.07.22 announces initial premium lottery and repeats the event/cast."
+            }
+          ],
+          "date_information": "Official Onsen page explicitly dates the general-ticket announcement 2026-09-02, but shows no publication time. The event page itself is event-specific but does not establish initial post date. Do not use 2026-11-21 as publication date.",
+          "x_research": "Searches restricted to official @onsenradio status URLs for the event name/date and Iida Hikaru returned no results. No post body, author, or status ID verified, so no X URL is recommended.",
+          "limitations": "A specific official eplus page is available and names Iida Hikaru as first-part guest. The matching Onsen announcement remains embedded in the generic program page, with no standalone topic URL surfaced."
+        }
+      ],
+      "queries": [
+        "site:onsen.ag 飯田ヒカル イベント 2026 9月20日",
+        "site:x.com/onsenradio 飯田ヒカル イベント 2026 9月20日",
+        "site:onsen.ag さえずず イベント 飯田ヒカル 2026 11月21日",
+        "site:x.com/onsenradio さえずず 2026 11月21日",
+        "site:x.com/onsenradio/status 9月20日 あおわん",
+        "site:x.com/onsenradio/status カンナヒカル イベント",
+        "site:x.com/onsenradio/status 11/21 飯田ヒカル",
+        "site:x.com/onsenradio/status 11月21日 佐伯伊織 飯田ヒカル"
+      ]
+    },
+    "idolmaster": {
+      "researchDate": "2026-09-30",
+      "scope": "一次情報のみ。DB/コード変更なし。",
+      "findings": [
+        {
+          "appearanceIds": [
+            "gkmas-2nd-period-day1",
+            "gkmas-2nd-period-day2"
+          ],
+          "existingUrl": "https://idolmaster-official.jp/live_event/gkmas_2ndperiod/information/",
+          "existingUrlAssessment": "公式イベント配下のINFORMATION個別ページ。Hatsuboshi IDOL FESTIVALの公演名、2026-06-06/07の日程、横浜アリーナ、出演者として飯田ヒカル（藤田ことね役）が確認でき、トップページではない。すでに十分具体的なので変更候補なし。DAY1/DAY2は同一ページで2日を案内。",
+          "evidenceUrl": "https://idolmaster-official.jp/live_event/gkmas_2ndperiod/information/",
+          "newsCandidate": {
+            "url": "https://idolmaster-official.jp/news/01_17315",
+            "assessment": "公式初回開催告知。2025.11.15付の本文にThe 2nd Periodの開催決定、Hatsuboshi IDOL FESTIVALの開催日（2026-06-06/07）、出演者・飯田ヒカル（藤田ことね役）を掲載し、イベント公式サイトへリンク。対象の2nd Period各日と出演者を記事内で直接結びつける一次情報。",
+            "htmlPublishedAtVerified": true,
+            "publishedAt": "2025-11-15T21:00:00+09:00",
+            "publishedAtEvidence": "公式HTMLの埋込pageProps.data.startdate=1763208000（UTC 2025-11-15T12:00:00Z）。記事画面表示は2025.11.15。HTML <time> と公開日系metaは無し。pageProps.data.created=1763626090（2025-11-20T08:08:10Z）は公開日時ではなく別の作成/更新値として不採用。",
+            "castInArticleVerified": true,
+            "linkedDetailsVerified": true,
+            "linkedDetailsUrl": "https://idolmaster-official.jp/live_event/gkmas_2ndperiod/"
+          },
+          "recommendation": "対象が2nd PeriodのDAY1/DAY2なら、情報元を上記の初回開催告知記事に変更する候補として推奨。記事自体に両日程と飯田ヒカル出演があり、現行INFORMATIONとの対応も維持できる。"
+        },
+        {
+          "appearanceIds": [
+            "gkmas-music-festival-day1",
+            "gkmas-music-festival-day2"
+          ],
+          "existingUrl": "https://idolmaster-official.jp/live_event/gkmas_musicfestival/information/",
+          "existingUrlAssessment": "公式イベントのINFORMATION個別ページ。2026-02-28/03-01の日程、会場、飯田ヒカル（藤田ことね役）を確認でき、イベントトップより詳細な専用ページ。",
+          "evidenceUrl": "https://idolmaster-official.jp/live_event/gkmas_musicfestival/information/",
+          "newsCandidates": [
+            {
+              "appearanceId": "gkmas-music-festival-day1",
+              "url": "https://idolmaster-official.jp/news/01_18097",
+              "assessment": "公式DAY1終了後まとめ記事で、本文に初星音楽祭DAY1とDAY1記念施策が明記される。個別日への特定性は上がるが、閲覧できた記事本文に飯田ヒカルの出演者表記がない。記事の公開日・時刻もこの確認では取得できていないため、日付や日時の代用にしない。公開日が別途確認できても、出演根拠となる現行INFORMATIONの置換先にはしない。"
+            },
+            {
+              "appearanceId": "gkmas-music-festival-day2",
+              "url": null,
+              "assessment": "公式サイトのDAY2専用終了後まとめ記事を検索で特定できず。現行INFORMATIONが最も直接的な出演根拠。"
+            },
+            {
+              "appearanceIds": [
+                "gkmas-music-festival-day1",
+                "gkmas-music-festival-day2"
+              ],
+              "url": "https://idolmaster-official.jp/news/01_16742",
+              "assessment": "公式の初回開催告知。2025.09.21付の記事本文に「学園アイドルマスター 初星音楽祭」開催決定を明記し、公式音楽祭サイトへリンクする。記事に飯田ヒカルの名前はないが、リンク先の公式イベントINFORMATIONが飯田ヒカル（藤田ことね役）と対象2日を明記するため、告知と出演対応を公式一次情報間で追跡できる。",
+              "htmlPublishedAtVerified": true,
+              "publishedAt": "2025-09-21T20:47:00+09:00",
+              "publishedAtEvidence": "公式HTMLの埋込pageProps.data.startdate=1758455220（UTC 2025-09-21T11:47:00Z）。記事画面表示は2025.09.21。HTML <time> と公開日系metaは無し。pageProps.data.created=1757638609（2025-09-12T00:56:49Z）は公開日時として不採用。",
+              "castInArticleVerified": false,
+              "linkedDetailsVerified": true,
+              "linkedDetailsUrl": "https://idolmaster-official.jp/live_event/gkmas_musicfestival/"
+            }
+          ],
+          "recommendation": "DAY1/DAY2の情報元は、初回開催告知として個別の01_16742へ変更する候補として推奨。本文は音楽祭の開催決定と専用公式サイトへのリンクを示す。出演者の裏取りにはリンク先公式INFORMATIONを併用する。"
+        },
+        {
+          "appearanceIds": [
+            "gkmas-undokai-2025-day1",
+            "gkmas-undokai-2025-day2"
+          ],
+          "existingUrl": "https://idolmaster-official.jp/live_event/gkmas_undokai/",
+          "existingUrlAssessment": "現行公式ページ本文はクラス対抗初星大運動会、2025-09-20/21、会場、出演者（飯田ヒカル／藤田ことね役）を掲載する専用イベントサイト。URLパスはINFORMATIONではないが、イベント名を冠した一次情報で内容は汎用ホームではない。",
+          "evidenceUrl": "https://idolmaster-official.jp/live_event/gkmas_undokai/",
+          "newsCandidates": [
+            {
+              "appearanceIds": [
+                "gkmas-undokai-2025-day1",
+                "gkmas-undokai-2025-day2"
+              ],
+              "url": "https://idolmaster-official.jp/news/01_16487",
+              "assessment": "2025-08-22告知の公式news。本文で大会名と開催日9/20,21を告知し、イベント公式サイトへリンクするが、これは初回開催告知ではなく後続のお知らせまとめ。本文中の飯田ヒカルさんは大会出演者でなく8/27の公式ラジオのゲスト。開催告知リンクとして実在するが、この区別を保つ必要あり。",
+              "htmlPublishedAtVerified": false,
+              "castInArticleVerified": false,
+              "linkedDetailsVerified": true
+            },
+            {
+              "appearanceId": "gkmas-undokai-2025-day1",
+              "url": null,
+              "assessment": "DAY1専用の公式個別ニュース記事は確認できず。"
+            },
+            {
+              "url": "https://idolmaster-official.jp/news/01_16487",
+              "assessment": "2025-08-22の公式配信まとめ。イベント名、会場、日程は記載するが、飯田ヒカルの記載はイベント出演者ではなく8/27の公式ラジオゲスト。対象出演の根拠と混同するため、情報元リンクに採用しない。"
+            },
+            {
+              "appearanceIds": [
+                "gkmas-undokai-2025-day1",
+                "gkmas-undokai-2025-day2"
+              ],
+              "url": null,
+              "assessment": "公式portalのnews検索（イベント名、クラス対抗初星大運動会、開催決定、2025.06.01など）では、6/1の初回開催告知に該当する個別newsを特定できず。現行公式イベントサイトは「2025.06.01 公式サイトオープン！」と記載し、INFORMATIONにイベント名・両日程・飯田ヒカル（藤田ことね役）を掲載。公式portalニュース01_16487（8/22）は後続の配信まとめで、初回告知ではない。公式Xの該当投稿URL・投稿IDまでは本調査で確定できていないため、推測で補わない。"
+            }
+          ],
+          "recommendation": "現行のイベント専用公式サイトを維持。現時点で初回開催告知の個別portal newsを確認できず、既存ページがイベント名・日程・飯田出演を直接示すため。"
+        },
+        {
+          "appearanceIds": [
+            "gkmas-tour-fukuoka-day1",
+            "gkmas-tour-fukuoka-day2"
+          ],
+          "existingUrl": "https://idolmaster-official.jp/live_event/gkmas_livetour_shirube/information/fukuoka.php",
+          "existingUrlAssessment": "福岡公演専用INFORMATIONページ。会場、両日の日程、飯田ヒカル（藤田ことね役）を個別に掲載し、現状ですでに具体的。2026-03-27 Updateの表示を確認。",
+          "evidenceUrl": "https://idolmaster-official.jp/live_event/gkmas_livetour_shirube/information/fukuoka.php",
+          "newsCandidate": {
+            "url": "https://idolmaster-official.jp/news/01_18476.html",
+            "assessment": "2026-04-03の公式配信まとめ記事。福岡公演の会場・日程・飯田ヒカルを掲載するが、福井/岩手公演や他のお知らせと併記され、福岡専用INFORMATIONの方が対象への直接性が高い。置換しない。"
+          },
+          "recommendation": "現行URL維持。既存情報元がすでに個別ページなので変更不要。"
+        }
+      ],
+      "methodLimits": "通常Web検索に加え、idolmaster-official.jpの公式HTMLを直接取得して本文、埋込pageProps.data.startdate、リンクを確認。News各ページはHTML <time> と公開日系metaがないため画面の日付と埋込startdateを照合。01_16742と01_17315の公開時刻はstartdateから確定し、created値は別時刻のため採用しない。大運動会は公式portal内で6/1初回告知記事を特定できず、公式イベントサイトの2025.06.01オープン表示まで確認。Chromeはroot専用につき未使用。DB/コード更新なし。"
+    },
+    "games": {
+      "researchDate": "2026-09-30",
+      "scope": "調査のみ。DB変更は未実施。",
+      "sourceEvidence": {
+        "seifuku-kanojo-3": {
+          "appearance": {
+            "id": "seifuku-kanojo-3",
+            "title": "『制服カノジョ3』（八尋実咲 役）",
+            "currentPrimary": "https://www.entergram.co.jp/seikano3/",
+            "currentPublicationPrecision": "date",
+            "currentPublishedOn": "2026-09-09T15:00:00.000Z",
+            "version": 3,
+            "otherActiveGenericSource": "https://www.entergram.co.jp/seikano3/topics/"
+          },
+          "candidate": {
+            "url": "https://x.com/seifukubu_love/status/2047239180934398110",
+            "author": "@seifukubu_love (制服カノジョ💖せーふく部公式、認証済み)",
+            "postId": "2047239180934398110",
+            "body": "『制服カノジョ３』✨カノジョ昇格✨ スポーツ万能なギャル系カノジョ 八尋 実咲 (CV：飯田ヒカル) 2026.９.10発売",
+            "displayedTimeJST": "2026-04-23 18:00",
+            "snowflakeTimeUTC": "2026-04-23T09:00:31.256Z",
+            "exact": true,
+            "useAs": "作品/役の個別キャスト発表。ゲーム発売日ではなく、この告知の公開日時を採用。",
+            "whyStronger": "既存の公式TOPおよびtopicsより個別的で、作品・八尋実咲・飯田ヒカルの対応を投稿本文だけで確認できる。topicsページ自体に記事日時がない。",
+            "browserVerification": "通常Chromeのログイン中Xで検索結果とstatus詳細を確認。投稿者、本文、status URL/ID、表示日時を照合。"
+          }
+        },
+        "sugar-lies-game": {
+          "appearance": {
+            "id": "sugar-lies-game",
+            "title": "『Sugar Lies』（雪平明星 役・主題歌歌唱）",
+            "currentPrimary": "https://sugarlies.kogado.com/",
+            "currentPublicationPrecision": "date",
+            "currentPublishedOn": "2026-09-17T15:00:00.000Z",
+            "version": 3,
+            "existingActiveSecondaryX": {
+              "url": "https://x.com/DEAR_MF_PR/status/2093896488975995152",
+              "priorDatabasePublishedAt": "2026-08-27T09:00:00.000Z"
+            }
+          },
+          "bestCandidate": {
+            "url": "https://x.com/DEAR_MF_PR/status/2092899927751836101",
+            "author": "@DEAR_MF_PR (S:OWLS公式アカウント、プロフィールに工画堂スタジオのチームと明記)",
+            "postId": "2092899927751836101",
+            "body": "『Sugar Lies』作品紹介、【CAST】桜美夜夢衣：長谷川育美／雪平明星：飯田ヒカル",
+            "displayedTimeJST": "2026-08-27 18:00",
+            "snowflakeTimeUTC": "2026-08-27T09:00:01.633Z",
+            "exact": true,
+            "useAs": "作品発表と公式CAST掲載の個別告知。"
+          },
+          "corroboratingCandidate": {
+            "url": "https://x.com/DEAR_MF_PR/status/2093896488975995152",
+            "author": "@DEAR_MF_PR",
+            "postId": "2093896488975995152",
+            "body": "『Sugar Lies』キャラクター紹介、雪平明星（CV.飯田ヒカル）",
+            "displayedTimeJST": "2026-08-30 12:00",
+            "snowflakeTimeUTC": "2026-08-30T03:00:00.344Z",
+            "exact": true,
+            "caveat": "このIDから復元する時刻はDBの既存日時2026-08-27T09:00:00.000Zと一致せず、既存source_item_id/status linkは3日ずれている。現リンクの既存日時を流用せず、新しい個別CAST告知の投稿IDから時刻を登録するのが安全。"
+          },
+          "songEvidence": {
+            "url": "https://x.com/DEAR_MF_PR/status/2102238960579723482",
+            "postId": "2102238960579723482",
+            "body": "『Sugar Lies』主題歌情報。True or Liesを雪平明星（CV.飯田ヒカル）と桜美夜夢衣（CV.長谷川育美）が歌唱。",
+            "note": "2026-09-22の後発公式告知。主題歌歌唱の根拠に適するが、作品発表/配役の初回情報元としては8/27 CAST告知を優先。"
+          },
+          "sourcePageFinding": "sugarlies.kogado.comの公式TOPにはキャストと主題歌歌唱情報はあるが、公開日表示なし。"
+        },
+        "auxiliary-generic-secondary-sources": [
+          {
+            "appearanceId": "le-mirage-mystique-ahes",
+            "genericSecondary": "https://licobits-game.com/mirage/product/",
+            "existingPrimary": "https://x.com/Le_Mirage_jp/status/2034465382149374376",
+            "recommendation": "汎用productリンクはPrimaryにせず、個別告知primaryが対応を証明するためAdmin writeでdeactivate候補。"
+          },
+          {
+            "appearanceId": "tokyo-valkyries-mamika-kanesaki",
+            "genericSecondary": "https://qureate.co.jp/TokyoValkyries/",
+            "existingPrimary": "https://x.com/qureate/status/2071881436336976219",
+            "recommendation": "汎用公式作品TOPはPrimaryにせず、個別キャスト告知primaryがあるためAdmin writeでdeactivate候補。"
+          },
+          {
+            "appearanceId": "sora-the-2nd-tita",
+            "genericSecondary": "https://www.falcom.co.jp/sora2/topics/",
+            "existingPrimary": "https://x.com/nihonfalcom/status/2097146125652480254",
+            "recommendation": "topics一覧URLはPrimaryにせず、個別キャスト告知primaryがあるためAdmin writeでdeactivate候補。"
+          }
+        ]
+      },
+      "verification": {
+        "snowflakeFormula": "UTC milliseconds = (statusId >> 22) + 1288834974657",
+        "noDbChanges": true,
+        "noReleaseDateSubstitution": true,
+        "noUrlGuessing": true
+      }
+    }
+  }
+}

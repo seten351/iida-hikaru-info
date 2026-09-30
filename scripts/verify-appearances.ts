@@ -109,10 +109,10 @@ async function main() {
     }));
 
   assert.deepEqual(actual, expected);
-  assert.equal(appearanceSeriesData.length, 38);
+  assert.equal(appearanceSeriesData.length, 39);
   assert.equal(
     appearanceImportData.filter((item) => item.seriesId !== null).length,
-    133,
+    137,
   );
   assert.deepEqual(
     appearanceImportData
@@ -121,6 +121,7 @@ async function main() {
     [
       "uec-seiyu-talk-event-2025",
       "iida-hikaru-cooking-stream-2026-03-30",
+      "daiyakusai-talkshow-2026",
       "machikane-sai-talkshow-2026",
       "toushindai-no-kanojo-school-stay",
     ],
@@ -212,7 +213,7 @@ async function main() {
   );
   const cards = buildAppearanceCards(appearances);
 
-  assert.equal(cards.length, 111);
+  assert.equal(cards.length, 116);
   assert.equal(grouped.latest.length, Math.min(3, cards.length));
   assert.equal(grouped.upcoming.length + grouped.past.length, cards.length);
 

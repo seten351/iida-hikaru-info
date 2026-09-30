@@ -151,6 +151,17 @@ npm run db:admin-import -- --input /tmp/appearance-guest-operation.json --apply 
 
 競合で `superseded` になった場合は最新レコードと告知を再確認し、全fieldsと `expectedVersion` を更新してdry-runからやり直します。確定結果が通信障害で不明な場合は、同じJSON・同じhashで再試行すると冪等キーで結果を取得できます。複数公演は公演ごとに1件ずつ処理し、確定済みの分は保持されます。この機能導入では既存170件を一括調査・補完しません。
 
+### 公開日時・情報元の確認・更新
+
+既存出演の公開日時だけを改善するときは、1レコードずつ処理するsource専用CLIを使用します。音声作品も対象にでき、出演フィールドや他レコードは変更しません。入力JSONには `kind: "source"` と `append`、`replace`、`primary` のいずれかを指定します。`replace` は対象レコードの既存active source linksをすべて非活性にして、新しい情報元1件をprimaryにします。既存リンクを残す場合は `append` 後に、日時精度が `exact` または `date` のリンクを `primary` にします。
+
+```bash
+npm run db:admin-publication -- --input /tmp/publication-operation.json
+npm run db:admin-publication -- --input /tmp/publication-operation.json --apply --reviewed-hash "<dry-runのinputHash>"
+```
+
+既定は読み取り専用dry-runで、対象のbefore／afterと正規化入力、`inputHash`を表示します。確定時は同じJSONと確認済みhashが必要です。同じ入力の再試行には内容由来の同じ冪等キーを使うため、確定後に別の情報元変更があっても二重反映しません。`unknown`の情報元は、現在のprimaryが`exact`または`date`の場合に限りsecondaryとして`append`できます。このsecondaryは公開ページの情報元リンクには加わりますが、primary由来の公開日時は変更しません。`unknown`での`replace`や`primary`指定は拒否します。既存のactive primaryと同じURL・evidence keyへの`append`も拒否するため、既存primaryを修正する場合は`replace`を使います。CLIの回帰テストは`npm run test:publication`で実行できます。
+
 旧サンプルデータの削除は通常importと分離されています。実データの投入と表示を確認した後にdry-runし、既知のサンプル行だけが対象であることを確認してから実行します。
 
 ```bash

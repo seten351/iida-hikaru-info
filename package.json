@@ -11,6 +11,8 @@
     "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
     "db:import": "dotenv -e .env.local -- tsx scripts/import-appearances.ts",
     "db:admin-import": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/admin-import-appearances.ts",
+    "db:admin-publication": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- node --import tsx scripts/admin-import-publication.ts",
+    "test:publication": "node --conditions=react-server --import tsx --test tests/admin-publication-operation.test.ts tests/admin-publication-db.integration.ts tests/publication-corrections.test.ts",
     "db:admin-import-deadlines": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- node --import tsx scripts/admin-import-deadlines.ts",
     "check:deadline-duplicate": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- node --import tsx scripts/check-deadline-duplicate.ts",
     "test:deadlines": "node --import tsx --test tests/deadline-*.test.ts tests/deadline-*.test.tsx",
