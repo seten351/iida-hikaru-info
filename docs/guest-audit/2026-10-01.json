@@ -1,0 +1,4639 @@
+{
+  "date": "2026-10-01",
+  "scope": "本番出演170件の公式ゲスト情報調査",
+  "deployment": {
+    "id": "dpl_7VxDG4Yts2Fsd5vK5uBVEiXumKEC",
+    "gitSha": "631e3188919194c766aa8adf2ecd48b3b758b676",
+    "timestampPrecisionFixActive": true
+  },
+  "policy": "ゲスト記載がないだけでfalseにしない。共演者・CVからゲスト名を推測しない。空配列はゲスト不在確認を意味しない。",
+  "counts": {
+    "total": 170,
+    "updatedThisRun": 61,
+    "hikaruGuest": 34,
+    "confirmedRegular": 17,
+    "hikaruRoleUnconfirmed": 119,
+    "otherGuests": 32,
+    "anyGuestInfoConfirmed": 62,
+    "fullyUnconfirmed": 108
+  },
+  "verification": {
+    "all170RawValuesPreservedOutsideGuestVersionUpdatedAt": true,
+    "existingSourcesAndHistoryPreserved": true,
+    "existingDeadlinesPreserved": true,
+    "cacheInvalidatedForAllUpdates": true,
+    "preExistingIssues": {
+      "canonicalIdentity": [
+        "src_00116e531e6f5da440b4cfc520318550",
+        "src_09efbcb8dafeaf689346b1b8aebef532",
+        "src_3c89e520433e02153f4a08245f5a08ae",
+        "src_6af267e4acc201c07126176969f83f9e",
+        "src_80d0ab87d7eec6263482ab76665332c5",
+        "src_9bccd6aca353c535d0775099f3673299",
+        "src_a574834f4990febc86ae185d7ced452a",
+        "src_a815ea54e8d7beaa8f33413eb5d9921c",
+        "src_adbc94fd9a30aeabff3841cb9895aa1c",
+        "src_b1ae84d3342b823be2e4867060be9d80",
+        "src_d4f4b74b7bca11b358b35c43891cf58c",
+        "src_fa6b7562c12a0d4a937caf2f27121c42"
+      ],
+      "revisionChain": [
+        "bang-dream-our-notes",
+        "seifuku-kanojo-3",
+        "sugar-lies-game"
+      ]
+    },
+    "guestRegressionTestsPassed": 31,
+    "publicSmoke": {
+      "method": "本番ブラウザーの描画済みDOMで確認",
+      "site": "https://iida-hikaru-info.vercel.app",
+      "productionConsoleErrors": 0,
+      "results": [
+        {
+          "flow": "トップ・履歴",
+          "path": "/",
+          "passed": true,
+          "observation": "カンナヒカルイベントの他ゲスト、Sugar Liesと放送部106回の本人＋他ゲストを表示。通常出演の追加表示なし。"
+        },
+        {
+          "flow": "新着・一覧",
+          "path": "/news",
+          "passed": true,
+          "observation": "公式発表順を維持。未確認の第16回・通常出演確認済みの第15回とぴかのの第12回は本人ラベルなし。Sugar Liesの公開日時2026-09-18T09:00:00.000Zを保持。"
+        },
+        {
+          "flow": "ゲスト名検索",
+          "path": "/news?q=皮商人49",
+          "passed": true,
+          "observation": "対象のSugar Lies配信だけに一致し、本人ゲスト＋皮商人49を表示。"
+        },
+        {
+          "flow": "トップ新着・履歴の検索",
+          "path": "/?q=皮商人49",
+          "passed": true,
+          "observation": "トップ新着と履歴で同じゲスト表示と公開日時を確認。"
+        },
+        {
+          "flow": "予定",
+          "path": "/?view=upcoming&q=ぴかるん概論",
+          "passed": true,
+          "observation": "11月1日のトークショーをゲスト出演として表示。出演日時と公開日時を維持。"
+        },
+        {
+          "flow": "複数の他ゲスト",
+          "path": "/news?q=ヒカROOM 第30回",
+          "passed": true,
+          "observation": "ゲスト：湊みや・川村玲奈を表示。本人ラベルなし。"
+        },
+        {
+          "flow": "確認済み通常出演＋他ゲスト",
+          "path": "/news?q=カンナヒカル 第6回",
+          "passed": true,
+          "observation": "ゲスト：花岩香奈のみ表示。本人ラベルなし。"
+        },
+        {
+          "flow": "確認済み通常出演のみ",
+          "path": "/news?q=ぴかのの 第12回",
+          "passed": true,
+          "observation": "ゲストラベル・通常出演ラベルとも追加表示なし。"
+        },
+        {
+          "flow": "カレンダー・日付詳細",
+          "path": "/?view=month",
+          "passed": true,
+          "observation": "月選択を2026年9月に変更し9月20日を選択。あおわんは本人ゲスト＋中村カンナ、カンナヒカルイベントは長月あおいだけを表示。"
+        },
+        {
+          "flow": "昼夜公演の個別表示",
+          "path": "/news?q=バースデーパーティ2026",
+          "passed": true,
+          "observation": "昼公演は伊藤舞音、夜公演は長月あおい。本人ラベルなし。"
+        }
+      ]
+    }
+  },
+  "records": [
+    {
+      "id": "akechi-riko-houkago-03",
+      "title": "明智璃子の放課後ひみつ会議 #03",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=3XrNcrIYRdY",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=3XrNcrIYRdY",
+          "assessment": "公式動画概要で「出演・明智璃子」「ゲスト・飯田ヒカル」と区分。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "2aa69e2c77ba6c593e7eb37494d1d01c1d8506064cf3802ecfcb42acafaed2da",
+        "proposalId": "prp_476f9fb54d36a5de7206275c7bf5ea34",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "anirave-2026-08-02",
+      "title": "AniRAVE 2026 出演",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://www.animeravefestival.com/news/detail.php?id=1133838",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "atsumare-sasamori-153",
+      "title": "ゆうときょうかの「あつまれ！ささもり！」第153回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式Xは「遊びにきてくれました」と伝えるが、ゲストと明記しておらず役割を断定できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2059487531423641885",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "azupri-fanmeeting-2026-part2",
+      "title": "あずぷりファンミーティング 第2部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "田中那実"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://prtimes.jp/main/html/rd/p/000008344.000016756.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://prtimes.jp/main/html/rd/p/000008344.000016756.html",
+          "assessment": "公式プレスリリースは「飯田ヒカル（2部のみゲスト）」と明記。田中那実は両部ゲスト。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 1,
+        "afterVersion": 2,
+        "inputHash": "94c2a4b06ee2ddf065db2240bc0441083d28fe7bc2604b58b44cf14867b3c851",
+        "proposalId": "prp_0405b0afb7b45face0e364969dc5e088",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "bang-dream-our-notes",
+      "title": "『バンドリ！ アワーノーツ』（沢海奏多 役）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/2103119925682557035",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "booklove-adopted-daughter-season",
+      "title": "TVアニメ『本好きの下剋上 領主の養女』シーズン出演",
+      "category": "テレビ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/2059471301576974457",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "bunny-girl-neighbor",
+      "title": "お隣の可愛いお姉さんは、ちょっと抜けてるバニーガール（佐倉ひなた）",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "出演者情報は確認できるが、それだけで guestInfo の区分を決めない。",
+      "inspectedSources": [
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01570194.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://x.com/danganstudio/status/2027042991945421055",
+          "httpStatus": 403,
+          "inspection": "取得制限／追加の公式資料を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01570194.html",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        },
+        {
+          "url": "https://x.com/danganstudio/status/2027042991945421055",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        }
+      ],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "cat-ear-girl-bath",
+      "title": "猫耳少女は甘えん坊～一緒にお風呂♪編～",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "声優・キャラクター表記は確認できるが、ゲスト区分を明示していないため未確定。",
+      "inspectedSources": [
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01426860.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=kg9Z99sNAek",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01426860.html",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=kg9Z99sNAek",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        }
+      ],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "cat-ear-girl-spoiled",
+      "title": "猫耳少女は甘えん坊（ヤナギ）",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01257403.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=xQImAVfPSgE",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "charamix-2026",
+      "title": "キャラミクス トークイベント vol.2 in 高千穂大学 第2部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://www.takachiho.jp/news/2026/_4104.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "cue-sheet-8th-9-iida-hikaru",
+      "title": "春海百乃と牛丸颯希の「CUE SHEET」#9",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/beat_since2016/status/2093666174538276882",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/beat_since2016/status/2093666174538276882",
+          "assessment": "番組公式X告知が「CUE SHEET（8th）に飯田ヒカルさんがゲストに登場」と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "7640f159431122ef694b2a930b8d02a686c8c28df2acb047ed13ee84ff757cef",
+        "proposalId": "prp_fa5b3770de445d7854a65a4ecf671526",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "daiyakusai-talkshow-2026",
+      "title": "声優トークショーin大薬祭2026",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/2103344285966102954",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "dialect-girl-hakata-junior",
+      "title": "方言女子高生とのひと夏～博多弁の後輩～（夏織）",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/kokorootoya/status/2079499122374295764",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01662831.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "falcom-jdk-band-live-stream-2025-09-27",
+      "title": "『空の軌跡 the 1st』実況特番",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知は両名を「お迎えし」実況特番と表現し出演者欄にも掲載するが、ゲスト区分を明記しないため未確定。",
+      "inspectedSources": [
+        {
+          "url": "https://www.falcom.co.jp/archives/202540",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "fire-emblem-banshi-senko",
+      "title": "ファイアーエムブレム 万紫千紅（カターニャ／君子蘭婦人役）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/FireEmblemJP/status/2094757161176056163",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "futsuu-na-radio-event-2026-07-18",
+      "title": "普通なラジオ イベント",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/futsu_vg/status/2069770617847718378",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/futsu_vg/status/2069770617847718378",
+          "assessment": "公式告知本文は7/18番組イベント夜の部について「ゲストに飯田ヒカルさんの出演が決定」と明記。他ゲスト名は同告知で確認できず。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "d181eb450b288c107d1f5f593f061b4600dca71887b7a52c5af58a05cbc89e09",
+        "proposalId": "prp_4b01e4ec79d98eea6ee8ae2cd697a47d",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "gekirock-benefit-event-2026-05-24",
+      "title": "飯田ヒカル×GEKIROCK CLOTHING スペシャル・コラボ特典会",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/gekirock_shop/status/2029482047811567743",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "gekirock-dj-party-2026-03-15",
+      "title": "激ロックDJパーティー出演",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "峯田茉優",
+          "Bimi",
+          "クモリノチ。",
+          "來堵(アルルカン)",
+          "首藤義勝",
+          "LIN&Hylen",
+          "DJとも(ex.ヒステリックパニック)",
+          "或花(黑猫)",
+          "藍井ひなた(クリッククラック)",
+          "蛍光クジラ(らみ&叶真&OGGY)",
+          "りーぺ&ぼあ(すごいバンド名にしたかった。)"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://gekirock.com/news/2026/03/tokyo_dj_party_special_clubasia_guest_vol_3.php",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://gekirock.com/news/2026/03/tokyo_dj_party_special_clubasia_guest_vol_3.php",
+          "assessment": "公式記事は飯田ヒカルを「ゲストDJ出演」と明記。他のゲスト出演者も列挙。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 1,
+        "afterVersion": 2,
+        "inputHash": "2dc154a9d3ac9d3743db4002cf66f4fce158fbf345a4bd728249d17f6e4899f2",
+        "proposalId": "prp_d849c605548d56b1eabcb049ebaa4ac0",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "gkmas-2nd-period-day1",
+      "title": "学園アイドルマスター The 2nd Period Hatsuboshi IDOL FESTIVAL DAY1",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_17315",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "gkmas-2nd-period-day2",
+      "title": "学園アイドルマスター The 2nd Period Hatsuboshi IDOL FESTIVAL DAY2",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_17315",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "gkmas-hr-two-year-anniversary-2026",
+      "title": "学園アイドルマスター ～初星学園HR 2周年目前SP～",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報元本文を個別に取得したが、飯田ヒカルさんのゲスト区分または回のゲスト情報を明記していない。出演者の列挙やゲスト表記の不在だけでは判定しない。",
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/live/0Q-fxRJakCY",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "gkmas-music-festival-day1",
+      "title": "学園アイドルマスター 初星音楽祭 DAY1",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_16742",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "gkmas-music-festival-day2",
+      "title": "学園アイドルマスター 初星音楽祭 DAY2",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_16742",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "gkmas-tour-fukuoka-day1",
+      "title": "学園アイドルマスター LIVE TOUR -標- 福岡公演 DAY1",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://idolmaster-official.jp/live_event/gkmas_livetour_shirube/information/fukuoka.php",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "gkmas-tour-fukuoka-day2",
+      "title": "学園アイドルマスター LIVE TOUR -標- 福岡公演 DAY2",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://idolmaster-official.jp/live_event/gkmas_livetour_shirube/information/fukuoka.php",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "gkmas-undokai-2025-day1",
+      "title": "学園アイドルマスター クラス対抗初星大運動会 DAY1",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_15744",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "gkmas-undokai-2025-day2",
+      "title": "学園アイドルマスター クラス対抗初星大運動会 DAY2",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_15744",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "grand-blue-season-2",
+      "title": "TVアニメ『ぐらんぶる』Season 2（声の出演）",
+      "category": "テレビ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://www.raccoon-dog.co.jp/talent/r18-iida.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hagoromo6-geisho-ui-2-day",
+      "title": "羽衣6 2nd LIVE『GEISHO-UI 2』昼公演",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/hagoromo_6/status/2090725596485882355",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hagoromo6-geisho-ui-2-night",
+      "title": "羽衣6 2nd LIVE『GEISHO-UI 2』夜公演",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/hagoromo_6/status/2090725596485882355",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hanaiwa-kana-episode-66",
+      "title": "花岩香奈のはないわーるど 第66回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [
+          "中村カンナ"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/PodcastsMs_jp/status/2056283647901376971",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/PodcastsMs_jp/status/2056283647901376971",
+          "assessment": "番組公式X告知に「飯田ヒカルさん、中村カンナさんをゲストでお届け」と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "a610f4a494e7f3c0a322790219647648bea8d84adf5509648e47aeb689eec110",
+        "proposalId": "prp_5f4a189cc48b324b4f6817a30906c2d0",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hatsuboshi-houkago-talk-2026-09-09",
+      "title": "学園アイドルマスター はつぼし放課後とーく",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報元本文を個別に取得したが、飯田ヒカルさんのゲスト区分または回のゲスト情報を明記していない。出演者の列挙やゲスト表記の不在だけでは判定しない。",
+      "inspectedSources": [
+        {
+          "url": "https://idolmaster-official.jp/news/01_19728",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hatsuboshi-housoubu-episode-100",
+      "title": "初星学園放送部 第100回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "小鹿なお",
+          "春咲暖"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=Ad5vt0-sVeg",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=Ad5vt0-sVeg",
+          "assessment": "公式配信概要がMCを村田綾香、ゲストを小鹿なお・飯田ヒカル・春咲暖と区分。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "c48139a51057b8cafabe72403d95896b9349292a6fd72f04ba9c8126e70a4c0c",
+        "proposalId": "prp_5b49d29c8dc7a72a92343987eafd7e40",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hatsuboshi-housoubu-episode-106",
+      "title": "初星学園放送部 第106回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "陽高真白"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/gkmas_official/status/2100205561476251832",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=ul8o6A9Ykgw",
+          "assessment": "公式サイト動画一覧が9/23を第106回、9/16を第105回と掲載。リンク先の第106回個別動画概要は飯田ヒカル・陽高真白をゲストと明記。ゲストと回の対応は確定。既存DB出演日9/16は本作業で変更しない。"
+        },
+        {
+          "url": "https://x.com/gkmas_official/status/2100205561476251832",
+          "assessment": "公式Xは9/23放送回のゲストを飯田ヒカル・陽高真白と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 4,
+        "afterVersion": 5,
+        "inputHash": "21843a14353333af47429849ff089c990448985d51865fb97af9d8d5a9af7174",
+        "proposalId": "prp_3a622ba71b5a7f1322c4fdbbf97a5c06",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": [
+        "公式動画一覧・個別動画は第106回を2026-09-23とする。既存DB出演日2026-09-16は対象外のため変更せず。回・ゲストの対応は個別動画で確定。"
+      ]
+    },
+    {
+      "id": "hatsuboshi-housoubu-episode-58",
+      "title": "初星学園放送部 第58回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "長月あおい"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/udhd2k1v4",
+          "httpStatus": 200,
+          "inspection": "ブラウザーで回番号・出演者欄を確認"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/udhd2k1v4",
+          "assessment": "公式番組ページ第58回の出演者欄でMCは村田綾香、ゲストは飯田ヒカルと長月あおいと明記。ブラウザーで回番号と本文を確認。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "ca6f41762f628134a84161f18dd9d8c8067dbacef6edd8abc838fa93dfcb9564",
+        "proposalId": "prp_705b67b160aab65c07d5e6f273e6eafd",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hatsuboshi-housoubu-episode-64",
+      "title": "初星学園放送部 第64回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "陽高真白"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/u8rhgnnpo6",
+          "httpStatus": 200,
+          "inspection": "ブラウザーで回番号・出演者欄を確認"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/u8rhgnnpo6",
+          "assessment": "公式番組ページ第64回の出演者欄でMCは村田綾香、ゲストは飯田ヒカルと陽高真白と明記。ブラウザーで回番号と本文を確認。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "0b35ef588574b89b637ba414541c3327fe0da3c4e676157c91e44a09679a3dd5",
+        "proposalId": "prp_28cae40332cc4fd9d2c41988b06d1ffb",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hatsuboshi-housoubu-episode-69",
+      "title": "初星学園放送部 第69回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "花岩香奈"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/1qztxk3u2",
+          "httpStatus": 200,
+          "inspection": "ブラウザーで回番号・出演者欄を確認"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/1qztxk3u2",
+          "assessment": "公式番組ページ第69回の出演者欄でMCは村田綾香、ゲストは飯田ヒカルと花岩香奈と明記。ブラウザーで回番号と本文を確認。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "d11fdf1df5fca3919809a252d2e858fde7edb50729e1c5b9d08b52b4d3992bb0",
+        "proposalId": "prp_ba89e99f45d593ff48d49262fdf00f34",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hatsuboshi-housoubu-episode-72",
+      "title": "初星学園放送部 第72回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "湊みや"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/liyjpf3gx5u",
+          "httpStatus": 200,
+          "inspection": "ブラウザーで回番号・出演者欄を確認"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/liyjpf3gx5u",
+          "assessment": "公式番組ページ第72回の出演者欄でMCは村田綾香、ゲストは飯田ヒカルと湊みやと明記。ブラウザーで回番号と本文を確認。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "502e8edbd216c123fb520b1ab3c2582552aea0869c751ce7b48949631cdb91e5",
+        "proposalId": "prp_c38deb97342053f745606f24813283a3",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hatsuboshi-housoubu-episode-81",
+      "title": "初星学園放送部 第81回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "天音ゆかり"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/mcngfiqxc",
+          "httpStatus": 200,
+          "inspection": "ブラウザーで回番号・出演者欄を確認"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/mcngfiqxc",
+          "assessment": "公式番組ページ第81回の出演者欄でMCは村田綾香、ゲストは飯田ヒカルと天音ゆかりと明記。ブラウザーで回番号と本文を確認。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "25cf9fcf2026224998cd5e61cd177fbed02a52793d67ce5e188afbaa571fa44b",
+        "proposalId": "prp_446bf632d0121c7336e24982b39dcfda",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hatsuboshi-housoubu-episode-84",
+      "title": "初星学園放送部 第84回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "川村玲奈"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/szbep3og5t",
+          "httpStatus": 200,
+          "inspection": "ブラウザーで回番号・出演者欄を確認"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/szbep3og5t",
+          "assessment": "公式番組ページ第84回の出演者欄でMCは村田綾香、ゲストは飯田ヒカルと川村玲奈と明記。ブラウザーで回番号と本文を確認。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "784fdf9ac79228b0683b7cb26f47e5630acaca8ae3396f038396e76df03aaeaa",
+        "proposalId": "prp_a884963dade30af38a9fbdd8f752cc89",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hatsuboshi-housoubu-episode-96",
+      "title": "初星学園放送部 第96回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "川村玲奈"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/kehulry6m1",
+          "httpStatus": 200,
+          "inspection": "ブラウザーで回番号・出演者欄を確認"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://asobichannel.asobistore.jp/watch/kehulry6m1",
+          "assessment": "公式番組ページ第96回の出演者欄でMCは村田綾香、ゲストは飯田ヒカルと川村玲奈と明記。ブラウザーで回番号と本文を確認。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "8d32c7d4b82faf081082bd021a98155c566dcdaf83a51141900ed730ba6f949f",
+        "proposalId": "prp_81080dcd02c1595b109d122da12b3ca7",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hikaroom-birthday-party-2026-day",
+      "title": "飯田ヒカル バースデーパーティ2026 昼公演",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "伊藤舞音"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2056344052958638140",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2056344052958638140",
+          "assessment": "番組公式告知はバースデーイベントの昼公演ゲストを伊藤舞音、夜公演ゲストを長月あおいと明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 1,
+        "afterVersion": 2,
+        "inputHash": "40f1136b21e042b2b630ea108f3042b0c2c2f24d5652a6198de7e2aa777b529a",
+        "proposalId": "prp_bf73422ccc07f5d0fb4deea44c6b57e6",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hikaroom-birthday-party-2026-night",
+      "title": "飯田ヒカル バースデーパーティ2026 夜公演",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "長月あおい"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2056344052958638140",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2056344052958638140",
+          "assessment": "番組公式告知はバースデーイベントの昼公演ゲストを伊藤舞音、夜公演ゲストを長月あおいと明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 1,
+        "afterVersion": 2,
+        "inputHash": "39badbc4f792c89f107c538fc34c776ce1fc97f9a551f0c06e50aa67c4f43f0d",
+        "proposalId": "prp_8f7045b4540073dd7c8b1f858f59eb71",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-24",
+      "title": "飯田ヒカルのヒカROOM！ 第24回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/1967894921328857094",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-25",
+      "title": "飯田ヒカルのヒカROOM！ 第25回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "陽高真白"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/1982755662741581890",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/iidahikaroom/status/1982755662741581890",
+          "assessment": "番組公式Xが第25回のゲストを陽高真白と告知。飯田ヒカルは公式番組のパーソナリティ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "42e71141f218f02412c897b92a266ef01f1444f569ca4aebf188a74ef24d17d7",
+        "proposalId": "prp_cba491a7065fec63276780d9137b625e",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-26",
+      "title": "飯田ヒカルのヒカROOM！ 第26回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/1988910420879417580",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-27",
+      "title": "飯田ヒカルのヒカROOM！ 第27回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2001571708663402583",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-28",
+      "title": "飯田ヒカルのヒカROOM！ 第28回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2016119005623550405",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-29",
+      "title": "飯田ヒカルのヒカROOM！ 第29回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2023714044603990442",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-30",
+      "title": "飯田ヒカルのヒカROOM！ 第30回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "湊みや",
+          "川村玲奈"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2032366053976903725",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2032366053976903725",
+          "assessment": "公式個別告知で当該ゲスト情報を確認。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "24fb8a10314deec156e1e4e7d9004584f2105b6651ebd8794ce52d539bb1f9af",
+        "proposalId": "prp_97c9b4be4aecc6e9f9631e514ac97d18",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-31",
+      "title": "飯田ヒカルのヒカROOM！ 第31回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2046514280703668224",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-32",
+      "title": "飯田ヒカルのヒカROOM！ 第32回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2054834103896473940",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-33",
+      "title": "飯田ヒカルのヒカROOM！ 第33回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2082752078372569230",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-34",
+      "title": "飯田ヒカルのヒカROOM！ 第34回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2086780048963735657",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-35",
+      "title": "飯田ヒカルのヒカROOM！ 第35回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2092901505024344380",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-episode-36",
+      "title": "飯田ヒカルのヒカROOM！ 第36回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式告知本文に当回ゲストの記載がなく、告知の沈黙だけからゲストなしとは判断できない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2102011755987951652",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-fukuoka-1",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 福岡 第1部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2094387266345177132",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-fukuoka-2",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 福岡 第2部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2094387266345177132",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-fukuoka-3",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 福岡 第3部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2094387266345177132",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-fukuoka-4",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 福岡 第4部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2094387266345177132",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-osaka-1",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 大阪 第1部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2101998432043098493",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-osaka-2",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 大阪 第2部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2101998432043098493",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-osaka-3",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 大阪 第3部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2101998432043098493",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-tokyo-1",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 東京 第1部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2094387266345177132",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-tokyo-2",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 東京 第2部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2094387266345177132",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-tokyo-3",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 東京 第3部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2094387266345177132",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hikaroom-route-okinawa-tokyo-4",
+      "title": "飯田ヒカル Route Okinawa 発売記念イベント 東京 第4部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iidahikaroom/status/2094387266345177132",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "hitono-denwa-exhibition-2026",
+      "title": "『050-5893-5336展』（ひとのでんわ展・声の出演）",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://prtimes.jp/main/html/rd/p/000000048.000070555.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "ichijoma",
+      "title": "TVアニメ『一畳間まんきつ暮らし！』（声の出演）",
+      "category": "テレビ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/2043321950941192659",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "iida-hikaru-cooking-stream-2026-03-30",
+      "title": "飯田ヒカルの3時間クッキング",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "小鹿なお",
+          "伊藤舞音",
+          "浅見香月"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voicegarage_ch/status/2036035466659516577",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/voicegarage_ch/status/2036035466659516577",
+          "assessment": "Voice Garage公式X告知が『飯田ヒカルの3時間クッキング』のゲストとして小鹿なお・伊藤舞音・浅見香月を明記。飯田ヒカル本人のゲスト区分は明記なし。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "1b6c12b4d555062421e78219736981dd28df48b8304792848bd57c5cf55cc034",
+        "proposalId": "prp_33b9c07c41ca9c6a4d81591b5937406d",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "iida-hikaru-hong-kong-fanmeeting-2026-day",
+      "title": "飯田ヒカル 香港ファンミーティング 昼の部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/flashinglightCM/status/2018640611503657158",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "iida-hikaru-hong-kong-fanmeeting-2026-night",
+      "title": "飯田ヒカル 香港ファンミーティング 夜の部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/flashinglightCM/status/2018640611503657158",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "iida-hikaru-shanghai-fanmeeting-2025-day",
+      "title": "飯田ヒカル 上海ファンミーティング〜スイーツ工房〜 昼の部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/1976589669329694866",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "iida-hikaru-shanghai-fanmeeting-2025-night",
+      "title": "飯田ヒカル 上海ファンミーティング〜スイーツ工房〜 夜の部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/1976589669329694866",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "itagochi-2026-04-11",
+      "title": "いたごちイベント",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/ngtk_itagochi/status/2037361296371597628",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/ngtk_itagochi/status/2037361296371597628",
+          "assessment": "公式告知本文はイベントゲストを昼の部＝飯田ヒカル、夜の部＝薄井友里と分けて明記。当レコードは昼の部。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "fb2aae5f5ccd9b15d9a647026bc65856f3a86fff742a1a6071370b5dedba9052",
+        "proposalId": "prp_5ed9385fc0a183c0760b1e79d45f7a3f",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "iyapan-r",
+      "title": "Webアニメ『嫌な顔されながらおパンツ見せてもらいたいR』（声の出演）",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "キャスト/各話の役情報は確認できるが、ゲスト区分の明示はない。CVやキャスト表記から guestInfo の肯定・否定を推定しない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/iyapan_anime/status/2047604761424433384",
+          "httpStatus": 403,
+          "inspection": "取得制限／追加の公式資料を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://iyapan-anime-r.com/news/detail.php?id=6&page=1",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        },
+        {
+          "url": "https://iyapan-anime-r.com/",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        }
+      ],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "iyashihime-swimming-ail",
+      "title": "ひと夏の想い出『癒姫学園水泳部』～引っ込み思案な水着メイド、小鳥遊・B・アイル～（小鳥遊・B・アイル）",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/RaRoVoice/status/1973285533964218725",
+          "httpStatus": 403,
+          "inspection": "取得制限／追加の公式資料を照合"
+        },
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01480567.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "kaii-shojo-hanako",
+      "title": "怪異少女：二つの顔（ハナコ）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://www.raccoon-dog.co.jp/talent/r18-iida.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://apps.apple.com/jp/app/%E6%80%AA%E7%95%B0%E5%B0%91%E5%A5%B3-%E4%BA%8C%E3%81%A4%E3%81%AE%E9%A1%94/id6504546717",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-1",
+      "title": "カンナヒカル（仮）第1回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2028772900787114052",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "85598cf45f822de95f05351080279345d4777f88b28bc166052c3b9299180694",
+        "proposalId": "prp_76e29a37f6a6b3364edf0aec14f2100f",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-10",
+      "title": "カンナヒカル（仮）第10回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2074434166561853660",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "64b630144a32a05a59b8e6220aa1ca47a26f19dab14c65a535825d631b83e08d",
+        "proposalId": "prp_e1da6ba8b82670482e6de57165bb5a5f",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-11",
+      "title": "カンナヒカル（仮）第11回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2079507804566728996",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "59ed8bcbe43e5539b5e0767da02c0e70e66cb8c287f1aff9cb7adcd81bdb2939",
+        "proposalId": "prp_244f6f7643deef50ed1e72d0e82ddad3",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-12",
+      "title": "カンナヒカル（仮）第12回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2084581918964920354",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "d0f273e72db3e0728c2b574bff8c7efd67d1f5a5fb95a7bb92ebee19b75200a9",
+        "proposalId": "prp_39b42228b14162da214c2ba267e40b2d",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-13",
+      "title": "カンナヒカル（仮）第13回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2089654269557555666",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "8710150d14daa40468901d8517a194293b3f5474dc74b452020a1a6002277b74",
+        "proposalId": "prp_f86d1944d034748fed2876f33b43f6c1",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-14",
+      "title": "カンナヒカル（仮）第14回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2094727688657453414",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "079262eb5d6088ecf8a41341d13a2cb1525c354d846099959ea56b110eea64f6",
+        "proposalId": "prp_8554d6029262b19f4f031cbde6d911c8",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-15",
+      "title": "カンナヒカル（仮）第15回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2099800669310083073",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "56abbbbab90c1cd214569657e12f6b37a5ab02a341b25f3139d5f280254a7ba6",
+        "proposalId": "prp_bc4623a2c73c53e3176f2cacd912b462",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-16",
+      "title": "カンナヒカル（仮）第16回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式Xは第16回配信開始を告知するが出演者の役割・ゲストを列挙せず、番組公式アーカイブは第15回まで。個別の確認根拠が不足。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2104877138507862070",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-2",
+      "title": "カンナヒカル（仮）第2回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2033847013629169762",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "0c87a1409a32445e8cd20b8b8c36bbdd32dac56085bdcd9d83c1ca49cb320fd5",
+        "proposalId": "prp_88b6bb88718ef2aadcff9fe747567a90",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-3",
+      "title": "カンナヒカル（仮）第3回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2038920106823266770",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "ec3787bf1302899ef8a847c47bf3b373f8d1489984c060484c296d9608a9d1fd",
+        "proposalId": "prp_b4efb3eb74beae9e780216ce4da6bd26",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-4",
+      "title": "カンナヒカル（仮）第4回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2043993163161878961",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "ec0ee1af20f0276c4ab1c1520b8c79b7fe97ff891630ace7b2cc367e0c06970a",
+        "proposalId": "prp_039d4b9e66b731019d7396981c7652dd",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-5",
+      "title": "カンナヒカル（仮）第5回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2049066315600781369",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "dff4d2b7be58efd39b882401ea2f124b01180968aad3bf7db95b025551a18afc",
+        "proposalId": "prp_542ea4e98af8f1bca030b12ca12cbe57",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-6",
+      "title": "カンナヒカル（仮）第6回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [
+          "花岩香奈"
+        ],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2054140132689875439",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "0211c254483b862f668b325b1bbe4073a8160c60e24d55b61f465f4d85167438",
+        "proposalId": "prp_9acf364baca6950416bda88baf016f32",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-7",
+      "title": "カンナヒカル（仮）第7回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2059213378380513680",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "83c36aade2dcbb5bd4ae56aecb79e068d678e4a0693e5480a2f7eb0bd7441d5b",
+        "proposalId": "prp_cfc7736d1293376c01c5652a8cf231b8",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-8",
+      "title": "カンナヒカル（仮）第8回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2064287403024801793",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "43238b10cac204e5dea5f7305f88ecec31e26e30476538101599226079ef6f83",
+        "proposalId": "prp_e74fcd9329b33efd0ad023fbd510aadb",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kannahikaru-episode-9",
+      "title": "カンナヒカル（仮）第9回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2069360397912829988",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組アーカイブのパーソナリティ欄が飯田ヒカル・中村カンナを明記。公式ゲスト欄は花岩香奈 第6回のみ。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "417d0dd930633f995ac4a9a694aec944348045e20927ec5bc84e220c0b779f28",
+        "proposalId": "prp_3511b07c1e2b612dd6ac298314fa34f4",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "kanteishi-dungeon-tisse",
+      "title": "最強の職業は勇者でも賢者でもなく鑑定士（仮）らしいですよ？～地下迷宮と謎の少女～（ティセ）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://sunsoft.games/kanteishikari-game/top",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "kotoneiro-live-2025-11-10",
+      "title": "kotoneiro 生配信",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/live/fWexqZR_35I",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/live/fWexqZR_35I",
+          "assessment": "番組公式X告知の番組見出しに「第36回 ゲスト：飯田ヒカル」と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 1,
+        "afterVersion": 2,
+        "inputHash": "f08430d2c0a376f943b7eb3e8987a32bb95ec91acfc4bfbae971946c979099e4",
+        "proposalId": "prp_0e1e7ecfd36faca6af8c4ea2a0b698fc",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "le-mirage-mystique-ahes",
+      "title": "Le Mirage Mystique（アエス）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Le_Mirage_jp/status/2034465382149374376",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://x.com/Le_Mirage_jp/status/2104406246661230879",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "lilac-side-witch-noa",
+      "title": "Lilac ～side Witch～（ノア）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://bushiroad.com/media/6c3a3e0aec9c09b3",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "llv-reading-2025-10-02",
+      "title": "LLVリーディングシリーズVol.2『ゆとりのビアガーデン』10月2日公演",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/1968268490453942690",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "llv-reading-2025-10-03",
+      "title": "LLVリーディングシリーズVol.2『ゆとりのビアガーデン』10月3日公演",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/1968268490453942690",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "machikane-sai-talkshow-2026",
+      "title": "飯田ヒカルトークショー ぴかるん概論",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://livepocket.jp/e/o5_ug",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://livepocket.jp/e/o5_ug",
+          "assessment": "イベント主催者のチケット案内で＜ゲスト＞飯田ヒカルさんと明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "8804ae6937b219a5b094ae7d7c8ed62b4a94fbd2d369d340fc77080636c4d62f",
+        "proposalId": "prp_675e0bd2a4bea6767fbbcbde6b45ced5",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "mlt-case02-part1",
+      "title": "MLT case02 第1部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Marine__girls/status/2089661082147463631",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "mlt-case02-part2",
+      "title": "MLT case02 第2部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Marine__girls/status/2089661082147463631",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "moiw-2025-day1",
+      "title": "THE IDOLM@STER M@STERS OF IDOL WORLD 2025 DAY1",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/1949334563135901755",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "nonaka-kokona-rec-35",
+      "title": "野中ここなのREC中！ #35",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報元本文を個別に取得したが、飯田ヒカルさんのゲスト区分または回のゲスト情報を明記していない。出演者の列挙やゲスト表記の不在だけでは判定しない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/kokona_rec/status/2043992659296170371",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "odaiba-itasha-tengoku-2025-autumn",
+      "title": "お台場痛車天国2025 AUTUMN 痛天×羽衣6 SPECIAL TALKSHOW",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://itasha-tengoku.yaesu-net.co.jp/event/2025_odaiba_2nd/",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "odaiba-itasha-tengoku-2026-spring",
+      "title": "お台場痛車天国2026 SPRING 羽衣6ステージ",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/hagoromo_6/status/2024777708321030156",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "one-and-only-episode-11",
+      "title": "ONE AND ONLY 第11回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/1990375362082312447",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/onsenradio/status/1990375362082312447",
+          "assessment": "音泉公式Xが「飯田ヒカルさんがゲスト出演」と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "c12b54fae78ef736a68e4fdfa930429fbf3943ec2b5eb18a1df2282b96599395",
+        "proposalId": "prp_7a3d44104dbcbfe6ad10a7b017cf6d97",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "onsen-festival-2027",
+      "title": "音泉祭り2027 出演",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://dialogue-music.jp/news/2026/06/21-4/",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "onsen-kannahikaru-event-2026",
+      "title": "カンナヒカル（仮）イベント",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "長月あおい"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2059212952524460108",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/onsenradio/status/2059212952524460108",
+          "assessment": "公式個別告知で当該ゲスト情報を確認。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "1bfae1a17f151a60ef59a4b80c16702fb0ffa60bcc16c5a2f5c185847bdba802",
+        "proposalId": "prp_6a5ad7f307139e0897a7a60f0604b2dd",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "onsen-one-and-only-event-2026",
+      "title": "長月あおいのONE AND ONLY イベント",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "中村カンナ"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2059212952524460108",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.onsen.ag/program/umauma",
+          "assessment": "音泉公式番組ページの9/20イベント告知は第1部「あおわんイベント」出演者を長月あおい、中村カンナ（ゲスト）、飯田ヒカル（ゲスト）と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "a7e014f563c8b0b9ba5a7326e1f491190347b8b5d2baaa99d79bd448d30ae863",
+        "proposalId": "prp_6df4e5b2b6e98f317d9083e1a359a403",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "oshigoto-neiro-encore-biyoushi",
+      "title": "ASMR『おしごとねいろ アンコール ～美容師編～』（栗原実咲 役）",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/kotoneiro_ASMR/status/1987852921917378924",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01504017.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-1",
+      "title": "ぴかのの定理 第1回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2055264434751410538",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/voice_lounge/status/2055264434751410538",
+          "assessment": "公式番組X告知が飯田ヒカル・大渕野々花をMC/出演者として明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "f6ad7f9b991a91f5369d63df94f8eacb3486935cb0bc672c10d1d651a70bf003",
+        "proposalId": "prp_47a6c9bb9b173e720da188d950533786",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-10",
+      "title": "ぴかのの定理 第10回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "一次情報から当該出演のゲスト区分を確認できず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2089185459004157973",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-11",
+      "title": "ぴかのの定理 第11回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "一次情報から当該出演のゲスト区分を確認できず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2091518321929703780",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-12",
+      "title": "ぴかのの定理 第12回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": false
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2097998922673426695",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/voice_lounge/status/2097998922673426695",
+          "assessment": "公式番組X告知が飯田ヒカル・大渕野々花をMC/出演者として明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "3033396bc469d42116ca79f8b7a73480cc26e587d815ba7121281f009be13eec",
+        "proposalId": "prp_210cb2ceefd209f292659ffabfa3ae5d",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-13",
+      "title": "ぴかのの定理 第13回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "一次情報から当該出演のゲスト区分を確認できず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2101880597765591545",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-14",
+      "title": "ぴかのの定理 第14回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "一次情報から当該出演のゲスト区分を確認できず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2104179248500215815",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-2",
+      "title": "ぴかのの定理 第2回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "一次情報から当該出演のゲスト区分を確認できず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2060194421061116228",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-3",
+      "title": "ぴかのの定理 第3回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "一次情報から当該出演のゲスト区分を確認できず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2066717411739627863",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-4",
+      "title": "ぴかのの定理 第4回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "一次情報から当該出演のゲスト区分を確認できず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2069367359748661727",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-5",
+      "title": "ぴかのの定理 第5回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "一次情報から当該出演のゲスト区分を確認できず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2070824466423189812",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-episode-9",
+      "title": "ぴかのの定理 第9回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "一次情報から当該出演のゲスト区分を確認できず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/voice_lounge/status/2086754430003687645",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-event-2026-day",
+      "title": "ぴかのの定理 Vol.1 昼の部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://e-stonemusic.com/nonoka/live_event/event/7ngUm",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "pikanono-event-2026-night",
+      "title": "ぴかのの定理 Vol.1 夜の部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://e-stonemusic.com/nonoka/live_event/event/7ngUm",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "re-iris-new-year-tv-special-2026",
+      "title": "Re;IRIS 新春テレビ特番",
+      "category": "テレビ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式番組情報は共演・役名を示すだけで、ゲスト区分を確定させない。",
+      "inspectedSources": [
+        {
+          "url": "https://s.mxtv.jp/company/press/20251225_6uvlojf0sm13x0iokbm85cu2e2jc00.pdf",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://s.mxtv.jp/company/press/20251225_6uvlojf0sm13x0iokbm85cu2e2jc00.pdf",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        }
+      ],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "saesuzu-event-2026",
+      "title": "さえすずイベント",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "中村カンナ"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2074840747455766865",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/onsenradio/status/2074840747455766865",
+          "assessment": "先行確認済みの本人ゲスト・中村カンナを維持。今回の書き込み対象外。"
+        }
+      ],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "sashibana-event-2026-part1",
+      "title": "さしばなイベント 第1部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "首藤志奈"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/sashibana_vg/status/2039266816871075939",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/sashibana_vg/status/2039266816871075939",
+          "assessment": "番組公式告知は5/4イベントの第1部ゲストを首藤志奈、第2部ゲストを七瀬つむぎ、第3部ゲストを村田綾香と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "7b5fb78d01a8645ac37615343b8c205a4642fe45d47f1cc1dc9a5224e77efcf7",
+        "proposalId": "prp_82db3e29e1431e113b888e0905bfb5f9",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "sashibana-event-2026-part2",
+      "title": "さしばなイベント 第2部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "七瀬つむぎ"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/sashibana_vg/status/2039266816871075939",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/sashibana_vg/status/2039266816871075939",
+          "assessment": "番組公式告知は5/4イベントの第1部ゲストを首藤志奈、第2部ゲストを七瀬つむぎ、第3部ゲストを村田綾香と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "3dddcd311d73fc72c9fb9e6d56fb7050c2857da1d85cd3aec582ac5a69dca8a6",
+        "proposalId": "prp_38b71fb9f4618c1583c5cf8f1532d447",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "sashibana-event-2026-part3",
+      "title": "さしばなイベント 第3部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "村田綾香"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/sashibana_vg/status/2039266816871075939",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/sashibana_vg/status/2039266816871075939",
+          "assessment": "番組公式告知は5/4イベントの第1部ゲストを首藤志奈、第2部ゲストを七瀬つむぎ、第3部ゲストを村田綾香と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "468a4542f0377788e3606b710c7116afc8968e98e8a3c759cd164d1fa444fb48",
+        "proposalId": "prp_63ae104ac323086fac0875e72c09ffc4",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "seifuku-kanojo-3",
+      "title": "『制服カノジョ3』（八尋実咲 役）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/seifukubu_love/status/2047239180934398110",
+          "httpStatus": 403,
+          "inspection": "取得制限／追加の公式資料を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "seifuku-kanojo-valentine-event-2027",
+      "title": "制服カノジョ スペシャルイベント in バレンタイン",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/seifukubu_love/status/2070458648095248713",
+          "httpStatus": 403,
+          "inspection": "取得制限／追加の公式資料を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "shirube-final-live-day1",
+      "title": "学園アイドルマスター LIVE TOUR -標- ファイナル公演 DAY1",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/gkmas_official/status/2063580960533463089",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "shirube-final-live-day2",
+      "title": "学園アイドルマスター LIVE TOUR -標- ファイナル公演 DAY2",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/gkmas_official/status/2063580960533463089",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "sisters-friend-weakness",
+      "title": "妹の友達に弱みを握られて・・・【恋する密着青春ドラマ】",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "共演者一覧はゲスト区分の根拠として扱わず、未確定。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/otogi_edit/status/1957662866594754905",
+          "httpStatus": 403,
+          "inspection": "取得制限／追加の公式資料を照合"
+        },
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01446347.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01446347.html",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        },
+        {
+          "url": "https://x.com/otogi_edit/status/1957662866594754905",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        }
+      ],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "small-childhood-friend-night",
+      "title": "小さな幼なじみが甘やかし＆お世話してくれる夜♡",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "役・出演告知はあるが、ゲストかどうかは示していない。また記録タイトルと告知名の差異もあり、推測せず未確定。",
+      "inspectedSources": [
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01523957.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/2003431962019791266",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/2003431962019791266",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        },
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01523957.html",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        }
+      ],
+      "update": null,
+      "findings": [
+        "本人公式告知の作品名と登録タイトルに差異がある。ゲスト区分・タイトル・情報元は今回変更せず。"
+      ]
+    },
+    {
+      "id": "sora-2nd-gameplay-special-2026",
+      "title": "『空の軌跡 the 2nd』実況特番",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報元本文を個別に取得したが、飯田ヒカルさんのゲスト区分または回のゲスト情報を明記していない。出演者の列挙やゲスト表記の不在だけでは判定しない。",
+      "inspectedSources": [
+        {
+          "url": "https://www.falcom.co.jp/archives/243520",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "sora-the-1st-tita",
+      "title": "空の軌跡 the 1st（ティータ・ラッセル）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://www.falcom.co.jp/games-data/sora1st",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.falcom.co.jp/archives/202540",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.falcom.co.jp/sora/character/tita.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "sora-the-2nd-tita",
+      "title": "空の軌跡 the 2nd（ティータ・ラッセル）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/nihonfalcom/status/2097146125652480254",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.falcom.co.jp/sora2/character/tita.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "star-savior-lily",
+      "title": "スターセイヴァー（リリー）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://www.starsavior.com/jp/news/019a9f0f-a451-72db-b6e8-c18c1d6acb64",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=edNmiHp-P9k",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=edNmiHp-P9k",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "stella-sora-april-fools-2026",
+      "title": "【ステラソラ】エイプリルフール #魔王ちゃんバニーガール化 特別動画（魔王ちゃん）",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報元本文を個別に取得したが、飯田ヒカルさんのゲスト区分または回のゲスト情報を明記していない。出演者の列挙やゲスト表記の不在だけでは判定しない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/StellaSoraJP/status/2039251421728833888",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=wthjmHtWpes",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "stella-sora-first-anniversary-2026",
+      "title": "ステラソラ 1st Anniversary イベント",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/StellaSoraJP/status/2078830411908804979",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "stella-sora-maou-channel-half-anniversary",
+      "title": "ステラソラ 魔王放送局（MHK）「魔王くんちゃんネル」～ハーフアニバーサリー生放送～",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報元本文を個別に取得したが、飯田ヒカルさんのゲスト区分または回のゲスト情報を明記していない。出演者の列挙やゲスト表記の不在だけでは判定しない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/StellaSoraJP/status/2041093558166245497",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "stella-sora-maou-channel-summer-2026",
+      "title": "ステラソラ 魔王放送局（MHK）「魔王くんちゃんネル」～やっぱり夏に夏イベやるべきだよねスペシャル！～",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報元本文を個別に取得したが、飯田ヒカルさんのゲスト区分または回のゲスト情報を明記していない。出演者の列挙やゲスト表記の不在だけでは判定しない。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/StellaSoraJP/status/2076607612356039153",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "succubus-streamer-secret-face",
+      "title": "お兄ちゃんにだけ甘えちゃう♡小悪魔系サキュバス配信者の裏の顔（ベルル・テネブラエ／木陰美鈴）",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01678330.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://x.com/Bokuyoukyodan/status/2089004258364362922",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "sugar-lies-asmr-series",
+      "title": "『Sugar Lies』ASMRボイスドラマシリーズ（雪平明星 役）",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/2100818722164482325",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "sugar-lies-game",
+      "title": "『Sugar Lies』（雪平明星 役・主題歌歌唱）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/DEAR_MF_PR/status/2093896488975995152",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://x.com/DEAR_MF_PR/status/2092899927751836101",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://x.com/DEAR_MF_PR/status/2102238960579723482",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "sugar-lies-tgs2026-special",
+      "title": "TGS2026『Sugar Lies』スペシャル生配信",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "皮商人49"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.konami.com/games/tgs/ja/title/?id=sugar-lies",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.youtube.com/live/IUHLBfRniYQ",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/DEAR_MF_PR/status/2100766761432003021",
+          "assessment": "公式個別告知で当該ゲスト情報を確認。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "46f107b6029f6349f0449193092c5b799c282db6d24c8dcadead135438273a23",
+        "proposalId": "prp_0d1bbafc44e6ac3f78004df24fe22a85",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "taipei-game-show-2026-stage",
+      "title": "台北國際電玩展2026 ステージ出演",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "リンク先では飯田ヒカルの出演/役/キャストとしての記載は確認できたが、ゲストか通常出演かの区分は明示されていないため保留。",
+      "inspectedSources": [
+        {
+          "url": "https://www.cloudedleopardent.com/zh-hant/news/8038/",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "teasing-classmate-week",
+      "title": "隣のクラスの女の子にからかわれちゃうドキドキの1週間♡",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "キャラクター役・作品告知を確認したが、ゲスト／通常出演の区分を判断できる明示的根拠がない。",
+      "inspectedSources": [
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01495259.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://x.com/Incolore_Offl/status/1991068947500675346",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/Incolore_Offl/status/1991068947500675346",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        },
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01495259.html",
+          "assessment": "公式作品の出演情報を確認。ゲスト区分の明示は確認できず。"
+        }
+      ],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "together-possession-yorigami",
+      "title": "いっしょに密着憑依～依神姉妹に両耳ささやき甘やかされ眠れないASMR～（依神女苑）",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/eg_info/status/1875497404633641292",
+          "httpStatus": 403,
+          "inspection": "取得制限／追加の公式資料を照合"
+        },
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01304955.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "tokyo-valkyries-mamika-kanesaki",
+      "title": "東京ワルキューレ（金咲真未花）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/qureate/status/2071881436336976219",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "touhou-lostword-koishi",
+      "title": "東方LostWord（古明地こいし）",
+      "category": "ゲーム",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/Iida_Hikaru_828/status/2049835657439420537",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://touhoulostword.com/2026/04/30/228022/",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "toushindai-no-kanojo-school-stay",
+      "title": "ASMR『等身大の彼女～二人きりの学校お泊り～』（織井澄玲 役）",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/YOUDEAL_ASMR/status/2087554706809741606",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        },
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01683068.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "tricolor-episode-32",
+      "title": "礒部花凜・土屋李央・林鼓子 トリコロールカラー 第32回",
+      "category": "ラジオ",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/onsenradio/status/2016724571987259571",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/onsenradio/status/2016724571987259571",
+          "assessment": "音泉公式X告知が第32回のゲストとして飯田ヒカルを明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "88b6ce593a70044ceb27d1e4b1aa2e25e42ae623c4aada77924a3a9cbd00f1e1",
+        "proposalId": "prp_53330f38b54f421d20209a987e39148d",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "uec-seiyu-talk-event-2025",
+      "title": "電気通信大学 声優トークイベント",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式情報から当該公演のゲスト/通常出演を示す明示的区分を確認できず。ゲスト表記の不在だけではfalseにしない。",
+      "inspectedSources": [
+        {
+          "url": "https://uecseiyubunkaken.com/event-20251122/",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "usui-frontier-episode-7",
+      "title": "うすいフロンティア 第7回",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=SKVpwwu9Xy4",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=SKVpwwu9Xy4",
+          "assessment": "番組公式配信概要に「ゲスト：飯田ヒカル」と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "1e378471ce1b9b2bdea7edb1151e8496084d3ec8c1faec244a2dc6c7e12604d7",
+        "proposalId": "prp_6310515928d091cb15775facbd46910d",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "valentineroom-2026-day",
+      "title": "ValentineRoom 2026 昼の部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "川村玲奈",
+          "湊みや"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://avexnet.jp/news/1030672",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://avexnet.jp/news/1030672",
+          "assessment": "avexの公式記事は2/11の昼・夜公演の出演を飯田ヒカル、ゲストを川村玲奈・湊みやと区分。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 1,
+        "afterVersion": 2,
+        "inputHash": "64fd334544671db56c7ac5ce626bce3a9c091f8fa5de0231c2bd7159c6093297",
+        "proposalId": "prp_b7b2ddfe79c3383e1f94391c932eaf55",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "valentineroom-2026-night",
+      "title": "ValentineRoom 2026 夜の部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "川村玲奈",
+          "湊みや"
+        ],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "他ゲストのみ確認済み",
+      "reason": "他ゲストは公式表記で確認済み。本人のゲスト／通常出演区分は断定せず未確認を維持。",
+      "inspectedSources": [
+        {
+          "url": "https://avexnet.jp/news/1030672",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://avexnet.jp/news/1030672",
+          "assessment": "avexの公式記事は2/11の昼・夜公演の出演を飯田ヒカル、ゲストを川村玲奈・湊みやと区分。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 1,
+        "afterVersion": 2,
+        "inputHash": "db9f493a1e28d23f627f1006bf4116abeee21d8af9259c1cf2e100bebd61eeca",
+        "proposalId": "prp_e6509c95f81a634a552530191b61939f",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "yorigami-sisters-love",
+      "title": "愛してるからスキだらけ。～あまあまな依神姉妹に一生蕩ける憑依生活～（依神女苑）",
+      "category": "音声作品",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": null
+      },
+      "reviewStatus": "未確認",
+      "reason": "公式のキャスト・CV・役名はゲスト区分の肯定／否定の根拠にしない。区分を明示する一次情報がなく未確認。",
+      "inspectedSources": [
+        {
+          "url": "https://x.com/eg_info/status/1983488996320649529",
+          "httpStatus": 403,
+          "inspection": "取得制限／追加の公式資料を照合"
+        },
+        {
+          "url": "https://www.dlsite.com/home/work/=/product_id/RJ01487550.html",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [],
+      "update": null,
+      "findings": []
+    },
+    {
+      "id": "yuri-relation-event-2026-day",
+      "title": "YuriRelationイベント 昼の部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "浅見香月",
+          "花岩香奈"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/su_kawa_vg/status/2011065207863574636",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/su_kawa_vg/status/2011065207863574636",
+          "assessment": "公式告知の公演名に「ゲスト:飯田ヒカル・浅見香月・花岩香奈」と明記。昼夜公演共通。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "c07d70669abcc3d6232bff21b35439107dcd719a0008ae2d889c88f7ca9d4cd9",
+        "proposalId": "prp_dfcaf0e8da24309b9e6367b21ac156dc",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "yuri-relation-event-2026-night",
+      "title": "YuriRelationイベント 夜の部",
+      "category": "イベント",
+      "guestInfo": {
+        "guestNames": [
+          "浅見香月",
+          "花岩香奈"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://x.com/su_kawa_vg/status/2011065207863574636",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://x.com/su_kawa_vg/status/2011065207863574636",
+          "assessment": "公式告知の公演名に「ゲスト:飯田ヒカル・浅見香月・花岩香奈」と明記。昼夜公演共通。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "070182525976535dbe075e5177fab9eae2e35cb3c7217eff64d29aba40900b20",
+        "proposalId": "prp_ec119412133ae466e689bee7ce8818d3",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "yuri-relation-game-24",
+      "title": "YuriRelation ゲーム実況 #24",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=Ay0RNXaAc58",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=Ay0RNXaAc58",
+          "assessment": "ボイスガレッジ公式YouTube概要の当該回出演欄にゲスト：飯田ヒカルと明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "f919777e848c587f59be31e7f784376e2b0ee652d26824de6c43cefeacca38eb",
+        "proposalId": "prp_9bd371c2c3f85a8c7068da2f7e143644",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "yuri-relation-game-25",
+      "title": "YuriRelation ゲーム実況 #25",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=afiKGxP0vLQ",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=afiKGxP0vLQ",
+          "assessment": "ボイスガレッジ公式YouTube概要の当該回出演欄にゲスト：飯田ヒカルと明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "232a1c0d90ed12c4ca1ae300719cceb4b51674bf80671ef5f3d12ee5cde38f21",
+        "proposalId": "prp_3474df9f8449f825bd529eba6ecd779a",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "yuri-relation-game-26",
+      "title": "YuriRelation ゲーム実況 #26",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=NA7Qn04mhkM",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=NA7Qn04mhkM",
+          "assessment": "ボイスガレッジ公式YouTube概要の当該回出演欄にゲスト：飯田ヒカルと明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "ec36601565368ca73f7722222e997a6fc8efd4fa064adc4abc95fde7d0fa1538",
+        "proposalId": "prp_8fbf465f8e3e5c8bf4f185adfdcc1d67",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "yuri-relation-game-27",
+      "title": "YuriRelation ゲーム実況 #27",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=TBg0PNGubCo",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=TBg0PNGubCo",
+          "assessment": "ボイスガレッジ公式YouTube概要の当該回出演欄にゲスト：飯田ヒカルと明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "f95abca9cb80232be6a74f583dbdfd34d5824af707f9dce627369aa49ccc98a0",
+        "proposalId": "prp_909de2bb6acc74f65245ab5c80000006",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": [
+        "公式動画概要の配信日2025-10-20と既存DB日付2025-10-27に差異。動画タイトルの第27回とゲスト区分は一致。今回は日時を変更せず。"
+      ]
+    },
+    {
+      "id": "yuri-relation-game-33",
+      "title": "YuriRelation ゲーム実況 #33",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "伊藤舞音"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=QAiBXzGuuVg",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=QAiBXzGuuVg",
+          "assessment": "ボイスガレッジ公式YouTube概要の当該回出演欄にゲスト：飯田ヒカル・伊藤舞音と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "06e2539fc12973688135203e21380cccc476c448d78c476e1e2e416ca5dc1d9d",
+        "proposalId": "prp_a1c37ca9e4217032785699ec16533bd2",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "yuri-relation-game-34",
+      "title": "YuriRelation ゲーム実況 #34",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "伊藤舞音"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=3xm9qqrwIq0",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=3xm9qqrwIq0",
+          "assessment": "ボイスガレッジ公式YouTube概要の当該回出演欄にゲスト：飯田ヒカル・伊藤舞音と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "4e2bd2834e227b0af2bc691c1e089bec0b95038907b53dfcbf3bd56980f71aee",
+        "proposalId": "prp_137a8bbf3fb985ae76a88f33879a3ec2",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "yuri-relation-game-35",
+      "title": "YuriRelation ゲーム実況 #35",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [
+          "伊藤舞音"
+        ],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=Llc-a_0kL3g",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=Llc-a_0kL3g",
+          "assessment": "ボイスガレッジ公式YouTube概要の当該回出演欄にゲスト：飯田ヒカル・伊藤舞音と明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "0a4b3897b6f0a6f11599088b55e1495c464380322ad5e6ab3eb628109f14773f",
+        "proposalId": "prp_8233f6ff4863aeb405720273034c4466",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    },
+    {
+      "id": "yuri-relation-live-2025-09-30",
+      "title": "YuriRelation 生放送",
+      "category": "配信",
+      "guestInfo": {
+        "guestNames": [],
+        "isHikaruGuest": true
+      },
+      "reviewStatus": "本人区分確認済み",
+      "reason": null,
+      "inspectedSources": [
+        {
+          "url": "https://www.youtube.com/watch?v=w-FSxo6eHKc",
+          "httpStatus": 200,
+          "inspection": "一次情報の本文を照合"
+        }
+      ],
+      "evidence": [
+        {
+          "url": "https://www.youtube.com/watch?v=w-FSxo6eHKc",
+          "assessment": "ボイスガレッジ公式YouTube概要の当該生放送回タイトルと出演欄にゲスト：飯田ヒカルと明記。"
+        }
+      ],
+      "update": {
+        "beforeVersion": 2,
+        "afterVersion": 3,
+        "inputHash": "2c77c4e6fb98d8f09756ddcbd2e40e4d6d629f04198aa40d996ec8b6adb01d74",
+        "proposalId": "prp_49d7c2b3034a3e41c0c09ae1c271b663",
+        "unrelatedRawValuesExact": true
+      },
+      "findings": []
+    }
+  ]
+}
