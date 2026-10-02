@@ -6,7 +6,7 @@ export const deadlineProjectTypes = ["official", "fan"] as const;
 export const receptionInformationTypes = ["ticket_application", "event_registration", "streaming_sale", "made_to_order", "online_sale", "other", "unspecified"] as const;
 export const receptionInformationTypeLabels = {
   ticket_application: "チケット申込", event_registration: "イベント受付", streaming_sale: "配信販売",
-  made_to_order: "受注物販", online_sale: "通常通販", other: "その他", unspecified: "種別未確認",
+  made_to_order: "受注物販", online_sale: "通常通販・オンライン物販", other: "その他", unspecified: "種別未確認",
 } as const;
 export const receptionPhaseOverrides = ["auto", "not_open", "open"] as const;
 export const receptionSaleModes = ["initial", "resale"] as const;

@@ -9,6 +9,7 @@
 - `state` は `scheduled / closed / cancelled / sold_out`。`scheduled` の表示は共通domainが日時から判定する。`phaseOverride: auto / not_open / open` は一次情報による状況確認で、自動判定できない場合を補う。確定日時に矛盾する指定は拒否する。
 - 「受付前・販売前」の確認後に確定した開始日時を跨いだ場合や、日付のみの開始日の翌日になった場合は、既存の確認値に表示を固定せず開始済みとして判定する。
 - `informationType` は `ticket_application / event_registration / streaming_sale / made_to_order / online_sale / other / unspecified`。`projectType: official / fan` は別の区分。
+- `online_sale` は通常通販のほか、アプリ等で行う会場物販の事前購入も含む。受取・配送方法は個別の公式案内を引き継ぎ、この種別だけで配送や受注生産を断定しない。受注生産を確認できる場合は `made_to_order` を使う。
 - `saleMode: initial / resale` を状態とは別に指定する。期間延長・完売・同じ販売枠の再販は、IDと受付・販売名を維持してupdateする。過去の期間はAdmin revisionに残り、公開画面は現在の期間を表示する。
 - 種別・期間・状況の未確認を根拠なく補完しない。終了不明は無期限販売を意味しない。別受付段階・別チャネルは区別した受付名とevidence keyで登録し、必ず事前照合する。
 
