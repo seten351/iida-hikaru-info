@@ -1557,7 +1557,7 @@ footer {
 .public-list-page .appearance-filters { margin-bottom: 2rem; }
 .public-list-results .appearance-pagination { margin-top: 2rem; }
 .public-list-page .deadline-section { padding: 2rem 0; }
-.public-list-page nav a[aria-current="page"], .site-header nav a[aria-current="page"] { color: var(--accent-dark); }
+.public-list-page nav a[aria-current="page"]:not(.deadline-filter-chip), .site-header nav a[aria-current="page"] { color: var(--accent-dark); }
 
 @media (max-width: 640px) {
   .home-highlights { padding: 1.5rem 0 2rem; }
