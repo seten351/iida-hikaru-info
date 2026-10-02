@@ -107,4 +107,4 @@ npm run build
 
 本番反映前には、対象DB・適用履歴・接続先を再照合し、復旧用ブランチを保持する。隔離したNeonブランチでも直接接続のDrizzle migratorによる適用を確認した後、DB追加→互換対応アプリ→公開・Admin・CLI・失効確認→Antigravity v2入力開始の順に切り替える。設定本体は外部にあるため、稼働中指示の版、CLI版、DB scope、失効通知URL／secretを確認して反映を記録する。
 
-拡張データ投入後は、拡張情報を読める互換対応版へアプリを戻す。逆migrationでデータ・履歴を削除しない。本実装ターンでは本番migration・本番デプロイ・稼働中Antigravityの設定変更は行わない。
+拡張データ投入後は、拡張情報を読める互換対応版へアプリを戻す。逆migrationでデータ・履歴を削除しない。実装段階には本番migration・本番デプロイ・稼働中Antigravityの設定変更を含めず、2026-10-02の反映結果は[本番反映記録](reception-sales-production-20261002.md)に記載した。
