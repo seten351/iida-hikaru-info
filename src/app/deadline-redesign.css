@@ -1,60 +1,64 @@
-.deadline-list-controls, .deadline-list-controls ~ .appearance-filters {
-  --reception-control-hover: #f3e9ef;
-  --reception-control-selected-hover: #694659;
-  --reception-control-line: #d8cbd2;
-}
+/* UI control palette: docs/ui-control-colors.md */
 .deadline-list-controls { display: grid; gap: 0.65rem; margin: 1.25rem 0; }
 .deadline-list-controls__row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
-.deadline-filter-chip { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; max-width: 100%; padding: 0.45rem 0.85rem; border: 1px solid var(--reception-control-line); border-radius: 999px; background: var(--surface); color: var(--plum); font-size: 0.85rem; line-height: 1.4; font-weight: 650; text-align: center; overflow-wrap: anywhere; }
-.deadline-filter-chip[aria-current="page"] { border-color: var(--plum); background: var(--plum); color: var(--surface); }
-.deadline-filter-chip:hover { border-color: var(--plum); background: var(--reception-control-hover); color: var(--plum); }
-.deadline-filter-chip[aria-current="page"]:hover { background: var(--reception-control-selected-hover); color: var(--surface); }
+.deadline-filter-chip { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; max-width: 100%; padding: 0.45rem 0.85rem; border: 1px solid var(--control-line); border-radius: 999px; background: var(--surface); color: var(--plum); font-size: 0.85rem; line-height: 1.4; font-weight: 650; text-align: center; overflow-wrap: anywhere; transition-property: border-color; }
+.deadline-filter-chip[aria-current="page"] { border-color: var(--control-accent); background: var(--control-accent); color: var(--surface); }
+.deadline-filter-chip:hover { background: var(--accent-soft); color: var(--plum); }
+.deadline-filter-chip[aria-current="page"]:hover { border-color: var(--control-accent); background: var(--accent-soft); color: var(--plum); }
 .deadline-filter-chip:focus-visible, .deadline-card a:focus-visible { outline: 3px solid var(--accent-dark); outline-offset: 3px; }
 
-/* Keep the shared search layout; scope these control colors to the reception list. */
-.deadline-list-controls ~ .appearance-filters .appearance-filter-field input,
-.deadline-list-controls ~ .appearance-filters .appearance-filter-field select,
-.deadline-list-controls ~ .appearance-filters .appearance-filter-clear {
-  border-color: var(--reception-control-line);
+/* Keep the shared search layout; apply the standard colors to home and reception controls. */
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-field input,
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-field select,
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-clear {
+  border-color: var(--control-line);
   color: var(--plum);
 }
-.deadline-list-controls ~ .appearance-filters .appearance-filter-field input::placeholder { color: var(--muted); }
-.deadline-list-controls ~ .appearance-filters .appearance-filter-search {
-  border-color: var(--plum);
-  background: var(--plum);
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-field input::placeholder { color: var(--muted); }
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-search {
+  border-color: var(--control-accent);
+  background: var(--control-accent);
+  color: var(--surface);
+  transition-property: border-color;
+}
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-search:hover:not(:disabled) {
+  border-color: var(--control-accent);
+  background: var(--accent-soft);
+  color: var(--plum);
+}
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-clear:hover:not(:disabled),
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-details-toggle:hover,
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-field input:hover:not(:disabled),
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-field select:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-clear:hover:not(:disabled) { border-color: var(--control-line); }
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-details-toggle[aria-expanded="true"] {
+  background: var(--control-accent);
   color: var(--surface);
 }
-.deadline-list-controls ~ .appearance-filters .appearance-filter-search:hover:not(:disabled) {
-  border-color: var(--plum);
-  background: var(--reception-control-selected-hover);
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-details-toggle[aria-expanded="true"]:hover {
+  background: var(--accent-soft);
+  color: var(--plum);
 }
-.deadline-list-controls ~ .appearance-filters .appearance-filter-clear:hover:not(:disabled),
-.deadline-list-controls ~ .appearance-filters .appearance-filter-details-toggle:hover,
-.deadline-list-controls ~ .appearance-filters .appearance-filter-field input:hover:not(:disabled),
-.deadline-list-controls ~ .appearance-filters .appearance-filter-field select:hover:not(:disabled) {
-  background: var(--reception-control-hover);
-}
-.deadline-list-controls ~ .appearance-filters .appearance-filter-clear:hover:not(:disabled) { border-color: var(--reception-control-line); }
-.deadline-list-controls ~ .appearance-filters .appearance-filter-details-toggle[aria-expanded="true"] {
-  background: var(--plum);
-  color: var(--surface);
-}
-.deadline-list-controls ~ .appearance-filters .appearance-filter-details-toggle[aria-expanded="true"]:hover {
-  background: var(--reception-control-selected-hover);
-}
-.deadline-list-controls ~ .appearance-filters .appearance-filter-field input:focus,
-.deadline-list-controls ~ .appearance-filters .appearance-filter-field select:focus {
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-field input:focus,
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-field select:focus {
   border-color: var(--accent-dark);
   outline-color: var(--accent-dark);
 }
-.deadline-list-controls ~ .appearance-filters .appearance-filter-search:focus-visible,
-.deadline-list-controls ~ .appearance-filters .appearance-filter-clear:focus-visible,
-.deadline-list-controls ~ .appearance-filters .appearance-filter-details-toggle:focus-visible { outline-color: var(--accent-dark); }
-.deadline-list-controls ~ .appearance-filters .appearance-filter-search:disabled {
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-search:focus-visible,
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-clear:focus-visible,
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-details-toggle:focus-visible { outline-color: var(--accent-dark); }
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-search:disabled {
   border-color: #a69da3;
   background: #a69da3;
 }
-.deadline-list-controls ~ .appearance-filters .appearance-filter-clear:disabled { color: #a69da3; }
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-clear:disabled { color: #a69da3; }
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-field input:disabled,
+:is(#top > .appearance-filters, .deadline-list-controls ~ .appearance-filters) .appearance-filter-field select:disabled {
+  background: var(--surface-soft);
+  color: #a69da3;
+}
 .deadline-list-controls__label { color: var(--muted); font-size: 0.8rem; }
 .deadline-list-controls__hint { color: var(--muted); font-size: 0.78rem; overflow-wrap: anywhere; }
 .deadline-section__count { margin: 0 0 1rem; color: var(--muted); font-size: 0.85rem; }

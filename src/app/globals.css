@@ -10,6 +10,9 @@
   --accent: #d95f76;
   --accent-dark: #a83b51;
   --accent-soft: #fff0f3;
+  /* UI control palette: docs/ui-control-colors.md */
+  --control-accent: #c14962;
+  --control-line: #d8cbd2;
   --plum: #573849;
   --shadow: 0 16px 40px rgba(69, 43, 55, 0.08);
   --font-body: "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", sans-serif;
