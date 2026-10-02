@@ -1,34 +1,34 @@
 "use client";
 
-import { getReceptionFields, getReceptionStatus, getReceptionStatusLabel, getReceptionUrgency, isSalesInformation, receptionInformationTypeLabels, type Deadline } from "@/domain/deadline";
+import { getReceptionFields, getReceptionStatus, getReceptionStatusLabel, isSalesInformation, receptionInformationTypeLabels, type Deadline } from "@/domain/deadline";
 import { createDeadlineDetailHref, formatDeadline, formatReceptionStart, isDeadlineFinished } from "@/lib/deadlines";
 import { formatAppearanceStart, formatPublication } from "@/lib/appearances";
 import { useDeadlineNow } from "@/app/deadline-clock";
+import { formatReceptionBoundaryCompact, getReceptionPresentation } from "@/lib/reception-presentation";
 
 export function DeadlineCard({ item, now, headingLevel = 3, anchor = false, variant = "full" }: { item: Deadline; now: string; headingLevel?: 3 | 4; anchor?: boolean; variant?: "full" | "summary" }) {
   const currentTime = useDeadlineNow(now);
-  const status = getReceptionStatus(item, currentTime);
+  const { status, stateLabel, urgencyLabel, resaleLabel, nextBoundary } = getReceptionPresentation(item, currentTime);
   const fields = getReceptionFields(item);
   const sales = isSalesInformation(item);
-  const urgency = getReceptionUrgency(item, currentTime);
-  const statusLabel = getReceptionStatusLabel(item, currentTime);
-  const urgencyLabel = urgency === "today" ? (sales ? "本日販売終了" : "本日締切") : (sales ? "終了間近" : "締切間近");
   const finished = isDeadlineFinished(item, currentTime);
   const Heading = headingLevel === 4 ? "h4" : "h3";
   const summary = variant === "summary";
+  const startDate = (fields.startsAtPrecision !== "unknown" || fields.informationType !== "unspecified") && <p className={`deadline-card__date${!finished && nextBoundary === "start" ? " deadline-card__date--next" : ""}`} data-boundary="start">開始：{fields.startsAt || fields.startsOn ? <time dateTime={fields.startsAt ?? fields.startsOn!} aria-label={summary ? formatReceptionStart(item) : undefined}>{summary ? formatReceptionBoundaryCompact(item, "start") : formatReceptionStart(item)}</time> : formatReceptionStart(item)}</p>;
+  const endDate = <p className={`deadline-card__date${!finished && nextBoundary === "end" ? " deadline-card__date--next" : ""}`} data-boundary="end">{sales ? "販売終了" : "締切"}：{item.deadlineAt || item.deadlineOn ? <time dateTime={item.deadlineAt ?? item.deadlineOn!} aria-label={summary ? formatDeadline(item) : undefined}>{summary ? formatReceptionBoundaryCompact(item, "end") : formatDeadline(item)}</time> : (sales ? "終了日時未確認" : "締切日時未定")}</p>;
   return (
     <article className={`appearance-card deadline-card deadline-card--${status}${summary ? " deadline-card--summary" : ""}`} id={anchor ? `deadline-${item.id}` : undefined}>
       <div className="appearance-card__meta">
-        <span className={`deadline-status deadline-status--${status}`}>{statusLabel}</span>
-        {(urgency === "soon" || urgency === "today") && !finished && !statusLabel.includes(urgencyLabel) && <span className={`deadline-status deadline-status--${urgency}`}>{urgencyLabel}</span>}
-        <span className="deadline-kind">{receptionInformationTypeLabels[fields.informationType]}</span>
-        <span className="deadline-kind">{item.projectType === "fan" ? "ファン企画" : "公式企画"}</span>
+        <span className="deadline-kind deadline-kind--type">{receptionInformationTypeLabels[fields.informationType]}</span>
+        <span className="deadline-kind deadline-kind--project">{item.projectType === "fan" ? "ファン企画" : "公式企画"}</span>
+        <span className={`deadline-status deadline-status--${status}`}>{stateLabel}</span>
+        {urgencyLabel && <span className={`deadline-status deadline-status--${urgencyLabel.startsWith("本日") ? "today" : "soon"}`}>{urgencyLabel}</span>}
+        {resaleLabel && <span className="deadline-status deadline-status--resale">{resaleLabel}</span>}
       </div>
       <Heading>{summary ? <a className="deadline-card__detail" href={createDeadlineDetailHref(item.id)}>{item.projectTitle}</a> : item.projectTitle}</Heading>
       <p className="deadline-card__label">{item.label}</p>
-      {(fields.startsAtPrecision !== "unknown" || fields.informationType !== "unspecified") && <p className="deadline-card__date">開始：{fields.startsAt || fields.startsOn ? <time dateTime={fields.startsAt ?? fields.startsOn!}>{formatReceptionStart(item)}</time> : formatReceptionStart(item)}</p>}
-      <p className="deadline-card__date">{sales ? "販売終了" : "締切"}：{item.deadlineAt || item.deadlineOn ? <time dateTime={item.deadlineAt ?? item.deadlineOn!}>{formatDeadline(item)}</time> : (sales ? "終了日時未確認" : "締切日時未定")}</p>
-      {!summary && <p className="deadline-card__organizer">主催：{item.organizer}</p>}
+      <div className="deadline-card__dates">{nextBoundary === "start" ? <>{startDate}{endDate}</> : <>{endDate}{startDate}</>}</div>
+      {!summary && <p className="deadline-card__organizer">{item.projectType === "fan" ? "ファン企画" : "公式企画"} · 主催：{item.organizer}</p>}
       {!summary && item.targets.length > 0 && <ul className="deadline-card__targets" aria-label="関連する出演・公演">
         {item.targets.map((target) => <li key={target.id}>{target.eventTitle ?? target.title}{target.sessionLabel ? ` / ${target.sessionLabel}` : ""} — {formatAppearanceStart(target)}</li>)}
       </ul>}

@@ -15,7 +15,7 @@ export function PublicListPage({ kind, title, description, filters, now, childre
   return (
     <DeadlineClockProvider now={now}>
       <main>
-        <SiteHeader currentPage={kind} />
+        <SiteHeader currentPage={kind} filters={filters} />
         <div className="page-shell public-list-page">
           <header className="public-list-page__heading">
             <a className="list-back-link" href={createPublicHomeHref(filters, kind === "news" ? "latest" : "deadlines")}>← トップへ戻る</a>

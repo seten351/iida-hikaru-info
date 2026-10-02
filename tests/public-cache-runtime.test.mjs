@@ -290,7 +290,7 @@ test("production public pages share the six-query cache; invalidation and TTL re
   const homeA = await requestPage(productionPort, "/?view=upcoming");
   assert.match(homeA, /キャッシュ検証用の出演情報 A/);
   assert.match(sectionBody(homeA, "upcoming"), /キャッシュ検証用の出演情報 A/, "fixture starts 60 seconds ahead and should render as upcoming");
-  assert.match(sectionBody(homeA, "deadlines"), /販売前/);
+  assert.match(sectionBody(homeA, "deadlines"), /販売開始予定/);
   assert.equal(mockCalls.length, 6, "the first public page request should execute six SELECTs");
 
   const newsRequestAt = Date.now();

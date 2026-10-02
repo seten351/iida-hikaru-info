@@ -9,6 +9,7 @@ import {
   type ChangeEvent,
   type FormEvent,
   useCallback,
+  useId,
   useState,
   useTransition,
 } from "react";
@@ -20,6 +21,9 @@ import {
   type AppearanceFilterOptions,
   type AppearanceFilters,
 } from "@/lib/appearance-filters";
+import { getDeadlineListItems, type DeadlineListView } from "@/lib/reception-presentation";
+
+const receptionStatusLabels = { not_open: "受付前・販売前", open: "受付中・販売中", start_today: "本日開始・時刻未確認", end_today: "本日締切・販売終了", expired: "期限経過", closed: "終了", sold_out: "完売", cancelled: "中止", unknown: "状況未確認" };
 
 type AppearanceFiltersProps = {
   filters: AppearanceFilters;
@@ -31,6 +35,7 @@ type AppearanceFiltersProps = {
   deadlineItems?: Deadline[];
   now?: string;
   target?: "all" | "news" | "deadlines";
+  deadlineView?: DeadlineListView;
 };
 
 export function AppearanceFilters({
@@ -43,20 +48,26 @@ export function AppearanceFilters({
   deadlineItems,
   now = "1970-01-01T00:00:00Z",
   target = "all",
+  deadlineView,
 }: AppearanceFiltersProps) {
   const currentTime = useDeadlineNow(now);
-  const currentDeadlineMatchedCount = deadlineItems ? filterDeadlines(deadlineItems, filters, currentTime).length : deadlineMatchedCount;
+  const matchingDeadlines = deadlineItems ? filterDeadlines(deadlineItems, filters, currentTime) : null;
+  const currentDeadlineMatchedCount = matchingDeadlines ? (deadlineView ? getDeadlineListItems(matchingDeadlines, currentTime, deadlineView) : matchingDeadlines).length : deadlineMatchedCount;
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [draftFilters, setDraftFilters] = useState(filters);
+  const [detailsOpen, setDetailsOpen] = useState(Boolean(filters.series || filters.category || filters.year || filters.receptionType || filters.receptionStatus));
+  const detailsId = useId();
   const [isPending, startTransition] = useTransition();
 
   const navigate = useCallback(
-    (nextFilters: AppearanceFilters) => {
+    (nextFilters: AppearanceFilters, clear = false) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (clear) params.delete("receptionView");
       const href = createAppearanceFilterHref(
         pathname,
-        searchParams.toString(),
+        params.toString(),
         nextFilters,
       );
 
@@ -91,7 +102,7 @@ export function AppearanceFilters({
       year: null,
     };
     setDraftFilters(nextFilters);
-    navigate(nextFilters);
+    navigate(nextFilters, true);
   };
 
   const submitQuery = (event: FormEvent<HTMLFormElement>) => {
@@ -100,6 +111,8 @@ export function AppearanceFilters({
   };
 
   const active = hasReceptionFilters(draftFilters);
+  const canClear = active || Boolean(deadlineView && deadlineView !== "active");
+  const appliedConditions = [filters.q && `キーワード：${filters.q}`, filters.series && `シリーズ：${options.series.find(option => option.value === filters.series)?.label ?? filters.series}`, filters.category, filters.year && `${filters.year}年`, filters.receptionType && receptionInformationTypeLabels[filters.receptionType], filters.receptionStatus && `状態：${receptionStatusLabels[filters.receptionStatus]}`].filter(Boolean);
 
   return (
     <section className="appearance-filters" aria-labelledby="filters-heading">
@@ -112,6 +125,7 @@ export function AppearanceFilters({
           {isPending ? "検索条件を更新中…" : target === "news" ? `新着 ${matchedCount} / ${totalCount}件` : target === "deadlines" ? `受付・販売 ${currentDeadlineMatchedCount} / ${deadlineTotalCount}件` : `出演 ${matchedCount} / ${totalCount}件・受付・販売 ${currentDeadlineMatchedCount} / ${deadlineTotalCount}件`}
         </p>
       </div>
+      {appliedConditions.length > 0 && <p className="appearance-filters__applied" aria-label="適用中の検索条件">{appliedConditions.join(" / ")}</p>}
 
       <form
         className="appearance-filter-form"
@@ -130,6 +144,13 @@ export function AppearanceFilters({
             disabled={isPending}
           />
         </label>
+
+        <button className="appearance-filter-search appearance-filter-primary-search" type="submit" disabled={isPending}>検索</button>
+        <div className="appearance-filter-disclosure">
+          <button type="button" className="appearance-filter-details-toggle" aria-expanded={detailsOpen} aria-controls={detailsId} onClick={() => setDetailsOpen(value => !value)}>詳しく絞る <span aria-hidden="true">{detailsOpen ? "−" : "＋"}</span></button>
+          <button className="appearance-filter-clear" type="button" disabled={isPending || !canClear} onClick={clearFilters}>条件をクリア</button>
+        </div>
+        <div className="appearance-filter-details" id={detailsId} data-expanded={detailsOpen}>
 
         <div className="appearance-filter-facets">
           <label className="appearance-filter-field">
@@ -198,12 +219,13 @@ export function AppearanceFilters({
             <button
               className="appearance-filter-clear"
               type="button"
-              disabled={isPending || !active}
+              disabled={isPending || !canClear}
               onClick={clearFilters}
             >
               条件をクリア
             </button>
           </div>
+        </div>
         </div>
       </form>
     </section>

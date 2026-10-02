@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 
 import type { Deadline } from "@/domain/deadline";
 import { getReceptionCalendarLabels } from "@/lib/deadlines";
+import { aggregateReceptionCalendarLabels } from "@/lib/reception-presentation";
 import { DeadlineCard } from "@/app/deadline-card";
 import { AppearanceCard } from "@/app/appearance-card";
 import { getCalendarGuestMarker } from "@/app/appearance-guest-info";
@@ -42,6 +43,7 @@ export function AppearanceCalendar({
   const days = calendar.weeks.flat().filter((day) => day !== null);
   const selectedDay = days.find((day) => day.date === selectedDate)
     ?? days.find((day) => day.date === calendar.initialSelectedDay)!;
+  const selectedHasItems = selectedDay.items.length > 0 || (selectedDay.deadlines?.length ?? 0) > 0;
   const hasItems = days.some((day) => day.items.length > 0 || (day.deadlines?.length ?? 0) > 0);
   const visibleCategories = new Set(days.flatMap((day) => day.items.map((item) => item.category)));
   const periodUnit = calendar.view === "week" ? "週" : "月";
@@ -66,7 +68,17 @@ export function AppearanceCalendar({
           <p className="appearance-calendar__timezone">JAPAN TIME</p>
           <h3 id={headingId} aria-live="polite" aria-atomic="true">{calendar.label}</h3>
         </div>
-        <div className="appearance-calendar__controls">
+        <div className="appearance-calendar__controls appearance-calendar__navigation" role="group" aria-label={`表示する年月と${periodUnit}の移動`}>
+          <button
+            className="appearance-calendar__previous"
+            type="button"
+            disabled={calendar.previousPeriod === null}
+            aria-label={`前${periodUnit}`}
+            aria-controls={calendarId}
+            onClick={() => changePeriod(calendar.previousPeriod)}
+          >
+            <span aria-hidden="true">‹</span><span className="appearance-calendar__navigation-label" aria-hidden="true">前{periodUnit}</span>
+          </button>
           {calendar.view === "month" && (
             <div className="appearance-calendar__month-picker" role="group" aria-label="表示する年月">
               <label className="appearance-filter-field">
@@ -97,39 +109,32 @@ export function AppearanceCalendar({
               </label>
             </div>
           )}
-          <nav className="appearance-calendar__navigation" aria-label={`${periodUnit}の移動`}>
-            <button
-              type="button"
-              disabled={calendar.previousPeriod === null}
-              aria-controls={calendarId}
-              onClick={() => changePeriod(calendar.previousPeriod)}
-            >
-              <span aria-hidden="true">‹</span> 前{periodUnit}
-            </button>
-            <button
-              className="appearance-calendar__current"
-              type="button"
-              disabled={calendar.isCurrentPeriod}
-              aria-controls={calendarId}
-              onClick={() => changePeriod(null)}
-            >
-              今{periodUnit}に戻る
-            </button>
-            <button
-              type="button"
-              disabled={calendar.nextPeriod === null}
-              aria-controls={calendarId}
-              onClick={() => changePeriod(calendar.nextPeriod)}
-            >
-              翌{periodUnit} <span aria-hidden="true">›</span>
-            </button>
-          </nav>
+          <button
+            className="appearance-calendar__next"
+            type="button"
+            disabled={calendar.nextPeriod === null}
+            aria-label={`翌${periodUnit}`}
+            aria-controls={calendarId}
+            onClick={() => changePeriod(calendar.nextPeriod)}
+          >
+            <span className="appearance-calendar__navigation-label" aria-hidden="true">翌{periodUnit}</span><span aria-hidden="true">›</span>
+          </button>
+          <button
+            className="appearance-calendar__current"
+            type="button"
+            disabled={calendar.isCurrentPeriod}
+            aria-label={`今${periodUnit}に戻る`}
+            aria-controls={calendarId}
+            onClick={() => changePeriod(null)}
+          >
+            今{periodUnit}
+          </button>
         </div>
       </div>
 
       {hasItems && (
         <ul className="appearance-calendar__legend" aria-label="カテゴリの色分け">
-          {days.some((day) => (day.deadlines?.length ?? 0) > 0) && <li><span className="appearance-calendar__deadline-dot" aria-hidden="true" />受付・販売情報</li>}
+          {days.some((day) => (day.deadlines?.length ?? 0) > 0) && <li><span className="appearance-calendar__deadline-dot" aria-hidden="true" />受付・販売の開始／終了<span className="appearance-calendar__compact-key">（受付始＝受付開始、販売始＝販売開始、販売終＝販売終了）</span></li>}
           {appearanceCategoryDisplayOrder.filter((category) => visibleCategories.has(category)).map((category) => (
             <li key={category}>
               <span
@@ -163,12 +168,14 @@ export function AppearanceCalendar({
                   const guestMarker = getCalendarGuestMarker(
                     day.items.flatMap((item) => item.sessions),
                   );
+                  const receptionLabels = aggregateReceptionCalendarLabels(day.deadlines ?? [], day.date);
+                  const remainingMilestones = receptionLabels.slice(2).reduce((sum, milestone) => sum + milestone.count, 0);
                   return (
                     <td key={day.date}>
                       <button
                         className={`appearance-calendar__day${isOutsideMonth ? " appearance-calendar__day--outside-month" : ""}`}
                         type="button"
-                        aria-label={`${day.label}、出演情報${day.items.length}件、受付・販売${day.deadlines?.length ?? 0}件${categories.length > 0 ? `、${categories.join("・")}` : ""}${guestMarker ? `、${guestMarker}` : ""}${day.isToday ? "、今日" : ""}`}
+                        aria-label={`${day.label}、出演情報${day.items.length}件、受付・販売${day.deadlines?.length ?? 0}件${receptionLabels.map((milestone) => `、${milestone.label}${milestone.count}件`).join("")}${categories.length > 0 ? `、${categories.join("・")}` : ""}${guestMarker ? `、${guestMarker}` : ""}${day.isToday ? "、今日" : ""}`}
                         aria-pressed={day.date === selectedDay.date}
                         aria-current={day.isToday ? "date" : undefined}
                         aria-controls={detailsId}
@@ -180,8 +187,8 @@ export function AppearanceCalendar({
                           </time>
                           {day.isToday && <span className="appearance-calendar__today-label">今日</span>}
                         </span>
-                        {(day.deadlines?.length ?? 0) > 0 && <span className="appearance-calendar__deadline-count"><span className="appearance-calendar__deadline-dot" aria-hidden="true" />受付・販売{day.deadlines!.length}件</span>}
-                        {guestMarker && <span className="appearance-calendar__guest-marker">{guestMarker}</span>}
+                        {receptionLabels.length > 0 && <span className="appearance-calendar__milestones" aria-hidden="true">{receptionLabels.slice(0, 2).map((milestone) => <span className="appearance-calendar__milestone" key={milestone.label} title={`${milestone.label}${milestone.count}件`}><span className="appearance-calendar__milestone-label">{milestone.label}</span><span className="appearance-calendar__milestone-compact">{milestone.compactLabel}</span>{milestone.count > 1 && <span className="appearance-calendar__milestone-count">{milestone.count}</span>}</span>)}{remainingMilestones > 0 && <span className="appearance-calendar__milestone-more">ほか{remainingMilestones}件</span>}</span>}
+                        {guestMarker && <span className="appearance-calendar__guest-marker" aria-hidden="true" title={guestMarker}><span className="appearance-calendar__guest-full">{guestMarker}</span><span className="appearance-calendar__guest-compact">ゲスト</span></span>}
                         {day.items.length > 0 && (
                           <>
                             <span className="appearance-calendar__category-markers" aria-hidden="true">
@@ -222,10 +229,10 @@ export function AppearanceCalendar({
         {hasItems ? (showDeadlines ? "日付を選ぶと、下に出演情報と受付・販売情報を表示します。" : "日付を選ぶと、下に出演情報を表示します。") : emptyMessage}
       </p>
 
-      <section className="appearance-calendar__details" id={detailsId} aria-labelledby={detailsHeadingId}>
+      <section className={`appearance-calendar__details${selectedHasItems ? "" : " appearance-calendar__details--empty"}`} id={detailsId} aria-labelledby={detailsHeadingId}>
         <div className="appearance-calendar__details-heading" aria-live="polite" aria-atomic="true">
           <h3 id={detailsHeadingId}><time dateTime={selectedDay.date}>{selectedDay.label}</time></h3>
-          <span>出演{selectedDay.items.length}件・受付・販売{selectedDay.deadlines?.length ?? 0}件</span>
+          <span>{selectedHasItems ? `出演${selectedDay.items.length}件・受付・販売${selectedDay.deadlines?.length ?? 0}件` : "掲載予定なし"}</span>
         </div>
         {selectedDay.items.length > 0 ? (
           <div className="appearance-grid">
@@ -233,8 +240,6 @@ export function AppearanceCalendar({
               <AppearanceCard item={item} key={item.id} agenda headingLevel={4} deadlines={relatedDeadlines} now={now} />
             ))}
           </div>
-        ) : (selectedDay.deadlines?.length ?? 0) === 0 ? (
-          <p className="appearance-calendar__empty">この日に掲載されている出演情報・受付・販売情報はありません。</p>
         ) : null}
         {(selectedDay.deadlines?.length ?? 0) > 0 && <div className="appearance-calendar__deadline-details"><h4>この日の受付・販売情報</h4><div className="appearance-grid">{selectedDay.deadlines!.map((item) => <div key={item.id}><p className="deadline-card__label">{getReceptionCalendarLabels(item, selectedDay.date).join("・")}</p><DeadlineCard item={item} now={now} headingLevel={4} /></div>)}</div></div>}
       </section>

@@ -5,6 +5,7 @@ import type { Deadline } from "../src/domain/deadline";
 import { DeadlineCard } from "../src/app/deadline-card";
 import { DeadlineClockProvider } from "../src/app/deadline-clock";
 import { DeadlineSection } from "../src/app/deadline-section";
+import { DeadlineListControls } from "../src/app/deadline-list-controls";
 import { AppearanceCalendar } from "../src/app/appearance-calendar";
 import { AppearanceCard } from "../src/app/appearance-card";
 import { getAppearanceSchedule } from "../src/lib/appearance-schedule";
@@ -44,7 +45,7 @@ test("finished calls to action do not invite applications and list hides finishe
   assert.match(html, /受付ページを見る/);
   assert.doesNotMatch(html, /申し込み先を見る/);
   const list = renderToStaticMarkup(<DeadlineSection items={[expired]} now={now} isFiltering={false} />);
-  assert.match(list, /終了・完売・中止を含める/);
+  assert.match(list, /現在お知らせできる受付・販売情報はありません/);
   assert.doesNotMatch(list, /同人サークル合同企画/);
   assert.doesNotMatch(list, /checked/);
 });
@@ -132,13 +133,55 @@ test("reception facets and start-year fallback do not filter appearances or alte
 test("sold-out resale stays hidden in completed history and its sales link stays neutral", () => {
   const soldOut = { ...openSale, state: "sold_out" as const, saleMode: "resale" as const };
   const html = renderToStaticMarkup(<DeadlineCard item={soldOut} now="2026-10-02T12:00:00+09:00" />);
-  assert.match(html, /再販・完売/);
+  assert.match(html, /deadline-status--sold_out">完売/);
+  assert.match(html, /deadline-status--resale">再販/);
   assert.match(html, /販売ページを見る/);
   assert.doesNotMatch(html, /申し込み先を見る/);
   assert.doesNotMatch(renderToStaticMarkup(<DeadlineSection items={[soldOut]} now="2026-10-02T12:00:00+09:00" isFiltering={false} />), /記念グッズ/);
   const filtered = renderToStaticMarkup(<DeadlineSection items={[soldOut]} filters={{ q: "", series: null, category: null, year: null, receptionStatus: "sold_out" }} now="2026-10-02T12:00:00+09:00" isFiltering />);
   assert.match(filtered, /記念グッズ/);
   assert.doesNotMatch(filtered, /条件に一致する受付・販売情報はありません/);
+});
+
+test("purpose chips keep search constraints and type chips keep the selected purpose", () => {
+  const html = renderToStaticMarkup(<DeadlineListControls view="ending" filters={{ q: "記念", series: "hikaroom", category: null, year: "2026", receptionType: "online_sale", receptionStatus: "open" }} currentSearchParams="q=%E8%A8%98%E5%BF%B5&series=hikaroom&year=2026&receptionType=online_sale&receptionStatus=open&receptionView=ending&page=3" />);
+  assert.match(html, /aria-label="受付・販売の目的別表示"/);
+  assert.match(html, /aria-current="page">締切・販売終了/);
+  assert.match(html, /aria-current="page">通常通販/);
+  assert.match(html, /series=hikaroom/);
+  assert.match(html, /year=2026/);
+  assert.match(html, /receptionStatus=open/);
+  assert.match(html, /receptionView=ending/);
+  assert.doesNotMatch(html, /page=3/);
+});
+
+test("purpose lists separate completed history, future starts, and ending entries", () => {
+  const when = "2026-09-30T12:00:00+09:00";
+  const old = { ...deadline, id: "old", projectTitle: "終了した企画", deadlineOn: "2026-09-29" };
+  const ending = { ...deadline, id: "ending", projectTitle: "本日終了する企画" };
+  const starting = { ...openSale, id: "starting", projectTitle: "明日販売する企画" };
+  const list = (view: "active" | "ending" | "starting" | "finished" | "all") => renderToStaticMarkup(<DeadlineSection items={[old, ending, starting]} now={when} isFiltering={false} view={view} />);
+  assert.match(list("active"), /明日販売する企画/);
+  assert.doesNotMatch(list("active"), /終了した企画/);
+  assert.match(list("ending"), /本日終了する企画/);
+  assert.doesNotMatch(list("ending"), /明日販売する企画/);
+  assert.match(list("starting"), /明日販売する企画/);
+  assert.doesNotMatch(list("starting"), /本日終了する企画/);
+  assert.match(list("finished"), /終了した企画/);
+  assert.doesNotMatch(list("finished"), /明日販売する企画/);
+  assert.match(list("all"), /終了した企画/);
+  assert.match(list("all"), /明日販売する企画/);
+});
+
+test("card puts kind before state, future start before end, and keeps exact date metadata", () => {
+  const html = renderToStaticMarkup(<DeadlineCard item={{ ...openSale, startsAtPrecision: "exact", startsAt: "2026-10-01T18:00:00+09:00", startsOn: null, sourceUrls: ["https://example.com/one", "https://example.com/two"] }} now={now} />);
+  assert.ok(html.indexOf("通常通販・オンライン物販") < html.indexOf("販売開始予定"));
+  assert.ok(html.indexOf('data-boundary="start"') < html.indexOf('data-boundary="end"'));
+  assert.match(html, /deadline-card__date--next" data-boundary="start"/);
+  assert.match(html, /dateTime="2026-10-01T18:00:00\+09:00"/);
+  assert.match(html, /href="https:\/\/example.com\/one"/);
+  assert.match(html, /href="https:\/\/example.com\/two"/);
+  assert.match(html, /告知元 2/);
 });
 
 test("status-filtered lists use the shared live clock instead of a stale server facet", () => {

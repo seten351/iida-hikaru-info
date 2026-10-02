@@ -1,4 +1,7 @@
-export function SiteHeader({ home = false, currentPage }: { home?: boolean; currentPage?: "news" | "deadlines" }) {
+import type { AppearanceFilters } from "@/lib/appearance-filters";
+import { createPublicListHref } from "@/lib/public-list-navigation";
+
+export function SiteHeader({ home = false, currentPage, filters = { q: "", series: null, category: null, year: null } }: { home?: boolean; currentPage?: "news" | "deadlines"; filters?: AppearanceFilters }) {
   return (
     <header className="site-header">
       <div className="site-header__inner">
@@ -6,11 +9,11 @@ export function SiteHeader({ home = false, currentPage }: { home?: boolean; curr
           <span aria-hidden="true">IH</span>
           飯田ヒカル 出演情報
         </a>
-        <nav aria-label={home ? "ページ内ナビゲーション" : "サイトナビゲーション"}>
-          <a href={home ? "#latest" : "/news"} aria-current={currentPage === "news" ? "page" : undefined}>新着</a>
-          <a href={home ? "#deadlines" : "/deadlines"} aria-current={currentPage === "deadlines" ? "page" : undefined}>受付・販売</a>
-          <a href={home ? "#upcoming" : "/#upcoming"}>今後の予定</a>
-          <a href={home ? "#history" : "/#history"}>出演履歴</a>
+        <nav aria-label="サイトナビゲーション">
+          <a href={createPublicListHref("/news", filters)} aria-current={currentPage === "news" ? "page" : undefined}>新着</a>
+          <a href={createPublicListHref("/deadlines", filters)} aria-current={currentPage === "deadlines" ? "page" : undefined}>受付・販売</a>
+          <a href={home ? "#upcoming" : `${createPublicListHref("/", filters)}#upcoming`}>今後の予定</a>
+          <a href={home ? "#history" : `${createPublicListHref("/", filters)}#history`}>出演履歴</a>
         </nav>
       </div>
     </header>

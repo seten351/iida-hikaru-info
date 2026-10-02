@@ -3,6 +3,9 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import "./globals.css";
+import "./deadline-redesign.css";
+import "./calendar-redesign.css";
+import "./home-redesign.css";
 
 export const metadata: Metadata = {
   title: "飯田ヒカル 出演情報",

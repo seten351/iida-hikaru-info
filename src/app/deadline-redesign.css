@@ -1,0 +1,39 @@
+.deadline-list-controls { display: grid; gap: 0.65rem; margin: 1.25rem 0; }
+.deadline-list-controls__row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
+.deadline-filter-chip { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; max-width: 100%; padding: 0.45rem 0.85rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--plum); font-size: 0.85rem; line-height: 1.4; font-weight: 650; text-align: center; overflow-wrap: anywhere; }
+.deadline-filter-chip[aria-current="page"] { border-color: var(--plum); background: var(--plum); color: var(--surface); }
+.deadline-filter-chip:hover { border-color: var(--accent-dark); }
+.deadline-filter-chip:focus-visible, .deadline-card a:focus-visible { outline: 3px solid var(--accent-dark); outline-offset: 3px; }
+.deadline-list-controls__label { color: var(--muted); font-size: 0.8rem; }
+.deadline-list-controls__hint { color: var(--muted); font-size: 0.78rem; overflow-wrap: anywhere; }
+.deadline-section__count { margin: 0 0 1rem; color: var(--muted); font-size: 0.85rem; }
+.deadline-section__group { margin-top: 1.5rem; }
+.deadline-section__group-count { margin-left: 0.65rem; color: var(--muted); font-size: 0.8rem; font-weight: 500; }
+.deadline-card { min-width: 0; min-height: 0; }
+.deadline-card .appearance-card__meta { gap: 0.4rem; margin-bottom: 0.75rem; }
+.deadline-card .deadline-kind--type { flex-basis: 100%; font-size: 0.8rem; font-weight: 750; color: var(--plum); }
+.deadline-card .deadline-kind--project { font-size: 0.78rem; }
+.deadline-card .deadline-status { max-width: 100%; font-size: 0.78rem; white-space: normal; line-height: 1.5; }
+.deadline-status--resale { background: #f2eaf4; color: #785681; }
+.deadline-card h3, .deadline-card h4 { overflow-wrap: anywhere; line-height: 1.5; }
+.deadline-card__dates { width: 100%; margin-bottom: 0.7rem; }
+.deadline-card .deadline-card__date { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.85rem; line-height: 1.6; overflow-wrap: anywhere; }
+.deadline-card .deadline-card__date--next { color: var(--foreground); font-size: 0.95rem; font-weight: 750; }
+.deadline-card .deadline-card__date:not(.deadline-card__date--next) time { color: var(--muted); font-weight: 500; }
+.deadline-card .deadline-card__organizer, .deadline-card .deadline-card__note, .deadline-card .deadline-card__targets { font-size: 0.82rem; line-height: 1.65; }
+.deadline-card .appearance-card__sources { gap: 0.25rem 0.85rem; }
+.deadline-card .source-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.85rem; overflow-wrap: anywhere; }
+.deadline-card .deadline-card__detail { display: inline-block; min-height: 44px; padding: 0.2rem 0; }
+.deadline-card--summary .deadline-card__date { font-size: 0.8rem; }
+.deadline-card--summary .deadline-card__date--next { font-size: 0.88rem; }
+.deadline-card--summary .appearance-card__meta { width: 100%; }
+.deadline-card--summary .deadline-kind--type { flex-basis: auto; }
+@media (max-width: 640px) {
+  .deadline-card { padding: 1rem; }
+  .deadline-card h3, .deadline-card h4 { font-size: 1.05rem; }
+  .deadline-card .deadline-card__label { font-size: 0.9rem; }
+  .deadline-card .deadline-card__date { font-size: 0.875rem; }
+  .deadline-card .deadline-card__date--next { font-size: 0.95rem; }
+  .deadline-list-controls__hint { width: 100%; }
+  .deadline-filter-chip { font-size: 0.82rem; }
+}

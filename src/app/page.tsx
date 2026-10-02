@@ -112,7 +112,7 @@ async function HomeContent(props: PageProps<"/">) {
   return (
     <DeadlineClockProvider now={now.toISOString()}>
     <main>
-      <SiteHeader home />
+      <SiteHeader home filters={filters} />
 
       <div id="top" className="page-shell">
         <section className="intro" aria-labelledby="page-title">
@@ -123,7 +123,8 @@ async function HomeContent(props: PageProps<"/">) {
               <span>出演情報をひとつに。</span>
             </h1>
             <p className="intro__lead">
-              これからの出演予定と、これまでの活動を見やすくまとめてお届けします。
+              <span className="intro__lead-desktop">これからの出演予定と、これまでの活動を見やすくまとめてお届けします。</span>
+              <span className="intro__lead-mobile">出演予定とこれまでの活動をまとめています。</span>
             </p>
           </div>
           <div className="intro__status" aria-label="掲載情報について">

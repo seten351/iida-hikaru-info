@@ -8,6 +8,8 @@ import { buildAppearanceCards } from "@/lib/appearances";
 import { getAppearanceFilterOptions, hasReceptionFilters, parseAppearanceFilters } from "@/lib/appearance-filters";
 import { extendDeadlineFilterOptions, filterDeadlines } from "@/lib/deadlines";
 import { getPublicPageData } from "@/server/public-cache/reader";
+import { DeadlineListControls } from "@/app/deadline-list-controls";
+import { parseDeadlineListView } from "@/lib/reception-presentation";
 
 export const metadata: Metadata = {
   title: "受付・販売情報一覧 | 飯田ヒカル 出演情報",
@@ -21,17 +23,20 @@ async function DeadlinesPageContent(props: PageProps<"/deadlines">) {
   const cards = buildAppearanceCards(appearances);
   const options = extendDeadlineFilterOptions(getAppearanceFilterOptions(cards), deadlines);
   const filters = parseAppearanceFilters(searchParams, options);
+  const view = parseDeadlineListView(searchParams.receptionView, filters.receptionStatus);
+  const currentSearchParams = new URLSearchParams(Object.entries(searchParams).flatMap(([key, value]) => value === undefined ? [] : Array.isArray(value) ? value.map(item => [key, item]) : [[key, value]])).toString();
   const filtered = filterDeadlines(deadlines, filters, new Date(now));
   const candidates = filterDeadlines(deadlines, { ...filters, receptionStatus: null }, new Date(now));
 
   return (
     <PublicListPage kind="deadlines" title="受付・販売情報一覧" description="チケット受付・配信販売・物販の開始と終了を確認できます。日時は日本時間です。" filters={filters} now={now}>
+      <DeadlineListControls view={view} filters={filters} currentSearchParams={currentSearchParams} />
       <Suspense fallback={<div className="appearance-filters appearance-filters--loading" />}>
         <AppearanceFilters key={[filters.q, filters.series, filters.category, filters.year, filters.receptionType, filters.receptionStatus].join("\u0000")}
-          target="deadlines" filters={filters} options={options} totalCount={cards.length} matchedCount={cards.length}
+          target="deadlines" deadlineView={view} filters={filters} options={options} totalCount={cards.length} matchedCount={cards.length}
           deadlineItems={candidates} now={now} deadlineTotalCount={deadlines.length} deadlineMatchedCount={filtered.length} />
       </Suspense>
-      <DeadlineSection items={candidates} filters={filters} now={now} isFiltering={hasReceptionFilters(filters)} />
+      <DeadlineSection items={candidates} filters={filters} view={view} now={now} isFiltering={hasReceptionFilters(filters)} />
     </PublicListPage>
   );
 }
