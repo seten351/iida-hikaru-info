@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 
+import type { AppearanceFilters } from "@/lib/appearance-filters";
+import { filterReceptionStatus } from "@/lib/deadlines";
 import type { Deadline } from "@/domain/deadline";
 import { useDeadlineNow } from "@/app/deadline-clock";
 import { AppearanceCard } from "@/app/appearance-card";
@@ -24,6 +26,7 @@ export function AppearanceScheduleSection({
   cards,
   deadlines = [],
   relatedDeadlines = deadlines,
+  receptionFilters,
   upcoming,
   availableYears,
   view,
@@ -33,6 +36,7 @@ export function AppearanceScheduleSection({
 }: {
   cards: AppearanceCardData[];
   deadlines?: Deadline[];
+  receptionFilters?: AppearanceFilters;
   relatedDeadlines?: Deadline[];
   upcoming: AppearanceCardData[];
   availableYears: string[];
@@ -44,10 +48,11 @@ export function AppearanceScheduleSection({
   const [showDeadlines, setShowDeadlines] = useState(true);
   const currentTime = useDeadlineNow(now);
   const [period, setPeriod] = useState<string | null>(null);
+  const visibleDeadlines = receptionFilters ? filterReceptionStatus(deadlines, receptionFilters, currentTime) : deadlines;
   const schedule = getAppearanceSchedule(cards, currentTime, view, {
     month: period ?? undefined,
     week: period ?? undefined,
-  }, showDeadlines ? deadlines : []);
+  }, showDeadlines ? visibleDeadlines : []);
   const emptyMessage = isFiltering
     ? "条件に一致する出演情報はありません。"
     : view === "month"
@@ -68,7 +73,7 @@ export function AppearanceScheduleSection({
           <h2 id="upcoming-heading">{schedule.title}</h2>
         </div>
         <div className="appearance-schedule__summary">
-          <p>{schedule.calendar && showDeadlines ? "日付を選ぶと、その日の出演情報と申し込み締切を確認できます。" : schedule.description}</p>
+          <p>{schedule.calendar && showDeadlines ? "日付を選ぶと、その日の出演情報と受付・販売情報を確認できます。" : schedule.description}</p>
         </div>
       </header>
 
@@ -85,7 +90,7 @@ export function AppearanceScheduleSection({
         ))}
       </nav>
 
-      {schedule.calendar !== null && <label className="deadline-toggle"><input type="checkbox" checked={showDeadlines} onChange={(event) => setShowDeadlines(event.target.checked)} />締切も表示</label>}
+      {schedule.calendar !== null && <label className="deadline-toggle"><input type="checkbox" checked={showDeadlines} onChange={(event) => setShowDeadlines(event.target.checked)} />受付・販売も表示</label>}
       {schedule.calendar !== null ? (
         <AppearanceCalendar
           calendar={schedule.calendar}

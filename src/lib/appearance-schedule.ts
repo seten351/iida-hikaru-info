@@ -1,5 +1,5 @@
-import type { Deadline } from "@/domain/deadline";
-import { getDeadlineDay, compareDeadlines } from "@/lib/deadlines";
+import { getReceptionStartDay, getReceptionEndDay, type Deadline } from "@/domain/deadline";
+import { compareDeadlines } from "@/lib/deadlines";
 import type { AppearanceCard } from "@/lib/appearances";
 import {
   compareAppearanceStartsAscending,
@@ -235,12 +235,14 @@ function addDeadlinesToDays(days: AppearanceScheduleDay[], deadlines: Deadline[]
   const byDay = new Map(days.map((day) => [day.date, day]));
   const seen = new Set<string>();
   for (const item of deadlines) {
-    const date = getDeadlineDay(item);
-    if (!date || date < startDay || date > endDay || seen.has(item.id)) continue;
-    seen.add(item.id);
-    const day: AppearanceScheduleDay = byDay.get(date) ?? { date, label: dayLabelFormatter.format(calendarDate(date)!), items: [] };
-    day.deadlines = [...(day.deadlines ?? []), item];
-    byDay.set(date, day);
+    for (const date of new Set([getReceptionStartDay(item), getReceptionEndDay(item)])) {
+      const key = `${item.id}:${date}`;
+      if (!date || date < startDay || date > endDay || seen.has(key)) continue;
+      seen.add(key);
+      const day: AppearanceScheduleDay = byDay.get(date) ?? { date, label: dayLabelFormatter.format(calendarDate(date)!), items: [] };
+      day.deadlines = [...(day.deadlines ?? []), item];
+      byDay.set(date, day);
+    }
   }
   return [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date)).map((day) => ({ ...day, ...(day.deadlines ? { deadlines: day.deadlines.sort(compareDeadlines) } : {}) }));
 }

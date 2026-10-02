@@ -1,4 +1,5 @@
 import type { Deadline } from "@/domain/deadline";
+import { getReceptionFields, isSalesInformation } from "@/domain/deadline";
 import type { Appearance } from "@/domain/appearance";
 import type { DeadlineAdminRecord } from "@/server/deadlines/repository";
 
@@ -16,7 +17,8 @@ export function projectPublicDeadlines(records: DeadlineAdminRecord[], appearanc
     if (item.appearanceIds.length && !targets.length) return [];
     const first = targets[0];
     const seriesId = first ? first.seriesId : item.seriesId;
-    return [{ id: item.id, label: item.label, projectTitle: first && item.projectType === "official" ? first.eventTitle ?? first.title : item.projectTitle,
+    return [{ id: item.id, label: item.label, projectTitle: first && item.projectType === "official" && !isSalesInformation(item) ? first.eventTitle ?? first.title : item.projectTitle,
+      ...getReceptionFields(item),
       organizer: item.organizer, projectType: item.projectType, seriesId,
       seriesName: first ? first.seriesName : series.find(entry => entry.id === seriesId)?.displayName ?? null,
       category: first?.category ?? "その他", deadlinePrecision: item.deadlinePrecision,

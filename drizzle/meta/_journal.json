@@ -99,6 +99,20 @@
       "when": 1790757811603,
       "tag": "0013_add_appearance_guests",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790896938229,
+      "tag": "0014_add_deadline_sold_out",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1790896963882,
+      "tag": "0015_add_reception_sales_fields",
+      "breakpoints": true
     }
   ]
 }

@@ -19,7 +19,7 @@ export function PublicListPage({ kind, title, description, filters, now, childre
         <div className="page-shell public-list-page">
           <header className="public-list-page__heading">
             <a className="list-back-link" href={createPublicHomeHref(filters, kind === "news" ? "latest" : "deadlines")}>← トップへ戻る</a>
-            <p className="eyebrow">{kind === "news" ? "LATEST NEWS" : "APPLICATION DEADLINES"}</p>
+            <p className="eyebrow">{kind === "news" ? "LATEST NEWS" : "RECEPTION & SALES"}</p>
             <h1>{title}</h1>
             <p>{description}</p>
           </header>

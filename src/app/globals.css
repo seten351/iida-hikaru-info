@@ -1503,13 +1503,13 @@ footer {
 .deadline-toggle input:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .deadline-status { display: inline-flex; padding: 0.2rem 0.6rem; border-radius: 999px; background: #eef1f5; color: #4f5868; font-size: 0.7rem; font-weight: 750; white-space: nowrap; }
 .deadline-status--soon { background: #fff1da; color: #855017; }
-.deadline-status--today { background: #ffdfdf; color: #a12739; }
-.deadline-status--scheduled { background: #edf4fd; color: #365b8a; }
+.deadline-status--today, .deadline-status--end_today { background: #ffdfdf; color: #a12739; }
+.deadline-status--open, .deadline-status--scheduled { background: #edf4fd; color: #365b8a; }
 .deadline-kind { font-size: 0.7rem; color: var(--muted); }
 .deadline-card { border-top: 3px solid #8a648a; }
-.deadline-card--today { border-top-color: #a12739; }
+.deadline-card--today, .deadline-card--end_today { border-top-color: #a12739; }
 .deadline-card--soon { border-top-color: #bc8a37; }
-.deadline-card--expired, .deadline-card--closed, .deadline-card--cancelled { background: #faf9f8; }
+.deadline-card--expired, .deadline-card--closed, .deadline-card--sold_out, .deadline-card--cancelled { background: #faf9f8; }
 .deadline-card__label { margin: 0 0 0.6rem; font-size: 0.85rem; font-weight: 700; }
 .deadline-card__date { margin: 0 0 0.7rem; font-size: 0.82rem; }
 .deadline-card .deadline-card__date time { color: var(--foreground); font-size: inherit; }
@@ -1583,6 +1583,6 @@ footer {
 }
 
 @media (max-width: 420px) {
-  .appearance-calendar__deadline-count { display: block; white-space: nowrap; }
+  .appearance-calendar__deadline-count { display: block; overflow-wrap: anywhere; font-size: 0.5rem; }
   .appearance-calendar__deadline-count .appearance-calendar__deadline-dot { display: none; }
 }

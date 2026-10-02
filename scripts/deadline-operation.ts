@@ -7,6 +7,7 @@ import {
 } from "../src/server/admin/write-input";
 import type { AdminWriteResult } from "../src/server/admin/write-service";
 import type { DeadlineAdminRecord } from "../src/server/deadlines/record-reader";
+import { getReceptionFields } from "../src/domain/deadline";
 
 export type DeadlineImportOptions = {
   apply: boolean;
@@ -70,6 +71,7 @@ export function deadlineOperationHash(value: unknown): string {
 function snapshot(record: DeadlineAdminRecord) {
   return {
     fields: {
+      ...getReceptionFields(record),
       id: record.id, label: record.label, projectTitle: record.projectTitle,
       organizer: record.organizer, projectType: record.projectType, seriesId: record.seriesId,
       deadlinePrecision: record.deadlinePrecision, deadlineAt: record.deadlineAt, deadlineOn: record.deadlineOn,
@@ -115,16 +117,23 @@ export async function runDeadlineOperation(
   const current = (await dependencies.readRecords()).find(record => record.id === id);
   await dependencies.validatePreview(input);
   const before = current ? snapshot(current) : null;
+  const suppliedEvidence = input.operation === "create" || input.operation === "update"
+    ? [input.source, ...(input.schemaVersion === 2 ? input.evidenceSources ?? [] : [])].map(source => ({ canonicalUrl: source.canonicalUrl, evidenceKey: source.evidenceKey })) : [];
+  const sourceEvidence = [...new Map([
+    ...(input.operation === "update" && input.schemaVersion === 2 ? current?.sourceEvidence ?? [] : []),
+    ...suppliedEvidence,
+  ].map(source => [`${source.canonicalUrl}\u0000${source.evidenceKey}`, source])).values()];
   const after = input.operation === "create" || input.operation === "update"
     ? {
-      fields: input.fields, source: input.source, visibilityStatus: current?.visibilityStatus ?? "public",
-      sourceUrls: [input.source.canonicalUrl],
-      sourceEvidence: [{ canonicalUrl: input.source.canonicalUrl, evidenceKey: input.source.evidenceKey }],
+      fields: { ...getReceptionFields(current ?? {}), ...input.fields }, source: input.source, visibilityStatus: current?.visibilityStatus ?? "public",
+      sourceUrls: [...new Set([input.source.canonicalUrl, ...sourceEvidence.map(source => source.canonicalUrl)])], sourceEvidence,
     }
     : before && { ...before, visibilityStatus: input.operation === "hide" ? "hidden" : "public" };
   dependencies.log(JSON.stringify({
     mode: "dry-run", operation: input.operation, deadlineId: id,
     currentVersion: current?.version ?? null, expectedVersion: input.expectedVersion,
     before, after, normalizedInput: input, inputHash: hash,
+    primarySourceChange: input.operation === "create" || input.operation === "update"
+      ? { before: current?.source ?? null, after: input.source, changed: JSON.stringify(current?.source ?? null) !== JSON.stringify(input.source) } : null,
   }, null, 2));
 }

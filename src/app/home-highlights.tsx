@@ -3,8 +3,8 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import type { Deadline } from "@/domain/deadline";
 import type { AppearanceCard } from "@/lib/appearances";
-import type { AppearanceFilters } from "@/lib/appearance-filters";
-import { getUpcomingDeadlinePreview } from "@/lib/deadlines";
+import { hasReceptionFilters, type AppearanceFilters } from "@/lib/appearance-filters";
+import { filterReceptionStatus, getStartingReceptionPreview, getUpcomingDeadlinePreview } from "@/lib/deadlines";
 import { createPublicListHref } from "@/lib/public-list-navigation";
 import { DeadlineCard } from "./deadline-card";
 import { useDeadlineNow } from "./deadline-clock";
@@ -25,7 +25,9 @@ export function HomeHighlights({ latest, deadlines, now, isFiltering, filters }:
   const isMobile = useMobileHighlights();
   const activeTab: HighlightTab = hash === "#deadlines" ? "deadlines" : "latest";
   const currentTime = useDeadlineNow(now);
-  const deadlinePreview = getUpcomingDeadlinePreview(deadlines, currentTime);
+  const visibleDeadlines = filterReceptionStatus(deadlines, filters, currentTime);
+  const deadlinePreview = getUpcomingDeadlinePreview(visibleDeadlines, currentTime);
+  const startingPreview = getStartingReceptionPreview(visibleDeadlines, currentTime, deadlinePreview);
   const tabButtons = useRef<Array<HTMLButtonElement | null>>([]);
   const skipAnchorScroll = useRef(false);
 
@@ -58,14 +60,14 @@ export function HomeHighlights({ latest, deadlines, now, isFiltering, filters }:
 
   return (
     <div className="home-highlights" data-active-tab={activeTab}>
-      <div className="home-highlights__tabs" role="tablist" aria-label="新着情報と申し込み締切">
+      <div className="home-highlights__tabs" role="tablist" aria-label="新着情報と受付・販売情報">
         {tabs.map((tab, index) => (
           <button key={tab} id={`highlight-tab-${tab}`} role="tab" type="button"
             ref={(element) => { tabButtons.current[index] = element; }}
             aria-selected={activeTab === tab} aria-controls={tab}
             tabIndex={activeTab === tab ? 0 : -1}
             onClick={() => selectTab(tab)} onKeyDown={(event) => onTabKeyDown(event, index)}>
-            {tab === "latest" ? "新着" : "申し込み"}
+            {tab === "latest" ? "新着" : "受付・販売"}
           </button>
         ))}
       </div>
@@ -84,11 +86,12 @@ export function HomeHighlights({ latest, deadlines, now, isFiltering, filters }:
           role={isMobile ? "tabpanel" : undefined} tabIndex={isMobile ? 0 : undefined}
           aria-labelledby={isMobile ? "highlight-tab-deadlines" : "deadlines-heading"}>
           <header className="section-heading">
-            <div><p className="eyebrow">APPLICATION DEADLINES</p><h2 id="deadlines-heading">申し込み締切</h2></div>
-            <p>締切が近い順に掲載しています。日時は日本時間です。</p>
+            <div><p className="eyebrow">RECEPTION & SALES</p><h2 id="deadlines-heading">受付・販売情報</h2></div>
+            <p>締切・販売終了が近い順に掲載しています。日時は日本時間です。</p>
           </header>
-          {deadlinePreview.length > 0 ? <div className="home-highlights__deadlines">{deadlinePreview.map((item) => <DeadlineCard key={item.id} item={item} now={now} variant="summary" />)}</div> : <p className="empty-state">{isFiltering ? "条件に一致する未経過の締切はありません。" : "現在お知らせできる申し込み締切はありません。"}</p>}
-          <a className="list-more-link" href={createPublicListHref("/deadlines", filters)} aria-label="申し込み締切をもっと見る">もっと見る <span aria-hidden="true">→</span></a>
+          {deadlinePreview.length > 0 ? <div className="home-highlights__deadlines">{deadlinePreview.map((item) => <DeadlineCard key={item.id} item={item} now={now} variant="summary" />)}</div> : <p className="empty-state">{hasReceptionFilters(filters) ? "条件に一致する終了日時のある情報はありません。" : "現在お知らせできる締切・販売終了の予定はありません。"}</p>}
+          {startingPreview.length > 0 && <div className="deadline-section__group"><h3>開始予定・受付中・販売中</h3><div className="home-highlights__deadlines">{startingPreview.map(item => <DeadlineCard key={item.id} item={item} now={now} variant="summary" />)}</div></div>}
+          <a className="list-more-link" href={createPublicListHref("/deadlines", filters)} aria-label="受付・販売情報をもっと見る">もっと見る <span aria-hidden="true">→</span></a>
         </section>
       </div>
     </div>

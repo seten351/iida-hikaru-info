@@ -3,8 +3,8 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { and, asc, eq, inArray, ne } from "drizzle-orm";
 import { deadlinesTable, deadlineAppearanceLinksTable, deadlineSourceLinksTable, deadlineProposalsTable, deadlineRevisionsTable, appearancesTable, appearanceSeriesTable, sourceItemsTable, sourceIdentitiesTable } from "@/db/schema";
-import { deadlineFingerprint } from "@/domain/deadline";
-import { AdminWriteValidationError, type AdminDeadlineMutationInput } from "@/server/admin/write-input";
+import { deadlineFingerprint, getReceptionFields, validateDeadlineFields, validateReceptionPhase } from "@/domain/deadline";
+import { AdminWriteValidationError, type AdminDeadlineMutationInput, type AdminSourceInput } from "@/server/admin/write-input";
 import { upsertAdminSource, type AdminWriteResult } from "@/server/admin/write-service";
 import type { WriterTransaction } from "@/server/appearances/source-foundation";
 
@@ -35,6 +35,15 @@ export async function validateDeadlineWrite(tx: WriterTransaction, input: AdminD
   }
   if (input.operation === "create" || input.operation === "update") {
     const fields = input.fields;
+    if (input.schemaVersion === 2) {
+      try { validateReceptionPhase(fields, new Date()); }
+      catch (error) { throw new AdminWriteValidationError(error instanceof Error ? error.message : "受付状態が不正です。"); }
+    }
+    if (current && input.schemaVersion !== 2) {
+      // Validate the effective period even when a v1 caller omits the new fields.
+      try { validateDeadlineFields({ ...getReceptionFields({ ...current, startsAt: current.startsAt?.toISOString() ?? null }), ...fields }, true); }
+      catch (error) { throw new AdminWriteValidationError(error instanceof Error ? error.message : "受付期間が不正です。"); }
+    }
     if (fields.seriesId) {
       const [series] = await tx.select({ id: appearanceSeriesTable.id }).from(appearanceSeriesTable).where(eq(appearanceSeriesTable.id, fields.seriesId));
       if (!series) throw new AdminWriteValidationError("指定されたシリーズが存在しません。");
@@ -50,15 +59,41 @@ export async function validateDeadlineWrite(tx: WriterTransaction, input: AdminD
     const [duplicate] = await tx.select({ id: deadlinesTable.id }).from(deadlinesTable)
       .where(and(eq(deadlinesTable.fingerprint, deadlineFingerprint(fields)), ne(deadlinesTable.id, id)));
     if (duplicate) throw new AdminWriteValidationError(`同じ企画・受付の締切が既に存在します（${duplicate.id}）。既存情報を更新してください。`);
-    const [sourceDuplicate] = await tx.select({ id: deadlineSourceLinksTable.deadlineId }).from(deadlineSourceLinksTable)
-      .innerJoin(sourceItemsTable, eq(sourceItemsTable.id, deadlineSourceLinksTable.sourceId))
-      .where(and(eq(sourceItemsTable.canonicalUrl, input.source.canonicalUrl), eq(deadlineSourceLinksTable.evidenceKey, input.source.evidenceKey),
-        eq(deadlineSourceLinksTable.active, true), ne(deadlineSourceLinksTable.deadlineId, id)));
-    if (sourceDuplicate) throw new AdminWriteValidationError(`同じ告知・受付識別子が既に存在します（${sourceDuplicate.id}）。別の受付段階ならevidence keyを区別してください。`);
-    const [identity] = await tx.select({ canonicalUrl: sourceItemsTable.canonicalUrl }).from(sourceIdentitiesTable)
-      .innerJoin(sourceItemsTable, eq(sourceItemsTable.id, sourceIdentitiesTable.sourceId))
-      .where(and(eq(sourceIdentitiesTable.sourceName, input.source.sourceName), eq(sourceIdentitiesTable.externalItemId, input.source.externalItemId)));
-    if (identity && identity.canonicalUrl !== input.source.canonicalUrl) throw new AdminWriteValidationError("source identityは別のcanonical sourceに属しています。");
+    const suppliedSources = [input.source, ...(input.schemaVersion === 2 ? input.evidenceSources ?? [] : [])];
+    if (current && input.schemaVersion === 2) {
+      const changed = current.state !== fields.state || current.informationType !== fields.informationType || current.startsAtPrecision !== fields.startsAtPrecision
+        || (current.startsAt?.toISOString() ?? null) !== fields.startsAt || current.startsOn !== fields.startsOn || current.phaseOverride !== fields.phaseOverride
+        || current.saleMode !== fields.saleMode || current.deadlinePrecision !== fields.deadlinePrecision || (current.deadlineAt?.toISOString() ?? null) !== fields.deadlineAt || current.deadlineOn !== fields.deadlineOn;
+      if (changed && !input.evidenceSources?.length) {
+        const [retainedPrimary] = await tx.select({ id: deadlineSourceLinksTable.deadlineId }).from(deadlineSourceLinksTable)
+          .innerJoin(sourceItemsTable, eq(sourceItemsTable.id, deadlineSourceLinksTable.sourceId))
+          .where(and(eq(deadlineSourceLinksTable.deadlineId, id), eq(deadlineSourceLinksTable.active, true), eq(deadlineSourceLinksTable.isPrimary, true), eq(sourceItemsTable.canonicalUrl, input.source.canonicalUrl), eq(deadlineSourceLinksTable.evidenceKey, input.source.evidenceKey)));
+        if (retainedPrimary) throw new AdminWriteValidationError("種別・期間・状態・再販の変更には確認した追加根拠を指定してください。primaryは維持できます。");
+      }
+    }
+    const identities = new Map<string, string>();
+    for (const sourceInput of suppliedSources) {
+      const identityKey = `${sourceInput.sourceName}\u0000${sourceInput.externalItemId}`;
+      if (identities.has(identityKey) && identities.get(identityKey) !== sourceInput.canonicalUrl) throw new AdminWriteValidationError("source identityは別のcanonical sourceに属しています。");
+      identities.set(identityKey, sourceInput.canonicalUrl);
+      const [sourceDuplicate] = await tx.select({ id: deadlineSourceLinksTable.deadlineId }).from(deadlineSourceLinksTable)
+        .innerJoin(sourceItemsTable, eq(sourceItemsTable.id, deadlineSourceLinksTable.sourceId))
+        .where(and(eq(sourceItemsTable.canonicalUrl, sourceInput.canonicalUrl), eq(deadlineSourceLinksTable.evidenceKey, sourceInput.evidenceKey),
+          eq(deadlineSourceLinksTable.active, true), ne(deadlineSourceLinksTable.deadlineId, id)));
+      if (sourceDuplicate) throw new AdminWriteValidationError(`同じ告知・受付識別子が既に存在します（${sourceDuplicate.id}）。別の受付段階ならevidence keyを区別してください。`);
+      const [identity] = await tx.select({ canonicalUrl: sourceItemsTable.canonicalUrl }).from(sourceIdentitiesTable)
+        .innerJoin(sourceItemsTable, eq(sourceItemsTable.id, sourceIdentitiesTable.sourceId))
+        .where(and(eq(sourceIdentitiesTable.sourceName, sourceInput.sourceName), eq(sourceIdentitiesTable.externalItemId, sourceInput.externalItemId)));
+      if (identity && identity.canonicalUrl !== sourceInput.canonicalUrl) throw new AdminWriteValidationError("source identityは別のcanonical sourceに属しています。");
+      if (input.schemaVersion === 2) {
+        const [existing] = await tx.select({ link: deadlineSourceLinksTable, identity: sourceIdentitiesTable }).from(deadlineSourceLinksTable)
+          .innerJoin(sourceItemsTable, eq(sourceItemsTable.id, deadlineSourceLinksTable.sourceId))
+          .innerJoin(sourceIdentitiesTable, eq(sourceIdentitiesTable.id, deadlineSourceLinksTable.sourceIdentityId))
+          .where(and(eq(deadlineSourceLinksTable.deadlineId, id), eq(sourceItemsTable.canonicalUrl, sourceInput.canonicalUrl), eq(deadlineSourceLinksTable.evidenceKey, sourceInput.evidenceKey), eq(deadlineSourceLinksTable.active, true)));
+        if (existing && (existing.identity.sourceName !== sourceInput.sourceName || existing.identity.externalItemId !== sourceInput.externalItemId)) throw new AdminWriteValidationError("既存根拠のsource identityを引き継いでください。");
+        if (existing && (existing.link.publishedAtPrecision !== sourceInput.precision || (existing.link.publishedAt?.toISOString() ?? null) !== sourceInput.publishedAt || existing.link.publishedOn !== sourceInput.publishedOn)) throw new AdminWriteValidationError("既存根拠の公開日時を引き継いでください。受付・販売更新では変更できません。");
+      }
+    }
   }
   return current;
 }
@@ -92,24 +127,33 @@ export async function confirmDeadlineWrite(tx: WriterTransaction, input: AdminDe
   const now = new Date();
   const version = current ? current.version + 1 : 1;
   if (input.operation === "create" || input.operation === "update") {
-    const { appearanceIds, ...fields } = input.fields;
-    const values = { ...fields, deadlineAt: fields.deadlineAt ? new Date(fields.deadlineAt) : null,
+    const { appearanceIds, deadlineAt, startsAt, ...fields } = input.fields;
+    const values = { ...fields,
+      ...(current && deadlineAt === (current.deadlineAt?.toISOString() ?? null) ? {} : { deadlineAt: deadlineAt ? new Date(deadlineAt) : null }),
+      ...(input.schemaVersion === 2 ? { ...getReceptionFields(input.fields),
+        startsAt: startsAt ? new Date(startsAt) : null } : {}),
       fingerprint: deadlineFingerprint(input.fields), version, updatedAt: now };
+    // Unchanged Postgres timestamps must not round-trip through JS millisecond precision.
+    if (current && startsAt === (current.startsAt?.toISOString() ?? null)) delete values.startsAt;
     if (input.operation === "create") await tx.insert(deadlinesTable).values(values);
     else await tx.update(deadlinesTable).set(values).where(eq(deadlinesTable.id, id));
     await tx.delete(deadlineAppearanceLinksTable).where(eq(deadlineAppearanceLinksTable.deadlineId, id));
     if (appearanceIds.length) await tx.insert(deadlineAppearanceLinksTable).values(appearanceIds.map(appearanceId => ({ deadlineId: id, appearanceId })));
-    const source = await upsertAdminSource(tx, input.source, now);
-    await tx.update(deadlineSourceLinksTable).set({ active: false, isPrimary: false, updatedAt: now }).where(eq(deadlineSourceLinksTable.deadlineId, id));
-    const link = { deadlineId: id, ...source, evidenceKey: input.source.evidenceKey, active: true, isPrimary: true,
-      publishedAtPrecision: input.source.precision, publishedAt: input.source.publishedAt ? new Date(input.source.publishedAt) : null,
-      publishedOn: input.source.publishedOn, updatedAt: now };
-    // canonicalUrl belongs to source_items, not the link record.
-    const { canonicalUrl: _canonicalUrl, ...linkValues } = link;
-    void _canonicalUrl;
-    await tx.insert(deadlineSourceLinksTable).values(linkValues).onConflictDoUpdate({
-      target: [deadlineSourceLinksTable.deadlineId, deadlineSourceLinksTable.sourceId, deadlineSourceLinksTable.evidenceKey], set: linkValues,
-    });
+    if (input.schemaVersion === 2) {
+      await writeReceptionSources(tx, id, input.source, input.evidenceSources ?? [], now);
+    } else {
+      const source = await upsertAdminSource(tx, input.source, now);
+      await tx.update(deadlineSourceLinksTable).set({ active: false, isPrimary: false, updatedAt: now }).where(eq(deadlineSourceLinksTable.deadlineId, id));
+      const link = { deadlineId: id, ...source, evidenceKey: input.source.evidenceKey, active: true, isPrimary: true,
+        publishedAtPrecision: input.source.precision, publishedAt: input.source.publishedAt ? new Date(input.source.publishedAt) : null,
+        publishedOn: input.source.publishedOn, updatedAt: now };
+      // canonicalUrl belongs to source_items, not the link record.
+      const { canonicalUrl: _canonicalUrl, ...linkValues } = link;
+      void _canonicalUrl;
+      await tx.insert(deadlineSourceLinksTable).values(linkValues).onConflictDoUpdate({
+        target: [deadlineSourceLinksTable.deadlineId, deadlineSourceLinksTable.sourceId, deadlineSourceLinksTable.evidenceKey], set: linkValues,
+      });
+    }
   } else {
     await tx.update(deadlinesTable).set({ visibilityStatus: input.operation === "hide" ? "hidden" : "public", version, updatedAt: now }).where(eq(deadlinesTable.id, id));
   }
@@ -123,6 +167,29 @@ export async function confirmDeadlineWrite(tx: WriterTransaction, input: AdminDe
       .where(eq(deadlineSourceLinksTable.deadlineId, id)).orderBy(asc(deadlineSourceLinksTable.sourceId), asc(deadlineSourceLinksTable.evidenceKey)),
   ]);
   const snapshot = JSON.parse(JSON.stringify({ deadline, appearanceIds: appearanceLinks.map(item => item.appearanceId), sourceLinks })) as Record<string, unknown>;
-  await tx.insert(deadlineRevisionsTable).values({ id: `dlr_${id}_${version}`, deadlineId: id, proposalId: proposal, version, snapshotSchemaVersion: 1, snapshot });
+  await tx.insert(deadlineRevisionsTable).values({ id: `dlr_${id}_${version}`, deadlineId: id, proposalId: proposal, version, snapshotSchemaVersion: 2, snapshot });
   return { status: "approved", proposalIds: [proposal], targets: [{ id, version }], replayed: false };
+}
+
+async function writeReceptionSources(tx: WriterTransaction, id: string, primary: AdminSourceInput, evidence: AdminSourceInput[], now: Date) {
+  // Keep prior active evidence; only demote a primary that the reviewed input replaces.
+  const primarySource = await upsertAdminSource(tx, primary, now, true);
+  await tx.update(deadlineSourceLinksTable).set({ isPrimary: false, updatedAt: now })
+    .where(and(eq(deadlineSourceLinksTable.deadlineId, id), eq(deadlineSourceLinksTable.isPrimary, true),
+      // A different evidence key on the same page is also an explicit primary change.
+      ne(deadlineSourceLinksTable.sourceId, primarySource.sourceId)));
+  const links = await tx.select().from(deadlineSourceLinksTable).where(and(eq(deadlineSourceLinksTable.deadlineId, id), eq(deadlineSourceLinksTable.isPrimary, true)));
+  for (const link of links) if (link.evidenceKey !== primary.evidenceKey) await tx.update(deadlineSourceLinksTable).set({ isPrimary: false, updatedAt: now }).where(and(eq(deadlineSourceLinksTable.deadlineId, id), eq(deadlineSourceLinksTable.sourceId, link.sourceId), eq(deadlineSourceLinksTable.evidenceKey, link.evidenceKey)));
+  for (const [index, sourceInput] of [primary, ...evidence].entries()) {
+    const source = index === 0 ? primarySource : await upsertAdminSource(tx, sourceInput, now, true);
+    const [existing] = await tx.select().from(deadlineSourceLinksTable).where(and(eq(deadlineSourceLinksTable.deadlineId, id), eq(deadlineSourceLinksTable.sourceId, source.sourceId), eq(deadlineSourceLinksTable.evidenceKey, sourceInput.evidenceKey)));
+    if (existing?.active) {
+      if (index === 0 && !existing.isPrimary) await tx.update(deadlineSourceLinksTable).set({ isPrimary: true, updatedAt: now }).where(and(eq(deadlineSourceLinksTable.deadlineId, id), eq(deadlineSourceLinksTable.sourceId, source.sourceId), eq(deadlineSourceLinksTable.evidenceKey, sourceInput.evidenceKey)));
+      continue; // Keep primary publication, collection time and fractional seconds intact.
+    }
+    const value = { deadlineId: id, sourceId: source.sourceId, sourceIdentityId: source.sourceIdentityId, evidenceKey: sourceInput.evidenceKey,
+      active: true, isPrimary: index === 0, publishedAtPrecision: sourceInput.precision,
+      publishedAt: sourceInput.publishedAt ? new Date(sourceInput.publishedAt) : null, publishedOn: sourceInput.publishedOn, updatedAt: now };
+    await tx.insert(deadlineSourceLinksTable).values(value).onConflictDoUpdate({ target: [deadlineSourceLinksTable.deadlineId, deadlineSourceLinksTable.sourceId, deadlineSourceLinksTable.evidenceKey], set: value });
+  }
 }

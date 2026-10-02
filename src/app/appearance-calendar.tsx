@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 
 import type { Deadline } from "@/domain/deadline";
+import { getReceptionCalendarLabels } from "@/lib/deadlines";
 import { DeadlineCard } from "@/app/deadline-card";
 import { AppearanceCard } from "@/app/appearance-card";
 import { getCalendarGuestMarker } from "@/app/appearance-guest-info";
@@ -128,7 +129,7 @@ export function AppearanceCalendar({
 
       {hasItems && (
         <ul className="appearance-calendar__legend" aria-label="カテゴリの色分け">
-          {days.some((day) => (day.deadlines?.length ?? 0) > 0) && <li><span className="appearance-calendar__deadline-dot" aria-hidden="true" />申し込み締切</li>}
+          {days.some((day) => (day.deadlines?.length ?? 0) > 0) && <li><span className="appearance-calendar__deadline-dot" aria-hidden="true" />受付・販売情報</li>}
           {appearanceCategoryDisplayOrder.filter((category) => visibleCategories.has(category)).map((category) => (
             <li key={category}>
               <span
@@ -167,7 +168,7 @@ export function AppearanceCalendar({
                       <button
                         className={`appearance-calendar__day${isOutsideMonth ? " appearance-calendar__day--outside-month" : ""}`}
                         type="button"
-                        aria-label={`${day.label}、出演情報${day.items.length}件、締切${day.deadlines?.length ?? 0}件${categories.length > 0 ? `、${categories.join("・")}` : ""}${guestMarker ? `、${guestMarker}` : ""}${day.isToday ? "、今日" : ""}`}
+                        aria-label={`${day.label}、出演情報${day.items.length}件、受付・販売${day.deadlines?.length ?? 0}件${categories.length > 0 ? `、${categories.join("・")}` : ""}${guestMarker ? `、${guestMarker}` : ""}${day.isToday ? "、今日" : ""}`}
                         aria-pressed={day.date === selectedDay.date}
                         aria-current={day.isToday ? "date" : undefined}
                         aria-controls={detailsId}
@@ -179,7 +180,7 @@ export function AppearanceCalendar({
                           </time>
                           {day.isToday && <span className="appearance-calendar__today-label">今日</span>}
                         </span>
-                        {(day.deadlines?.length ?? 0) > 0 && <span className="appearance-calendar__deadline-count"><span className="appearance-calendar__deadline-dot" aria-hidden="true" />締切{day.deadlines!.length}件</span>}
+                        {(day.deadlines?.length ?? 0) > 0 && <span className="appearance-calendar__deadline-count"><span className="appearance-calendar__deadline-dot" aria-hidden="true" />受付・販売{day.deadlines!.length}件</span>}
                         {guestMarker && <span className="appearance-calendar__guest-marker">{guestMarker}</span>}
                         {day.items.length > 0 && (
                           <>
@@ -218,13 +219,13 @@ export function AppearanceCalendar({
         </table>
       </div>
       <p className="appearance-calendar__hint">
-        {hasItems ? (showDeadlines ? "日付を選ぶと、下に出演情報と申し込み締切を表示します。" : "日付を選ぶと、下に出演情報を表示します。") : emptyMessage}
+        {hasItems ? (showDeadlines ? "日付を選ぶと、下に出演情報と受付・販売情報を表示します。" : "日付を選ぶと、下に出演情報を表示します。") : emptyMessage}
       </p>
 
       <section className="appearance-calendar__details" id={detailsId} aria-labelledby={detailsHeadingId}>
         <div className="appearance-calendar__details-heading" aria-live="polite" aria-atomic="true">
           <h3 id={detailsHeadingId}><time dateTime={selectedDay.date}>{selectedDay.label}</time></h3>
-          <span>出演{selectedDay.items.length}件・締切{selectedDay.deadlines?.length ?? 0}件</span>
+          <span>出演{selectedDay.items.length}件・受付・販売{selectedDay.deadlines?.length ?? 0}件</span>
         </div>
         {selectedDay.items.length > 0 ? (
           <div className="appearance-grid">
@@ -233,9 +234,9 @@ export function AppearanceCalendar({
             ))}
           </div>
         ) : (selectedDay.deadlines?.length ?? 0) === 0 ? (
-          <p className="appearance-calendar__empty">この日に掲載されている出演情報・締切はありません。</p>
+          <p className="appearance-calendar__empty">この日に掲載されている出演情報・受付・販売情報はありません。</p>
         ) : null}
-        {(selectedDay.deadlines?.length ?? 0) > 0 && <div className="appearance-calendar__deadline-details"><h4>この日の申し込み締切</h4><div className="appearance-grid">{selectedDay.deadlines!.map((item) => <DeadlineCard item={item} key={item.id} now={now} headingLevel={4} />)}</div></div>}
+        {(selectedDay.deadlines?.length ?? 0) > 0 && <div className="appearance-calendar__deadline-details"><h4>この日の受付・販売情報</h4><div className="appearance-grid">{selectedDay.deadlines!.map((item) => <div key={item.id}><p className="deadline-card__label">{getReceptionCalendarLabels(item, selectedDay.date).join("・")}</p><DeadlineCard item={item} now={now} headingLevel={4} /></div>)}</div></div>}
       </section>
     </div>
   );

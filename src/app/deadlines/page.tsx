@@ -5,13 +5,13 @@ import { AppearanceFilters } from "@/app/appearance-filters";
 import { DeadlineSection } from "@/app/deadline-section";
 import { PublicListPage } from "@/app/public-list-page";
 import { buildAppearanceCards } from "@/lib/appearances";
-import { getAppearanceFilterOptions, hasAppearanceFilters, parseAppearanceFilters } from "@/lib/appearance-filters";
+import { getAppearanceFilterOptions, hasReceptionFilters, parseAppearanceFilters } from "@/lib/appearance-filters";
 import { extendDeadlineFilterOptions, filterDeadlines } from "@/lib/deadlines";
 import { getPublicPageData } from "@/server/public-cache/reader";
 
 export const metadata: Metadata = {
-  title: "申し込み締切一覧 | 飯田ヒカル 出演情報",
-  description: "飯田ヒカルさんに関連するチケット・企画の申し込み締切を日本時間で掲載。締切済みの受付も確認できます。",
+  title: "受付・販売情報一覧 | 飯田ヒカル 出演情報",
+  description: "飯田ヒカルさんに関連するチケット受付・配信販売・受注物販・通販の開始と終了を日本時間で掲載。終了・完売した情報も確認できます。",
 };
 
 async function DeadlinesPageContent(props: PageProps<"/deadlines">) {
@@ -21,16 +21,17 @@ async function DeadlinesPageContent(props: PageProps<"/deadlines">) {
   const cards = buildAppearanceCards(appearances);
   const options = extendDeadlineFilterOptions(getAppearanceFilterOptions(cards), deadlines);
   const filters = parseAppearanceFilters(searchParams, options);
-  const filtered = filterDeadlines(deadlines, filters);
+  const filtered = filterDeadlines(deadlines, filters, new Date(now));
+  const candidates = filterDeadlines(deadlines, { ...filters, receptionStatus: null }, new Date(now));
 
   return (
-    <PublicListPage kind="deadlines" title="申し込み締切一覧" description="チケット・企画の締切を確認できます。日時は日本時間です。" filters={filters} now={now}>
+    <PublicListPage kind="deadlines" title="受付・販売情報一覧" description="チケット受付・配信販売・物販の開始と終了を確認できます。日時は日本時間です。" filters={filters} now={now}>
       <Suspense fallback={<div className="appearance-filters appearance-filters--loading" />}>
-        <AppearanceFilters key={[filters.q, filters.series, filters.category, filters.year].join("\u0000")}
+        <AppearanceFilters key={[filters.q, filters.series, filters.category, filters.year, filters.receptionType, filters.receptionStatus].join("\u0000")}
           target="deadlines" filters={filters} options={options} totalCount={cards.length} matchedCount={cards.length}
-          deadlineTotalCount={deadlines.length} deadlineMatchedCount={filtered.length} />
+          deadlineItems={candidates} now={now} deadlineTotalCount={deadlines.length} deadlineMatchedCount={filtered.length} />
       </Suspense>
-      <DeadlineSection items={filtered} now={now} isFiltering={hasAppearanceFilters(filters)} />
+      <DeadlineSection items={candidates} filters={filters} now={now} isFiltering={hasReceptionFilters(filters)} />
     </PublicListPage>
   );
 }

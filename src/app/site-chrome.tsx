@@ -8,7 +8,7 @@ export function SiteHeader({ home = false, currentPage }: { home?: boolean; curr
         </a>
         <nav aria-label={home ? "ページ内ナビゲーション" : "サイトナビゲーション"}>
           <a href={home ? "#latest" : "/news"} aria-current={currentPage === "news" ? "page" : undefined}>新着</a>
-          <a href={home ? "#deadlines" : "/deadlines"} aria-current={currentPage === "deadlines" ? "page" : undefined}>締切</a>
+          <a href={home ? "#deadlines" : "/deadlines"} aria-current={currentPage === "deadlines" ? "page" : undefined}>受付・販売</a>
           <a href={home ? "#upcoming" : "/#upcoming"}>今後の予定</a>
           <a href={home ? "#history" : "/#history"}>出演履歴</a>
         </nav>

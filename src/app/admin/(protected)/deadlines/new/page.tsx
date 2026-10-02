@@ -12,8 +12,8 @@ export default async function NewDeadlinePage({ searchParams }: { searchParams: 
   ]);
   if (!config.writeEnabled) notFound();
   return <>
-    <BackLink href="/admin/deadlines">締切一覧</BackLink>
-    <AdminPageHeader eyebrow="NEW DEADLINE" title="申し込み締切を新規作成" description="緊急時の手動登録です。通常はエージェントから登録します。共通のPreview・検証・確定処理を使用します。" />
+    <BackLink href="/admin/deadlines">受付・販売一覧</BackLink>
+    <AdminPageHeader eyebrow="NEW RECEPTION & SALES" title="受付・販売情報を新規作成" description="緊急時の手動登録です。通常はエージェントから登録します。共通のPreview・検証・確定処理を使用します。" />
     <DeadlineEditor series={series} appearances={appearances} initialAppearanceId={query.appearanceId} />
   </>;
 }

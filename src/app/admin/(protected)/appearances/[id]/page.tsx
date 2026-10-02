@@ -47,7 +47,7 @@ export default async function AdminAppearanceDetailPage({
       {config.writeEnabled ? (
         <div className="admin-page-actions">
           <Link href={`/admin/appearances/${appearance.id}/edit`} prefetch={false}>基本情報を編集</Link>
-          <Link href={`/admin/deadlines/new?appearanceId=${encodeURIComponent(appearance.id)}`} prefetch={false}>申し込み締切を追加</Link>
+          <Link href={`/admin/deadlines/new?appearanceId=${encodeURIComponent(appearance.id)}`} prefetch={false}>受付・販売情報を追加</Link>
           {appearance.eventGroupId ? (
             <Link href={`/admin/event-groups/${encodeURIComponent(appearance.eventGroupId)}/edit`} prefetch={false}>
               同じevent groupを一括編集
@@ -85,7 +85,7 @@ export default async function AdminAppearanceDetailPage({
         />
       </section>
       <section className="admin-panel">
-        <h2>関連する申し込み締切 ({deadlines.length})</h2>
+        <h2>関連する受付・販売情報 ({deadlines.length})</h2>
         <ul className="admin-link-list">
           {deadlines.map((deadline) => (
             <li key={deadline.id}>
@@ -94,7 +94,7 @@ export default async function AdminAppearanceDetailPage({
             </li>
           ))}
         </ul>
-        {!deadlines.length ? <p className="admin-form-note">この出演に関連する申し込み締切はありません。</p> : null}
+        {!deadlines.length ? <p className="admin-form-note">この出演に関連する受付・販売情報はありません。</p> : null}
       </section>
       {config.writeEnabled ? (
         <section className="admin-panel">

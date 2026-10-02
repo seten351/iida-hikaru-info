@@ -84,11 +84,11 @@ export default async function AdminSourceDetailPage({
         )}
       </section>
       <section className="admin-panel">
-        <h2>締切 ({deadlineLinks.length})</h2>
+        <h2>受付・販売 ({deadlineLinks.length})</h2>
         {deadlineLinks.length ? <ul className="admin-link-list">{deadlineLinks.map(link => <li key={link.deadlineId + ":" + link.evidenceKey}>
           <Link href={`/admin/deadlines/${link.deadlineId}`} prefetch={false}>{link.title}</Link>
           <span>{link.evidenceKey} · active {String(link.active)} · primary {String(link.isPrimary)}</span>
-        </li>)}</ul> : <EmptyState>締切への参照はありません。</EmptyState>}
+        </li>)}</ul> : <EmptyState>受付・販売への参照はありません。</EmptyState>}
       </section>
       <section className="admin-panel">
         <h2>Proposals ({proposalLinks.length})</h2>

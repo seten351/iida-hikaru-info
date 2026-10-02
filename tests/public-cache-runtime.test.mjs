@@ -24,6 +24,7 @@ let mockServer;
 let mockPort;
 let mockCalls = [];
 let appearanceTitle = "キャッシュ検証用の出演情報 A";
+let saleState = "scheduled";
 let clockFile;
 let productionServer;
 let previewServer;
@@ -57,9 +58,25 @@ function appearanceResult() {
   return result(columns, [row]);
 }
 
-const emptyDeadlineResult = result([
-  ["deadline"], ["source"],
-]);
+function deadlineResult() {
+  // Match the independent record reader's ordered Drizzle projection.
+  const columns = [
+    ["id"], ["label"], ["projectTitle"], ["organizer"], ["projectType"], ["seriesId"],
+    ["deadlinePrecision"], ["deadlineAt", 1184], ["deadlineOn"], ["applicationUrl"], ["note"], ["state"],
+    ["informationType"], ["startsAtPrecision"], ["startsAt", 1184], ["startsOn"], ["phaseOverride"], ["saleMode"],
+    ["fingerprint"], ["visibilityStatus"], ["version", 23], ["createdAt", 1184], ["updatedAt", 1184],
+    ["canonicalUrl"], ["sourceName"], ["externalItemId"], ["evidenceKey"], ["precision"],
+    ["publishedAt", 1184], ["publishedOn"], ["sourceUpdatedAt", 1184], ["linkUpdatedAt", 1184],
+  ];
+  return result(columns, [[
+    "runtime-sale", "公式通販", "キャッシュ検証用の物販", "公式ストア", "official", null,
+    "unknown", null, null, "https://example.invalid/store/item", null, saleState,
+    "online_sale", "exact", new Date(Date.now() + 60_000).toISOString(), null, "not_open", "initial",
+    "runtime-sale", "public", 1, fixtureTimes.collectedAt, fixtureTimes.updatedAt,
+    "https://example.invalid/news/sale", "official:store", "sale", "sale", "exact",
+    fixtureTimes.publishedAt, null, fixtureTimes.updatedAt, fixtureTimes.updatedAt,
+  ]]);
+}
 
 function queryResult(query) {
   const sql = query.query ?? query;
@@ -69,9 +86,9 @@ function queryResult(query) {
   if (/from\s+"appearance_source_links"/i.test(sql)) {
     return result([["appearanceId"], ["sourceUrl"]], [["runtime-cache-fixture", "https://example.invalid/fixture"]]);
   }
-  if (/from\s+"deadlines"/i.test(sql)) return emptyDeadlineResult;
+  if (/from\s+"deadlines"/i.test(sql)) return deadlineResult();
   if (/from\s+"deadline_appearance_links"/i.test(sql)) return result([["deadlineId"], ["appearanceId"]]);
-  if (/from\s+"deadline_source_links"/i.test(sql)) return result([["deadlineId"], ["url"], ["evidenceKey"]]);
+  if (/from\s+"deadline_source_links"/i.test(sql)) return result([["deadlineId"], ["url"], ["evidenceKey"]], [["runtime-sale", "https://example.invalid/news/sale", "sale"]]);
   if (/from\s+"appearance_series"/i.test(sql)) return result([["id"], ["displayName"]]);
   throw new Error(`Unrecognized test SQL: ${String(sql).slice(0, 180)}`);
 }
@@ -121,6 +138,10 @@ Object.defineProperty(performance, "timeOrigin", {
 class TestClockDate extends RealDate {
   constructor(...args) { super(...(args.length ? args : [RealDate.now() + offset()])); }
   static now() { return RealDate.now() + offset(); }
+  // Next's Date instrumentation copies own properties, so preserve native
+  // static methods explicitly instead of relying on subclass inheritance.
+  static parse(value) { return RealDate.parse(value); }
+  static UTC(...args) { return RealDate.UTC(...args); }
 }
 globalThis.Date = TestClockDate;
 const originalFetch = globalThis.fetch.bind(globalThis);
@@ -269,6 +290,7 @@ test("production public pages share the six-query cache; invalidation and TTL re
   const homeA = await requestPage(productionPort, "/?view=upcoming");
   assert.match(homeA, /キャッシュ検証用の出演情報 A/);
   assert.match(sectionBody(homeA, "upcoming"), /キャッシュ検証用の出演情報 A/, "fixture starts 60 seconds ahead and should render as upcoming");
+  assert.match(sectionBody(homeA, "deadlines"), /販売前/);
   assert.equal(mockCalls.length, 6, "the first public page request should execute six SELECTs");
 
   const newsRequestAt = Date.now();
@@ -276,7 +298,7 @@ test("production public pages share the six-query cache; invalidation and TTL re
   const pageNowA = requestTimeFrom(newsA, newsRequestAt);
   const deadlinesA = await requestPage(productionPort, "/deadlines");
   assert.match(newsA, /キャッシュ検証用の出演情報 A/);
-  assert.match(deadlinesA, /APPLICATION DEADLINES/);
+  assert.match(deadlinesA, /RECEPTION &amp; SALES/);
   assert.equal(mockCalls.length, 6, "news and deadlines should hit the same cached data entry");
 
   await new Promise(resolve => setTimeout(resolve, 20));
@@ -290,16 +312,22 @@ test("production public pages share the six-query cache; invalidation and TTL re
   const homeAfterStart = await requestPage(productionPort, "/?view=upcoming");
   assert.doesNotMatch(sectionBody(homeAfterStart, "upcoming"), /キャッシュ検証用の出演情報 A/);
   assert.match(sectionBody(homeAfterStart, "history"), /キャッシュ検証用の出演情報 A/, "the same cached appearance should move into history after its start time");
+  assert.match(sectionBody(homeAfterStart, "deadlines"), /販売中/, "cached start-only sales change status without another SELECT");
   assert.equal(mockCalls.length, 6, "time-dependent grouping should update without reloading cached database data");
 
   // Start an independent cache-lifetime segment at its own clock origin.
   await writeFile(clockFile, "0");
   appearanceTitle = "キャッシュ検証用の出演情報 B";
+  saleState = "sold_out";
   await invalidate(productionPort);
   const homeB = await requestPage(productionPort, "/");
   assert.match(homeB, /キャッシュ検証用の出演情報 B/);
   assert.doesNotMatch(homeB, /キャッシュ検証用の出演情報 A/);
   assert.equal(mockCalls.length, 12, "tag invalidation should reload all six SELECTs");
+  const soldOut = await requestPage(productionPort, "/deadlines?receptionStatus=sold_out");
+  assert.match(sectionBody(soldOut, "deadlines"), /完売/);
+  assert.match(sectionBody(soldOut, "deadlines"), /キャッシュ検証用の物販/);
+  assert.equal(mockCalls.length, 12, "sale-status searches also reuse the shared cache");
 
   appearanceTitle = "キャッシュ検証用の出演情報 C";
   // The installed Next 16.3.4 default remote handler drops production entries

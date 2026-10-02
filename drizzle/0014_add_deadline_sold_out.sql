@@ -1,0 +1,1 @@
+ALTER TYPE "public"."deadline_state" ADD VALUE 'sold_out';

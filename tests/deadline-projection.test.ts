@@ -29,6 +29,14 @@ test("all-hidden targets and hidden deadlines do not reach public output", () =>
   assert.deepEqual(projectPublicDeadlines([record], [], []), []);
   assert.deepEqual(projectPublicDeadlines([{ ...record, visibilityStatus: "hidden" }], [appearance], []), []);
 });
+test("sales retain their merchandise title while related hidden appearance data stays private", () => {
+  const [sale] = projectPublicDeadlines([{ ...record, informationType: "made_to_order", projectTitle: "記念グッズ", startsAtPrecision: "date", startsAt: null, startsOn: "2026-10-01" }], [appearance], []);
+  assert.equal(sale.projectTitle, "記念グッズ");
+  assert.equal(sale.targets[0].eventTitle, "現在のイベント名");
+  assert.equal(sale.startsAt, null);
+  assert.equal(sale.startsOn, "2026-10-01");
+  assert.ok(!JSON.stringify(sale).includes("hidden"));
+});
 test("standalone fan project and a fan project attached to a public appearance keep their own title", () => {
   const [standalone, related] = projectPublicDeadlines([
     { ...record, id: "standalone", projectType: "fan", seriesId: "hikaroom", appearanceIds: [] },

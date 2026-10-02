@@ -22,7 +22,7 @@ import {
   startsAtPrecisions,
 } from "../domain/appearance";
 import type { AppearanceGuestInfo } from "../domain/appearance-guests";
-import { deadlinePrecisions, deadlineProjectTypes, deadlineStates } from "../domain/deadline";
+import { deadlinePrecisions, deadlineProjectTypes, deadlineStates, receptionInformationTypes, receptionPhaseOverrides, receptionSaleModes } from "../domain/deadline";
 
 export const appearanceCategoryEnum = pgEnum(
   "appearance_category",
@@ -95,6 +95,9 @@ export const seriesRevisionOperationEnum = pgEnum(
 export const deadlinePrecisionEnum = pgEnum("deadline_precision", deadlinePrecisions);
 export const deadlineStateEnum = pgEnum("deadline_state", deadlineStates);
 export const deadlineProjectTypeEnum = pgEnum("deadline_project_type", deadlineProjectTypes);
+export const receptionInformationTypeEnum = pgEnum("reception_information_type", receptionInformationTypes);
+export const receptionPhaseOverrideEnum = pgEnum("reception_phase_override", receptionPhaseOverrides);
+export const receptionSaleModeEnum = pgEnum("reception_sale_mode", receptionSaleModes);
 
 // Deadlines are independent content; related appearances are references, never synthetic events.
 export const deadlinesTable = pgTable("deadlines", {
@@ -110,6 +113,12 @@ export const deadlinesTable = pgTable("deadlines", {
   applicationUrl: text("application_url"),
   note: text("note"),
   state: deadlineStateEnum("state").default("scheduled").notNull(),
+  informationType: receptionInformationTypeEnum("information_type").default("unspecified").notNull(),
+  startsAtPrecision: deadlinePrecisionEnum("starts_at_precision").default("unknown").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true, mode: "date" }),
+  startsOn: date("starts_on", { mode: "string" }),
+  phaseOverride: receptionPhaseOverrideEnum("phase_override").default("auto").notNull(),
+  saleMode: receptionSaleModeEnum("sale_mode").default("initial").notNull(),
   fingerprint: text("fingerprint").notNull(),
   visibilityStatus: appearanceVisibilityStatusEnum("visibility_status").default("public").notNull(),
   version: integer("version").default(1).notNull(),
@@ -122,6 +131,13 @@ export const deadlinesTable = pgTable("deadlines", {
   check("deadlines_precision_valid", sql`(${table.deadlinePrecision} = 'exact' and ${table.deadlineAt} is not null and ${table.deadlineOn} is null)
     or (${table.deadlinePrecision} = 'date' and ${table.deadlineAt} is null and ${table.deadlineOn} is not null)
     or (${table.deadlinePrecision} = 'unknown' and ${table.deadlineAt} is null and ${table.deadlineOn} is null)`),
+  check("deadlines_start_precision_valid", sql`(${table.startsAtPrecision} = 'exact' and ${table.startsAt} is not null and ${table.startsOn} is null)
+    or (${table.startsAtPrecision} = 'date' and ${table.startsAt} is null and ${table.startsOn} is not null)
+    or (${table.startsAtPrecision} = 'unknown' and ${table.startsAt} is null and ${table.startsOn} is null)`),
+  check("deadlines_period_valid", sql`(${table.startsAt} is null or ${table.deadlineAt} is null or ${table.startsAt} <= ${table.deadlineAt})
+    and (coalesce(${table.startsOn}, (${table.startsAt} at time zone 'Asia/Tokyo')::date) is null
+      or coalesce(${table.deadlineOn}, (${table.deadlineAt} at time zone 'Asia/Tokyo')::date) is null
+      or coalesce(${table.startsOn}, (${table.startsAt} at time zone 'Asia/Tokyo')::date) <= coalesce(${table.deadlineOn}, (${table.deadlineAt} at time zone 'Asia/Tokyo')::date))`),
   uniqueIndex("deadlines_fingerprint_unique").on(table.fingerprint),
   index("deadlines_cutoff_idx").on(table.deadlineAt, table.deadlineOn),
 ]);

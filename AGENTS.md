@@ -47,7 +47,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - dry-runでbefore/afterと根拠を確認し、出力の `inputHash` を `--apply --reviewed-hash <inputHash>` に渡して確定する。競合は最新版を再照合し、通信障害時は同一JSON・hashで冪等に再試行する。ゲスト変更だけで既存の公開日時・新着順・primary情報元を変更しない。直接SQLで通常更新しない。
 - 既存全件の調査・補完、稼働中巡回の切り替え、本番スキーマ適用はゲスト機能の実装とは別作業とする。操作JSONはGit外に置き、終了後に削除する。
 
-## Deadline Updates (申し込み締切)
+## Deadline Updates (受付・販売情報／旧申し込み締切)
+- 受付・販売の新しい登録・更新はREADME「受付・販売情報」と `docs/reception-sales.md` に従い、既存 `db:admin-import-deadlines` へ `schemaVersion: 2` の1件JSONを渡す。開始・終了はそれぞれ `exact / date / unknown` とし、日付のみから時刻を作らない。既存の種別・開始日時を根拠なく補完しない。旧形式のJSON・CLI・hashは互換用途として維持する。
+- `informationType` でチケット申込・イベント受付・配信販売・受注物販・通常通販等を区別する。`state` の完売は `sold_out`、再販は `saleMode: "resale"` として期間状態と分離する。延長・完売・同じ販売枠の再販は同一IDで更新し、受付名を「再販」へ変更して重複を作らない。以前の期間はAdmin revisionで確認する。
+- v2では全追加fieldsと現在のprimary `source` を引き継ぎ、状態・種別・期間・再販を確認した個別一次情報を `evidenceSources` に追加する。primary維持でこれらを変更する場合は追加根拠が必須。primaryとその公開日時・新着順を安易に変更しない。primary変更はPreviewで明示して確認する。旧形式の情報元差し替え動作は維持する。
 - 既存のAntigravity自動巡回で確認した個別告知に締切情報がある場合、その運用内で登録・更新する。巡回基盤・出演情報の更新経路は変更しない。人間のadmin画面は確認・監査・緊急時の修正を中心とし、手動操作は最終手段とする。
 - 登録前に `npm run check:deadline-duplicate -- "<企画名・受付名・告知URL・ID>"` で照合する。同じ企画・受付の延長は既存IDを更新し、別の受付段階には異なる受付名・evidence keyを使う。ファン企画は `projectType: "fan"` とする。告知日時・個別情報元URLは上記の情報元規則に従い、確認できない締切時刻を推測しない。
 - 通常操作は既存の `npm run db:admin-import-deadlines` に `--input <JSONファイル>` を渡す。JSONは `AdminDeadlineMutationInput` 1件で、登録は `create`、更新・延長・受付終了・中止は `update`（全fieldsとsourceを指定、`state` は `scheduled` / `closed` / `cancelled`）、非公開化は `hide`、復元は `restore`。更新・非公開化・復元には照合時の `expectedVersion` を固定して指定する。最新レコードの読み取り例・JSON形式はREADME「締切情報」を参照。

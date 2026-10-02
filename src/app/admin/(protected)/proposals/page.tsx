@@ -23,11 +23,11 @@ export default async function AdminProposalsPage() {
       <section className="admin-stats" aria-label="データ件数">
         {[
           ["出演", overview.appearances],
-          ["締切", overview.deadlines],
+          ["受付・販売", overview.deadlines],
           ["提案", overview.proposals],
           ["情報源", overview.sources],
           ["シリーズ", overview.series],
-          ["出演・締切revision", overview.revisions],
+          ["出演・受付・販売revision", overview.revisions],
         ].map(([label, value]) => (
           <div key={label}>
             <span>{label}</span>

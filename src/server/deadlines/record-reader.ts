@@ -22,22 +22,78 @@ export type DeadlineAdminRecord = AdminDeadlineFields & {
 /** Internal read path for import tools. Admin UI entry points authenticate below. */
 export async function readDeadlineRecords(database?: ReturnType<typeof getDb>): Promise<DeadlineAdminRecord[]> {
   const db = database ?? getDb();
+  const fetchRows = async () => {
+    try {
+      return await db.select({ deadline: deadlinesTable, source: {
+        canonicalUrl: sourceItemsTable.canonicalUrl,
+        sourceName: sourceIdentitiesTable.sourceName,
+        externalItemId: sourceIdentitiesTable.externalItemId,
+        evidenceKey: deadlineSourceLinksTable.evidenceKey,
+        precision: deadlineSourceLinksTable.publishedAtPrecision,
+        publishedAt: deadlineSourceLinksTable.publishedAt,
+        publishedOn: deadlineSourceLinksTable.publishedOn,
+        updatedAt: sourceItemsTable.updatedAt,
+        linkUpdatedAt: deadlineSourceLinksTable.updatedAt,
+      } }).from(deadlinesTable)
+        .innerJoin(deadlineSourceLinksTable, and(eq(deadlineSourceLinksTable.deadlineId, deadlinesTable.id), eq(deadlineSourceLinksTable.active, true), eq(deadlineSourceLinksTable.isPrimary, true)))
+        .innerJoin(sourceItemsTable, eq(sourceItemsTable.id, deadlineSourceLinksTable.sourceId))
+        .innerJoin(sourceIdentitiesTable, eq(sourceIdentitiesTable.id, deadlineSourceLinksTable.sourceIdentityId))
+        .orderBy(desc(deadlinesTable.updatedAt), asc(deadlinesTable.id));
+    } catch {
+      const legacyRows = await db.select({
+        deadline: {
+          id: deadlinesTable.id,
+          label: deadlinesTable.label,
+          projectTitle: deadlinesTable.projectTitle,
+          organizer: deadlinesTable.organizer,
+          projectType: deadlinesTable.projectType,
+          seriesId: deadlinesTable.seriesId,
+          deadlinePrecision: deadlinesTable.deadlinePrecision,
+          deadlineAt: deadlinesTable.deadlineAt,
+          deadlineOn: deadlinesTable.deadlineOn,
+          applicationUrl: deadlinesTable.applicationUrl,
+          note: deadlinesTable.note,
+          state: deadlinesTable.state,
+          visibilityStatus: deadlinesTable.visibilityStatus,
+          version: deadlinesTable.version,
+          createdAt: deadlinesTable.createdAt,
+          updatedAt: deadlinesTable.updatedAt,
+        },
+        source: {
+          canonicalUrl: sourceItemsTable.canonicalUrl,
+          sourceName: sourceIdentitiesTable.sourceName,
+          externalItemId: sourceIdentitiesTable.externalItemId,
+          evidenceKey: deadlineSourceLinksTable.evidenceKey,
+          precision: deadlineSourceLinksTable.publishedAtPrecision,
+          publishedAt: deadlineSourceLinksTable.publishedAt,
+          publishedOn: deadlineSourceLinksTable.publishedOn,
+          updatedAt: sourceItemsTable.updatedAt,
+          linkUpdatedAt: deadlineSourceLinksTable.updatedAt,
+        },
+      }).from(deadlinesTable)
+        .innerJoin(deadlineSourceLinksTable, and(eq(deadlineSourceLinksTable.deadlineId, deadlinesTable.id), eq(deadlineSourceLinksTable.active, true), eq(deadlineSourceLinksTable.isPrimary, true)))
+        .innerJoin(sourceItemsTable, eq(sourceItemsTable.id, deadlineSourceLinksTable.sourceId))
+        .innerJoin(sourceIdentitiesTable, eq(sourceIdentitiesTable.id, deadlineSourceLinksTable.sourceIdentityId))
+        .orderBy(desc(deadlinesTable.updatedAt), asc(deadlinesTable.id));
+
+      return legacyRows.map(row => ({
+        ...row,
+        deadline: {
+          ...row.deadline,
+          fingerprint: "" as const,
+          informationType: "unspecified" as const,
+          startsAtPrecision: "unknown" as const,
+          startsAt: null,
+          startsOn: null,
+          phaseOverride: "auto" as const,
+          saleMode: "initial" as const,
+        },
+      }));
+    }
+  };
+
   const [rows, targets, sources] = await Promise.all([
-    db.select({ deadline: deadlinesTable, source: {
-      canonicalUrl: sourceItemsTable.canonicalUrl,
-      sourceName: sourceIdentitiesTable.sourceName,
-      externalItemId: sourceIdentitiesTable.externalItemId,
-      evidenceKey: deadlineSourceLinksTable.evidenceKey,
-      precision: deadlineSourceLinksTable.publishedAtPrecision,
-      publishedAt: deadlineSourceLinksTable.publishedAt,
-      publishedOn: deadlineSourceLinksTable.publishedOn,
-      updatedAt: sourceItemsTable.updatedAt,
-      linkUpdatedAt: deadlineSourceLinksTable.updatedAt,
-    } }).from(deadlinesTable)
-      .innerJoin(deadlineSourceLinksTable, and(eq(deadlineSourceLinksTable.deadlineId, deadlinesTable.id), eq(deadlineSourceLinksTable.active, true), eq(deadlineSourceLinksTable.isPrimary, true)))
-      .innerJoin(sourceItemsTable, eq(sourceItemsTable.id, deadlineSourceLinksTable.sourceId))
-      .innerJoin(sourceIdentitiesTable, eq(sourceIdentitiesTable.id, deadlineSourceLinksTable.sourceIdentityId))
-      .orderBy(desc(deadlinesTable.updatedAt), asc(deadlinesTable.id)),
+    fetchRows(),
     db.select().from(deadlineAppearanceLinksTable).orderBy(asc(deadlineAppearanceLinksTable.appearanceId)),
     db.select({ deadlineId: deadlineSourceLinksTable.deadlineId, url: sourceItemsTable.canonicalUrl, evidenceKey: deadlineSourceLinksTable.evidenceKey })
       .from(deadlineSourceLinksTable).innerJoin(sourceItemsTable, eq(sourceItemsTable.id, deadlineSourceLinksTable.sourceId))
@@ -48,6 +104,9 @@ export async function readDeadlineRecords(database?: ReturnType<typeof getDb>): 
     projectType: deadline.projectType, seriesId: deadline.seriesId, deadlinePrecision: deadline.deadlinePrecision,
     deadlineAt: deadline.deadlineAt?.toISOString() ?? null, deadlineOn: deadline.deadlineOn,
     applicationUrl: deadline.applicationUrl, note: deadline.note, state: deadline.state,
+    informationType: deadline.informationType, startsAtPrecision: deadline.startsAtPrecision,
+    startsAt: deadline.startsAt?.toISOString() ?? null, startsOn: deadline.startsOn,
+    phaseOverride: deadline.phaseOverride, saleMode: deadline.saleMode,
     appearanceIds: targets.filter(link => link.deadlineId === deadline.id).map(link => link.appearanceId),
     version: deadline.version, visibilityStatus: deadline.visibilityStatus,
     createdAt: deadline.createdAt.toISOString(), updatedAt: deadline.updatedAt.toISOString(),

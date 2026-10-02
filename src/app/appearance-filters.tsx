@@ -1,5 +1,10 @@
 "use client";
 
+import { receptionInformationTypes, receptionInformationTypeLabels, type Deadline } from "@/domain/deadline";
+
+import { useDeadlineNow } from "@/app/deadline-clock";
+import { filterDeadlines } from "@/lib/deadlines";
+
 import {
   type ChangeEvent,
   type FormEvent,
@@ -11,7 +16,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
   createAppearanceFilterHref,
-  hasAppearanceFilters,
+  hasReceptionFilters,
   type AppearanceFilterOptions,
   type AppearanceFilters,
 } from "@/lib/appearance-filters";
@@ -23,6 +28,8 @@ type AppearanceFiltersProps = {
   matchedCount: number;
   deadlineTotalCount?: number;
   deadlineMatchedCount?: number;
+  deadlineItems?: Deadline[];
+  now?: string;
   target?: "all" | "news" | "deadlines";
 };
 
@@ -33,8 +40,12 @@ export function AppearanceFilters({
   matchedCount,
   deadlineTotalCount = 0,
   deadlineMatchedCount = 0,
+  deadlineItems,
+  now = "1970-01-01T00:00:00Z",
   target = "all",
 }: AppearanceFiltersProps) {
+  const currentTime = useDeadlineNow(now);
+  const currentDeadlineMatchedCount = deadlineItems ? filterDeadlines(deadlineItems, filters, currentTime).length : deadlineMatchedCount;
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -64,7 +75,7 @@ export function AppearanceFilters({
   };
 
   const updateFacet = (
-    key: "series" | "category" | "year",
+    key: "series" | "category" | "year" | "receptionType" | "receptionStatus",
     value: string,
   ) => {
     setDraftFilters(
@@ -88,17 +99,17 @@ export function AppearanceFilters({
     navigate(draftFilters);
   };
 
-  const active = hasAppearanceFilters(draftFilters);
+  const active = hasReceptionFilters(draftFilters);
 
   return (
     <section className="appearance-filters" aria-labelledby="filters-heading">
       <div className="appearance-filters__heading">
         <div>
           <p className="eyebrow">SEARCH & FILTER</p>
-          <h2 id="filters-heading">{target === "news" ? "新着情報を探す" : target === "deadlines" ? "申し込み締切を探す" : "出演・締切を探す"}</h2>
+          <h2 id="filters-heading">{target === "news" ? "新着情報を探す" : target === "deadlines" ? "受付・販売情報を探す" : "出演・受付・販売を探す"}</h2>
         </div>
         <p aria-live="polite" aria-atomic="true">
-          {isPending ? "検索条件を更新中…" : target === "news" ? `新着 ${matchedCount} / ${totalCount}件` : target === "deadlines" ? `締切 ${deadlineMatchedCount} / ${deadlineTotalCount}件` : `出演 ${matchedCount} / ${totalCount}件・締切 ${deadlineMatchedCount} / ${deadlineTotalCount}件`}
+          {isPending ? "検索条件を更新中…" : target === "news" ? `新着 ${matchedCount} / ${totalCount}件` : target === "deadlines" ? `受付・販売 ${currentDeadlineMatchedCount} / ${deadlineTotalCount}件` : `出演 ${matchedCount} / ${totalCount}件・受付・販売 ${currentDeadlineMatchedCount} / ${deadlineTotalCount}件`}
         </p>
       </div>
 
@@ -154,9 +165,14 @@ export function AppearanceFilters({
           </label>
         </div>
 
+        {target !== "news" && <div className="appearance-filter-facets">
+          <label className="appearance-filter-field"><span>受付・販売種別</span><select value={draftFilters.receptionType ?? ""} onChange={event => updateFacet("receptionType", event.target.value)} disabled={isPending}><option value="">すべて</option>{receptionInformationTypes.map(type => <option key={type} value={type}>{receptionInformationTypeLabels[type]}</option>)}</select></label>
+          <label className="appearance-filter-field"><span>受付・販売状況</span><select value={draftFilters.receptionStatus ?? ""} onChange={event => updateFacet("receptionStatus", event.target.value)} disabled={isPending}><option value="">すべて</option><option value="not_open">受付前・販売前</option><option value="open">受付中・販売中</option><option value="start_today">本日開始・時刻未確認</option><option value="end_today">本日締切・販売終了</option><option value="expired">期限経過</option><option value="closed">終了</option><option value="sold_out">完売</option><option value="cancelled">中止</option><option value="unknown">状況未確認</option></select></label>
+        </div>}
+
         <div className="appearance-filter-actions-row">
           <label className="appearance-filter-field">
-            <span>{target === "news" ? "年（出演年）" : target === "deadlines" ? "年（締切年）" : "年（出演年・締切年）"}</span>
+            <span>{target === "news" ? "年（出演年）" : target === "deadlines" ? "年（終了年・開始年）" : "年（出演年・終了年・開始年）"}</span>
             <select
               value={draftFilters.year ?? ""}
               onChange={(event) => updateFacet("year", event.target.value)}

@@ -9,7 +9,7 @@ import { groupAppearanceCards, sortAppearanceCardsByPublication } from "../src/l
 import { getAppearanceHistoryPage, paginateAppearanceHistory } from "../src/lib/appearance-pagination";
 import type { AppearanceFilters } from "../src/lib/appearance-filters";
 import { createPublicHomeHref, createPublicListHref } from "../src/lib/public-list-navigation";
-import { createDeadlineDetailHref, getUpcomingDeadlinePreview } from "../src/lib/deadlines";
+import { createDeadlineDetailHref, getStartingReceptionPreview, getUpcomingDeadlinePreview } from "../src/lib/deadlines";
 import type { Deadline } from "../src/domain/deadline";
 
 const now = new Date("2026-09-30T10:00:00+09:00");
@@ -147,7 +147,7 @@ test("home highlights render at most three latest cards and three active deadlin
   assert.match(html, /id="latest"/);
   assert.match(html, /id="deadlines"/);
   assert.match(html, /新着/);
-  assert.match(html, /申し込み/);
+  assert.match(html, /受付・販売/);
   assert.equal((html.match(/class="latest-appearance"/g) ?? []).length, 3);
   assert.equal((html.match(/deadline-card deadline-card--/g) ?? []).length, 3);
   assert.match(html, /href="\/news\?q=/);
@@ -161,7 +161,7 @@ test("home highlights render at most three latest cards and three active deadlin
   assert.doesNotMatch(html, /企画 unknown/);
 });
 
-test("an unknown deadline fills an open preview slot after dated deadlines", () => {
+test("legacy unknown deadlines fill remaining slots after dated deadlines", () => {
   const html = renderToStaticMarkup(<HomeHighlights
     latest={[]}
     deadlines={[
@@ -181,7 +181,7 @@ test("an unknown deadline fills an open preview slot after dated deadlines", () 
 test("home highlights show clear empty states and more links when filtering returns no items", () => {
   const html = renderToStaticMarkup(<HomeHighlights latest={[]} deadlines={[]} now={nowString} isFiltering={true} filters={filters} />);
   assert.match(html, /条件に一致する出演情報はありません/);
-  assert.match(html, /条件に一致する未経過の締切はありません/);
+  assert.match(html, /条件に一致する終了日時のある情報はありません/);
   assert.match(html, /href="\/news\?q=/);
   assert.match(html, /href="\/deadlines\?q=/);
 });
@@ -211,4 +211,30 @@ test("deadline detail anchors encode IDs and related-deadline links open the unf
   const related = renderToStaticMarkup(<RelatedDeadlines items={[deadline("event-2026", { label: "当日券申し込み" })]} now={nowString} />);
   assert.match(related, /href="\/deadlines#deadline-event-2026"/);
   assert.doesNotMatch(related, /\?q=|series=|category=|year=/);
+});
+
+test("home shows separate capped start/open shelves without duplicating deadline-priority items", () => {
+  const clock = new Date("2026-10-02T12:00:00+09:00");
+  const sale = (id: string, day: string) => deadline(id, { informationType: "online_sale", startsAtPrecision: "date", startsAt: null, startsOn: day, deadlinePrecision: "unknown", deadlineOn: null });
+  const priority = deadline("cutoff", { informationType: "made_to_order", startsAtPrecision: "date", startsOn: "2026-10-05", deadlineOn: "2026-10-10" });
+  const input = [sale("older", "2026-10-01"), sale("future-late", "2026-10-07"), priority, sale("future-soon", "2026-10-03"), sale("future-next", "2026-10-04")];
+  const primary = getUpcomingDeadlinePreview(input, clock);
+  assert.deepEqual(primary.map(item => item.id), ["cutoff"]);
+  assert.deepEqual(getStartingReceptionPreview(input, clock, primary).map(item => item.id), ["future-soon", "future-next", "future-late"]);
+  assert.deepEqual(getStartingReceptionPreview([sale("older", "2026-09-01"), sale("newer", "2026-10-01")], clock).map(item => item.id), ["newer", "older"]);
+  const html = renderToStaticMarkup(<HomeHighlights latest={[]} deadlines={input} now={clock.toISOString()} isFiltering={false} filters={{ q: "", series: null, category: null, year: null }} />);
+  assert.equal((html.match(/href="\/deadlines#deadline-cutoff"/g) ?? []).length, 1);
+  assert.equal((html.match(/deadline-card deadline-card--/g) ?? []).length, 4);
+  assert.match(html, /開始予定・受付中・販売中/);
+  assert.doesNotMatch(html, /企画 older/);
+  const startOnly = renderToStaticMarkup(<HomeHighlights latest={[]} deadlines={[sale("older", "2026-10-01")]} now={clock.toISOString()} isFiltering={false} filters={{ q: "", series: null, category: null, year: null }} />);
+  assert.match(startOnly, /企画 older/);
+  assert.doesNotMatch(startOnly, /現在お知らせできる受付・販売情報はありません/);
+});
+
+test("reception-only query parameters cross home/deadlines boundaries and are excluded from news links", () => {
+  const receptionFilters: AppearanceFilters = { q: "", series: null, category: null, year: null, receptionType: "online_sale", receptionStatus: "open" };
+  assert.equal(createPublicListHref("/deadlines", receptionFilters), "/deadlines?receptionType=online_sale&receptionStatus=open");
+  assert.equal(createPublicHomeHref(receptionFilters, "deadlines"), "/?receptionType=online_sale&receptionStatus=open#deadlines");
+  assert.equal(createPublicListHref("/news", receptionFilters), "/news");
 });

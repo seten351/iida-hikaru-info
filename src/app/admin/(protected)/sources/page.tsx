@@ -16,7 +16,7 @@ export default async function AdminSourcesPage() {
       <AdminPageHeader
         eyebrow="SOURCES"
         title={`情報源 (${sources.length})`}
-        description="canonical sourceとidentity、appearance・締切・proposalへの参照を確認します。"
+        description="canonical sourceとidentity、appearance・受付・販売・proposalへの参照を確認します。"
       />
       <div className="admin-table-wrap">
         <table>
@@ -26,7 +26,7 @@ export default async function AdminSourcesPage() {
               <th>type</th>
               <th>identities</th>
               <th>appearances</th>
-              <th>締切</th>
+              <th>受付・販売</th>
               <th>proposals</th>
               <th>last collected</th>
             </tr>

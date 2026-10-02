@@ -9,10 +9,10 @@ export default async function AdminDeadlineProposalPage({ params }: { params: Pr
   const proposal = await getAdminDeadlineProposal(id);
   if (!proposal) notFound();
   return <>
-    <BackLink href="/admin/deadlines">締切一覧</BackLink>
-    <AdminPageHeader eyebrow="DEADLINE PROPOSAL" title="締切の変更記録" description="確定・破棄・競合により未反映となった変更の入力と結果を表示します。" />
+    <BackLink href="/admin/deadlines">受付・販売一覧</BackLink>
+    <AdminPageHeader eyebrow="RECEPTION & SALES PROPOSAL" title="受付・販売情報の変更記録" description="確定・破棄・競合により未反映となった変更の入力と結果を表示します。" />
     <section className="admin-panel"><h2>変更結果</h2><DetailList rows={[
-      ["ID", proposal.id], ["対象締切", proposal.deadlineId ? <Link key="target" href={`/admin/deadlines/${proposal.targetDeadlineId}`} prefetch={false}>{proposal.targetDeadlineId}</Link> : proposal.targetDeadlineId],
+      ["ID", proposal.id], ["対象受付・販売", proposal.deadlineId ? <Link key="target" href={`/admin/deadlines/${proposal.targetDeadlineId}`} prefetch={false}>{proposal.targetDeadlineId}</Link> : proposal.targetDeadlineId],
       ["操作", proposal.operation], ["状態", proposal.status], ["更新前version", proposal.expectedVersion],
       ["確認結果", proposal.reviewNote], ["作成日時", formatAdminDate(proposal.createdAt)], ["確定日時", formatAdminDate(proposal.reviewedAt)],
       ["idempotency key", proposal.idempotencyKey], ["content hash", proposal.reviewedContentHash],

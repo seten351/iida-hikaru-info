@@ -170,6 +170,6 @@ test("calendar displays an accessible guest marker based on all visible sessions
   );
 
   assert.match(markup, /ゲスト出演・ゲスト：青木さん/);
-  assert.ok(markup.includes(`aria-label="${day.label}、出演情報2件、締切0件、配信、ゲスト出演・ゲスト：青木さん`));
+  assert.ok(markup.includes(`aria-label="${day.label}、出演情報2件、受付・販売0件、配信、ゲスト出演・ゲスト：青木さん`));
   assert.doesNotMatch(markup, /class="appearance-calendar__count"/);
 });

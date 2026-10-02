@@ -13,8 +13,8 @@ export default async function EditDeadlinePage({ params }: { params: Promise<{ i
   ]);
   if (!config.writeEnabled || !result) notFound();
   return <>
-    <BackLink href={`/admin/deadlines/${result.deadline.id}`}>締切詳細</BackLink>
-    <AdminPageHeader eyebrow="EDIT DEADLINE" title={result.deadline.projectTitle} description="緊急時の手動修正です。通常はエージェントから同じ締切IDを更新します。共通のPreview・検証・確定処理を使用します。" />
+    <BackLink href={`/admin/deadlines/${result.deadline.id}`}>受付・販売詳細</BackLink>
+    <AdminPageHeader eyebrow="EDIT RECEPTION & SALES" title={result.deadline.projectTitle} description="緊急時の手動修正です。通常はエージェントから同じIDを更新します。共通のPreview・検証・確定処理を使用します。" />
     <DeadlineEditor deadline={result.deadline} source={result.source ?? undefined} series={series} appearances={appearances} />
   </>;
 }

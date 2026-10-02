@@ -90,7 +90,8 @@ async function HomeContent(props: PageProps<"/">) {
   const cards = buildAppearanceCards(appearances);
   const filterOptions = extendDeadlineFilterOptions(getAppearanceFilterOptions(cards), deadlines);
   const filters = parseAppearanceFilters(searchParams, filterOptions);
-  const filteredDeadlines = filterDeadlines(deadlines, filters);
+  const filteredDeadlines = filterDeadlines(deadlines, filters, now);
+  const deadlineCandidates = filterDeadlines(deadlines, { ...filters, receptionStatus: null }, now);
   const filteredCards = filterAppearanceCards(cards, filters);
   const { latest, upcoming, past } = groupAppearanceCards(filteredCards, now);
   const scheduleView = parseAppearanceScheduleView(searchParams.view);
@@ -142,21 +143,24 @@ async function HomeContent(props: PageProps<"/">) {
           fallback={<div className="appearance-filters appearance-filters--loading" />}
         >
           <AppearanceFilters
-            key={[filters.q, filters.series, filters.category, filters.year].join("\u0000")}
+            key={[filters.q, filters.series, filters.category, filters.year, filters.receptionType, filters.receptionStatus].join("\u0000")}
             filters={filters}
             options={filterOptions}
             totalCount={cards.length}
             matchedCount={filteredCards.length}
+            deadlineItems={deadlineCandidates}
+            now={now.toISOString()}
             deadlineTotalCount={deadlines.length}
             deadlineMatchedCount={filteredDeadlines.length}
           />
         </Suspense>
 
-        <HomeHighlights latest={latest} deadlines={filteredDeadlines} now={now.toISOString()} isFiltering={isFiltering} filters={filters} />
+        <HomeHighlights latest={latest} deadlines={deadlineCandidates} now={now.toISOString()} isFiltering={isFiltering} filters={filters} />
 
         <AppearanceScheduleSection
           cards={filteredCards}
-          deadlines={filteredDeadlines}
+          deadlines={deadlineCandidates}
+          receptionFilters={filters}
           relatedDeadlines={deadlines}
           upcoming={upcoming}
           availableYears={filterOptions.years}

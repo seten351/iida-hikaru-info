@@ -196,7 +196,7 @@ test("migrations and deadline Admin write run against isolated in-memory Postgre
     });
     await t.test("transaction rolls back content if a related reference is invalid", async () => {
       await assert.rejects(local.transaction(async tx => {
-        await tx.insert(schema.deadlinesTable).values({ ...fields, id: "rollback", deadlineAt: new Date(fields.deadlineAt!), fingerprint: "rollback" });
+        await tx.insert(schema.deadlinesTable).values({ ...fields, id: "rollback", deadlineAt: new Date(fields.deadlineAt!), startsAt: null, fingerprint: "rollback" });
         await tx.insert(schema.deadlineAppearanceLinksTable).values({ deadlineId: "rollback", appearanceId: "missing-event" });
       }));
       assert.equal((await local.select().from(schema.deadlinesTable).where(eq(schema.deadlinesTable.id, "rollback"))).length, 0);

@@ -4,6 +4,7 @@ import { appearanceFilterSearchParamKeys, type AppearanceFilters } from "./appea
 export function createPublicListHref(pathname: string, filters: AppearanceFilters) {
   const params = new URLSearchParams();
   for (const key of appearanceFilterSearchParamKeys) {
+    if (pathname === "/news" && (key === "receptionType" || key === "receptionStatus")) continue;
     const value = filters[key];
     if (value) params.set(key, value);
   }

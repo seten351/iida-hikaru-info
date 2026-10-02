@@ -1,3 +1,4 @@
+import { receptionInformationTypes, type ReceptionInformationType, type ReceptionStatus } from "@/domain/deadline";
 import {
   appearanceCategoryDisplayOrder,
   type AppearanceCategory,
@@ -11,6 +12,8 @@ export const appearanceFilterSearchParamKeys = [
   "series",
   "category",
   "year",
+  "receptionType",
+  "receptionStatus",
 ] as const;
 
 export type AppearanceFilters = {
@@ -18,6 +21,8 @@ export type AppearanceFilters = {
   series: string | null;
   category: AppearanceCategory | null;
   year: string | null;
+  receptionType?: ReceptionInformationType | null;
+  receptionStatus?: ReceptionStatus | null;
 };
 
 export type AppearanceFilterOptions = {
@@ -127,6 +132,8 @@ export function parseAppearanceFilters(
   const year = firstSearchParam(searchParams.year);
 
   return {
+    ...(receptionInformationTypes.includes(firstSearchParam(searchParams.receptionType) as ReceptionInformationType) ? { receptionType: firstSearchParam(searchParams.receptionType) as ReceptionInformationType } : {}),
+    ...(["not_open", "open", "start_today", "end_today", "expired", "closed", "sold_out", "cancelled", "unknown"].includes(firstSearchParam(searchParams.receptionStatus) ?? "") ? { receptionStatus: firstSearchParam(searchParams.receptionStatus) as ReceptionStatus } : {}),
     q: normalizeAppearanceQuery(firstSearchParam(searchParams.q)),
     series: options.series.some((option) => option.value === series)
       ? series!
@@ -201,6 +208,10 @@ export function filterAppearanceCards(
   });
 }
 
+export function hasReceptionFilters(filters: AppearanceFilters) {
+  return hasAppearanceFilters(filters) || Boolean(filters.receptionType || filters.receptionStatus);
+}
+
 export function createAppearanceFilterHref(
   pathname: string,
   currentSearchParams: string,
@@ -226,6 +237,10 @@ export function createAppearanceFilterHref(
     searchParams.set("year", filters.year);
   }
 
+  if (pathname !== "/news") {
+    if (filters.receptionType) searchParams.set("receptionType", filters.receptionType);
+    if (filters.receptionStatus) searchParams.set("receptionStatus", filters.receptionStatus);
+  }
   const query = searchParams.toString();
   return query ? `${pathname}?${query}` : pathname;
 }
