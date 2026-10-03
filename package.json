@@ -29,6 +29,8 @@
     "db:verify": "dotenv -e .env.local -- tsx scripts/verify-appearances.ts",
     "verify:filters": "tsx scripts/verify-appearance-filters.ts",
     "verify:production-readonly": "dotenv -e .env.local -- tsx scripts/verify-production-readonly.ts",
+    "verify:known-integrity-isolated": "dotenv -e .env.local -- node --import tsx scripts/verify-known-integrity-isolated.ts",
+    "test:known-integrity-isolated": "node --conditions=react-server --import tsx --test tests/known-integrity-isolated.test.ts",
     "verify:phase1a": "tsx scripts/verify-phase-1a.ts",
     "verify:phase1b": "tsx scripts/verify-phase-1b.ts",
     "verify:phase1c": "NODE_OPTIONS=--conditions=react-server tsx scripts/verify-phase-1c.ts",
