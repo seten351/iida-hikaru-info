@@ -156,7 +156,7 @@ npm run db:admin-import -- --input /tmp/appearance-guest-operation.json
 npm run db:admin-import -- --input /tmp/appearance-guest-operation.json --apply --reviewed-hash "<dry-runのinputHash>"
 ```
 
-競合で `superseded` になった場合は最新レコードと告知を再確認し、全fieldsと `expectedVersion` を更新してdry-runからやり直します。確定結果が通信障害で不明な場合は、同じJSON・同じhashで再試行すると冪等キーで結果を取得できます。複数公演は公演ごとに1件ずつ処理し、確定済みの分は保持されます。この機能導入では既存170件を一括調査・補完しません。
+競合で `superseded` になった場合は最新レコードと告知を再確認し、全fieldsと `expectedVersion` を更新してdry-runからやり直します。確定結果が通信障害で不明な場合は、同じJSON・同じhashで再試行すると冪等キーで結果を取得できます。複数公演は公演ごとに1件ずつ処理し、確定済みの分は保持されます。機能導入時には全件調査を行わず、その後2026-10-01に既存170件を監査し、根拠を確認できた61件を更新しました。調査済みとゲスト情報確認済みは区別し、根拠不足の状態を維持しています（[全件監査記録](docs/guest-audit/2026-10-01.md)）。
 
 ### 公開日時・情報元の確認・更新
 

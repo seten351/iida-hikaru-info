@@ -4635,5 +4635,69 @@
       },
       "findings": []
     }
-  ]
+  ],
+  "dataCorrectionFollowUp": {
+    "checkedAt": "2026-10-03",
+    "mode": "今回READ ONLYで再照合。更新は前回の別作業で実施。元の調査・findingsを保持。",
+    "records": [
+      {
+        "id": "hatsuboshi-housoubu-episode-106",
+        "status": "corrected-in-prior-task",
+        "beforeStartsAt": "2026-09-16T12:00:00Z",
+        "currentStartsAt": "2026-09-23T12:00:00Z",
+        "version": 6,
+        "revisionVersions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "proposalId": "prp_ee97dd99a278d1d5ecf560d4e2355dc4",
+        "inputHash": "d56735e634db1b18ad04e90ba5409399b77726dbbd8da8072bcaddd95904d739",
+        "sourceUrls": [
+          "https://x.com/gkmas_official/status/2100205561476251832",
+          "https://www.youtube.com/watch?v=ul8o6A9Ykgw",
+          "https://idolmaster-official.jp/gakuen/gakuenradio/"
+        ],
+        "unrelatedRawValuesExact": true,
+        "cacheInvalidation": "invalidated"
+      },
+      {
+        "id": "small-childhood-friend-night",
+        "status": "unchanged",
+        "version": 5,
+        "revisionVersions": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "currentTitle": "小さな幼なじみが甘やかし＆お世話してくれる夜♡",
+        "officialPostTitle": "全肯定♡年下幼なじみの甘やかし安眠サポート",
+        "sourceUrls": [
+          "https://x.com/Iida_Hikaru_828/status/2003431962019791266",
+          "https://www.dlsite.com/home/work/=/product_id/RJ01523957.html"
+        ],
+        "reason": "前回の再調査でDLsite本文取得が拒否され、誤記か名称変更かを確定できなかった。今回も変更しない。"
+      },
+      {
+        "id": "yuri-relation-game-27",
+        "status": "unchanged-already-matching",
+        "version": 3,
+        "revisionVersions": [
+          1,
+          2,
+          3
+        ],
+        "currentStartsAt": "2025-10-20T14:20:00Z",
+        "sourceUrls": [
+          "https://www.youtube.com/watch?v=TBg0PNGubCo"
+        ],
+        "reason": "現DBと既存revision1〜3は10月20日。元のfindingsのDB10月27日という記載は現DB・履歴で裏付けられず、現在のDB不整合として扱わない。"
+      }
+    ]
+  }
 }
