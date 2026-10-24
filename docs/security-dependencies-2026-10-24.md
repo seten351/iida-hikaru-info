@@ -75,3 +75,80 @@ Next 16.4.3のVercelビルドにはpartialPrefetching未指定の移行警告も
 本番はea4da98 / dpl_9jiXpSam3ey2txLd7cgnFMZjXinQのまま。本番DBにDDL/DML・スキーマ適用・データ修復は行っていない。PRはDraftとして保持する。復旧候補はこの現行本番で、今回は本番切り替え前に停止したためロールバックは不要。
 
 終了時に今回作成した一時Vercelプロジェクトと無料Neonリソース（合成データの検証ブランチを含む）を削除した。秘密値・操作スクリプト・スクリーンショット・一時ログはGit外から削除する。専用worktreeとDraft PRは調査再開用に保持する。元worktreeのUI差分SHA-256は開始時と同じ61e846a1c722474a4b88bc09add74c6b422e72b62a2ee2d4f899bb8d20f0bb5c。
+
+## キャッシュ失敗の継続調査（2026-10-24）
+
+### 確認できた原因と未確定部分
+
+前回のassertionは「失効APIの200応答後、1回読んだ値が600秒まで保持される」という前提だった。しかし、この順序では明示失効に続くremote cacheの追加missが起こる。通知なし更新による新たな失効とは区別が必要だった。失効を挟まない安定したhitの後に同じ通知なし更新を行うと、旧値を保持し、対象公開SELECTのcallsも増えなかった。
+
+今回、API失効→1回のwarm→通知なし更新→再読の順序で4/4回再現した。別タグでのmanifest観測では1/2回、remote HTTP観測では2/2回再現し、その後はhitへ戻った。追加miss時にはVercel提供remote handlerのGETがmissを返し、さらに配下の`/v1/suspense-cache/…`へのGET自体が404だった。直前の保存POSTは200、再生成後の保存POSTも200で、その後のGETは200となった。アプリの追加失効や、Next wrapperがremote hitを破棄したことによる再読ではない。
+
+代表的な時系列（UTC、同じ関数インスタンス・実行region iad1、キー・URL・認証ヘッダーは記録しない）:
+
+| 時刻 | remote APIの観測 |
+| --- | --- |
+| 06:54:49.856 | 明示失効のPOSTが200 |
+| 06:54:50.036 | 読み取りGETが404 |
+| 06:54:50.160 | 再生成した値の保存POSTが200 |
+| 06:54:54.318 | 通知なし更新後のGETが再び404 |
+| 06:54:54.384 | 再生成した値の保存POSTが200 |
+| 06:54:54.787以降 | GETが200、対象公開SELECTのcallsは増えない |
+
+ここまでで特定したのは「明示失効直後のVercel remote側missを、通知なし更新が失効させたと誤分類していた検証条件」である。Vercelサービス内部の伝播・退避・保存後可視性のどれが追加missを発生させたかまでは確定していない。観測したhandlerのローカルmanifestは空で、ローカルrefreshTagsのexpired更新を原因とする根拠はなかった。期限前missはキャッシュの最低保持保証違反とは扱わず、Next.js 16.4.3の回帰とも断定しない。脆弱な旧版との比較は今回は行わず、旧版を公開することもなかった。
+
+`x-vercel-cache: HIT`でもデータ用remote GETが404になる例を確認した。CDNとデータキャッシュのhitは同義ではない。アクセス側ログのkix1/sfo1に対して関数内VERCEL_REGIONはiad1、AWS_REGIONはus-east-1だった。別インスタンスでも同じ生成時刻の値を取得できたが、複数の関数実行リージョン間の検証ではない。
+
+### 失効経路の独立検証
+
+- 通知なし: 実Neonの既存`confirmAdminWrite`へ明示したコールバックを渡し、approved、skipped、callback 1回、HTTP通知0回を照合。安定したhitの後では旧値を保持し、対象公開SELECTのcallsは1のまま。CLIはAdmin Server Actionモジュールを実行せず、コード全体の検索でも別のNext失効API呼び出し経路は見つからなかった。無失効の動的証拠は通知カウンター、タグAPIログの不在、DBトリガーのない新規スキーマ、hitとSQL回数を合わせて判断した。
+- 通常CLI通知: DB引数・カスタムinvalidatorを渡さない標準経路でapproved、invalidated、HTTP POST 1回を確認。確定後の新値取得と、その後のhitを確認。保護された隔離デプロイへの通知には検証用の期限付きCookieを通信層で付加し、通知関数自体は変更していない。
+- Admin: 実デプロイからAction IDを取得し、専用Adminセッションで実際のPreview→確定Server Actionを実行。最新版のDB versionを入力し、確定approvedと新値反映、updateTag 1回・revalidatePath 2回を観測。その後の追加SELECTなしを確認。途中のversion競合は別試験との重なりによるもので、最新版を使って直列に再実行した。
+- Adminのapproved処理はinvalidatorの外でルートlayoutとAdmin layoutを再検証する。したがって、Adminでcallbackがskippedというだけでは「すべての失効なし」を意味しない。一方、直接サービスを呼ぶCLIのskipped callbackは標準HTTP通知を置き換える。
+
+### 修正範囲
+
+アプリ・UI・管理画面・DBスキーマ・失効処理・TTL・依存バージョンには今回の追加変更を行わなかった。明示失効の削除、固定sleepでの隠蔽、TTL延長、未検証のパッチや旧版へのダウングレードは採用しない。
+
+- PGlite回帰テストに、注入DBの標準skippedと、明示skipped callbackの1回実行・commit後の新値・HTTP通知0回を追加。
+- 実Nextローカルruntimeテストに、失効なしの上流更新後も旧値と6 SELECTを維持する確認を追加。ローカルfallbackとVercel remoteを区別する説明へ修正。
+- 公開キャッシュ資料にAdminのrevalidatePath、独立ケース、保存／hitの確認、SSO画面を除外する判定、SWR／無アクセスexpire、TTL前missの分類を追記。
+
+### 隔離環境と観測方法
+
+本番とは別のVercel `prj_ttX4yNoy1JyEvr2tK7gb1TuQx9F0`、無料Neon `late-base-52719813` / resource `store_S0Cum3tcBqrCXWOE`を新規作成し、Gitの全16 migrationと合成シリーズ・出演1件だけを登録。本番DBの接続情報・データコピーは使用しなかった。Vercelは保護を有効にし、有効期限30～60分の共有アクセスを使用した。無期限の自動化バイパス発行は自動レビューで拒否され、実行していない。
+
+- 独立経路検証: dpl_4XNzK1AeTPVPhRokZdJpuxRxBt4p。
+- 実時間TTL: dpl_oFrLnyRcTdeRNNBboSQtsVNfMcYs。同じ公開取得関数に900秒用の別引数・別タグを与える一時診断routeを設け、600秒の公開ページ試験とは分離した。
+- 追加miss観測: dpl_4sS6UQn8nH4TXPVsPCTAAWvYJomC、remote HTTP観測: dpl_DR3ycqjLwXS5PZY1p2gzjvXLrqGp。TTL用とは異なる診断タグを用い、TTL保持中のタグは失効させなかった。
+
+一時観測コードはGit HEADから作ったGit外の配布用コピーだけに追加した。handlerのget/set/updateTags、生成時刻、インスタンス、VERCEL_REGION、remote APIステータスと、隔離DBのpg_stat_statements（公開取得の主SELECT 1種のcalls）を対応付けた。公開3ページの6 SELECT共有自体はローカル試験と隔離ページ横断で確認した。診断routeと観測コードはPRへ含めない。
+
+共有アクセス更新後にSSOへ遷移した要求は、HTTP 200でも成功扱いせず除外した。最終URLと合成データのマーカーを必須にした。保護設定を無効化していない。
+
+### 再検証
+
+Node 24.20.0で重い処理を直列実行。
+
+- lint・next typegen・tsc --noEmit --incremental false・Webpack build・git diff --check: 成功。
+- 公開UI57件、Admin表示6件、サーバー単体／PGlite／認証／CLI／巡回180件、実Next runtime4件が成功（実行グループ別の件数で、一部共通テストの重複実行を含む。public-cache単独7件はサーバー180件に含む）。
+- 広いファイルglobにAdmin表示テストを含めてreact-server条件で起動した際はcreateContextエラーになった。UI用条件へ分けて6件を再実行し成功。アプリ修正による解消ではない。
+- npm audit --omit=devは0件。全体は既に評価済みのesbuild経路のModerate 4パッケージだけで、新規検出なし。暫定例外・再確認期限2026-11-07を維持。
+
+実時間TTL結果と終了状態は以下へ追記する。
+
+| 実時間ケース | 観測結果 |
+| --- | --- |
+| 公開キー生成 06:45:18.726 UTC | 生成時刻をhandlerから記録。別インスタンスで同じ生成時刻のhitを確認 |
+| 生成後146.8秒・530.8秒 | DBは通知なしで更新済みだが旧値。追加の公開SELECTなし |
+| 生成後646.7秒の最初の読取 | 旧値を返し、handlerはrevalidate=-1。背景の公開SELECTが24→25へ増加 |
+| 生成後681.1秒・699.0秒 | 新値を取得し、callsは25のまま。新しい生成時刻1792824965288.8477のhitを確認。反映を確認した時刻であり、所要時間を31秒と断定しない |
+| 別キー生成 06:45:57.049 UTC | 直後のhit確認後、このキーは900秒経過まで読み取らない |
+| 別キー生成後915.7秒の最初の読取 | handlerは旧生成時刻のentry（expire=900）を返したが、Nextが期限を判定して同期再生成し、応答には新値だけが含まれた。calls 25→26 |
+| 次の読取917.1秒時点 | 新値、calls 26のまま |
+
+以上の隔離・単一関数実行regionの試験範囲では、保持・通知・Admin失効・600秒SWR・900秒expireの期待動作を確認した。前回の失敗をそのまま「通知なし更新が失効を起こした」「600秒保持の回帰」と扱う根拠はなく、検証条件・判定を修正した。Vercel内部の失効直後の追加miss要因と複数関数実行regionでの挙動は未確定のまま残す。
+
+本番反映の判断は保留し、ユーザー指定どおりDraft PRを維持する。mainマージ・本番デプロイ・本番環境変数変更・本番DB書き込みは実施しない。既存本番の復旧先も変更しない。追加missの内部原因まで確認が必要な場合は、上記deployment・request時刻を用いたVercel側調査、またはアクセス制限した旧版との対照試験が次の切り分けになる。
+
+終了処理: 今回作成した隔離VercelプロジェクトとNeon resourceの削除成功を確認した。旧CLIの削除オプション解釈エラーは対応するCLIで解消した。既存Neon integrationは削除していない。一時観測用の配布コピー、Cookie、接続情報、ログ、HTTP本文、取得したパッケージ、一時スクリプト、ビルド生成物を終了時に削除する。検証結果はこの文書へ機密情報を除いて残し、専用worktreeとDraft PRは継続する。

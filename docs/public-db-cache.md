@@ -2,7 +2,7 @@
 
 ## 実装と境界
 
-Next.js 16.3.4のCache Componentsを有効化し、`getPublicPageData()`内の公開取得関数だけに`use cache: remote`を指定する。`/`・`/news`・`/deadlines`は同じ取得関数・DBスコープ・タグを共有する。公開用に整形済みの出演、締切、シリーズ名、情報元、最終DB更新日時をキャッシュする。公開取得のミス1回は従来どおり6 SELECT。キャッシュ生成時だけ`[public-cache] fill complete`と公開件数を記録し、クエリ・URL・認証情報・個別データはログへ出さない。
+Next.js 16.4.3のCache Componentsを有効化し、`getPublicPageData()`内の公開取得関数だけに`use cache: remote`を指定する。`/`・`/news`・`/deadlines`は同じ取得関数・DBスコープ・タグを共有する。公開用に整形済みの出演、締切、シリーズ名、情報元、最終DB更新日時をキャッシュする。公開取得のミス1回は従来どおり6 SELECT。キャッシュ生成時だけ`[public-cache] fill complete`と公開件数を記録し、クエリ・URL・認証情報・個別データはログへ出さない。
 
 `getAppearancePageData()`と`readDeadlineRecords()`自体は非キャッシュのまま維持する。管理画面、更新前Preview、CLIの照合・検証、更新処理はこれらの経路を使う。非公開締切や管理用レコードは公開キャッシュの戻り値へ含めない。
 
@@ -29,7 +29,7 @@ Next.js 16.3.4のCache Componentsを有効化し、`getPublicPageData()`内の�
 
 `confirmAdminWrite()`はDBトランザクションの成功後、`status=approved`の場合だけ通知する。出演・締切・シリーズ・情報元・非公開化／復元のいずれも同じスコープの`public-data:v1:<scope>`タグを失効させる。
 
-Admin Server Actionでは`updateTag()`を使用する。CLIでは認証付きPOSTを行い、受け側がDBスコープを照合して`revalidateTag(tag, { expire: 0 })`を呼ぶ。通知は任意タグやパスを受け付けず、DBを読み書きしない。Preview、dry-run、競合、拒否、トランザクション失敗では失効しない。隔離DBを引数で注入したwriteは、失効コールバックを明示しない限り通知しない。
+Admin Server Actionでは`updateTag()`を使用し、確定結果が`approved`なら`revalidatePath("/", "layout")`と`revalidatePath("/admin", "layout")`も実行する。後者は失効コールバックの外にあり、コールバックが`skipped`でも実行される。CLIでは認証付きPOSTを行い、受け側がDBスコープを照合して`revalidateTag(tag, { expire: 0 })`を呼ぶ。通知は任意タグやパスを受け付けず、DBを読み書きしない。Preview、dry-run、競合、拒否、トランザクション失敗では公開データのタグ失効を行わない（Adminでは確定結果に応じた管理画面パス再検証が別途ある）。隔離DBを引数で注入したwriteは、失効コールバックを明示しない限り通知しない。
 
 通知失敗でもDBの`approved`を維持し、`publicCacheInvalidation.status=failed`と固定文言の警告を返す。CLIは3秒タイムアウト・最大3回の通知試行を行う。通知先未設定は`skipped`となる。DB確定済みの場合は同じJSON・reviewed hash・冪等キーで確定操作を再実行し、既存確定結果を再取得して通知だけを再試行する。異なるキーで再登録しない。Adminも同じ確定操作の再実行で通知を再試行する。
 
@@ -52,3 +52,17 @@ Admin Server Actionでは`updateTag()`を使用する。CLIでは認証付きPOS
 - PreviewとProductionの迂回フラグでは、各リクエスト6 SELECT。Previewの失効POSTは503で拒否し、追加DBアクセスは0件。無効化されたAdmin入口は404かつno-storeで公開DB取得を実行しない。
 - lint、TypeScript型チェック、Webpack production build、フィルター検証、`git diff --check`が通過。フィルター検証はtsx CLIのsandbox IPC制限を避け、`node --import tsx scripts/verify-appearance-filters.ts`で同一スクリプトを実行した。
 - 既存のREADME／package.jsonのゲスト日時精度修正、修復スクリプト・監査資料・修正テストを保持した。Gitへのcommit／push、本番DB変更、Vercelデプロイ、稼働中Antigravityの設定変更は行っていない。
+
+
+### 隔離Vercelの検証条件（2026-10-24）
+
+通知なし更新・通常CLI通知・Admin確定・失効API直後の読み取り・TTLを別ケースにする。通知なし更新の保持試験では、その直前に失効APIやAdmin確定を実行しない。失効ケースから継続する場合は、更新前に保存完了と複数回のhit／追加SQLなしを確認する。固定秒数のsleepや1回のHTTP 200だけを安定化の根拠にしない。
+
+- `confirmAdminWrite`の結果は`approved`だけでなく`publicCacheInvalidation.status`も照合する。通知省略を注入する場合はコールバック1回とHTTP通知0回を確認する。通常CLIはDB引数を省略し、標準通知関数を使う。
+- 公開HTML全体の文字列一致や`x-vercel-cache: HIT`だけで判定しない。最終URL・認証先へのリダイレクト・実DOMの対象レコードを確認し、キャッシュhandlerのhit/miss・生成時刻・実SQL回数を対応付ける。fillログは再送・遅延表示等があり、単独で生成回数を確定しない。
+- ログのアクセス地域と`VERCEL_REGION`を分けて記録する。別インスタンスでの同じ生成時刻のhitは共有の証拠になるが、複数実行リージョン間の検証を代替しない。
+- `revalidate:600`は600秒の最低保持保証ではない。Vercelのキャッシュは退避され得る。600秒前のmissは、直前の失効、保存状態、退避、別キー・デプロイ・実行地域を確認して分類する。missだけでNext.jsの回帰としない。
+- 600秒を過ぎた最初の応答は旧値を返し、背景で更新する場合がある。再生成後の新値と再利用まで確認する。900秒expireは別キーを初期生成後に無アクセスで待ち、期限後の最初の応答が古い値を返さないことを確認する。600秒で再生成したキーを当初の起点のまま900秒試験に流用しない。
+- 隔離デプロイの一時観測コード・診断route・合成データ・アクセス用Cookieは本番コードやGitへ含めない。本番DBのコピー・変更は行わない。
+
+調査の実測・未確定事項・リリース判断は[依存関係対応記録](security-dependencies-2026-10-24.md)に追記する。
