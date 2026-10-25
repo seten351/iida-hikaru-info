@@ -315,7 +315,15 @@ test("production public pages share the six-query cache; invalidation and TTL re
   assert.match(sectionBody(homeAfterStart, "deadlines"), /販売中/, "cached start-only sales change status without another SELECT");
   assert.equal(mockCalls.length, 6, "time-dependent grouping should update without reloading cached database data");
 
-  // Start an independent cache-lifetime segment at its own clock origin.
+  // Change the upstream fixture without any invalidation. A warm entry must
+  // retain A and avoid SQL; mutating data alone does not notify Next.
+  appearanceTitle = "キャッシュ検証用の出演情報 SILENT";
+  const silent = await requestPage(productionPort, "/news");
+  assert.match(silent, /キャッシュ検証用の出演情報 A/);
+  assert.doesNotMatch(silent, /キャッシュ検証用の出演情報 SILENT/);
+  assert.equal(mockCalls.length, 6, "a silent upstream update must not issue SQL while the local entry is fresh");
+
+  // Start the invalidation segment at its own clock origin.
   await writeFile(clockFile, "0");
   appearanceTitle = "キャッシュ検証用の出演情報 B";
   saleState = "sold_out";
@@ -330,8 +338,9 @@ test("production public pages share the six-query cache; invalidation and TTL re
   assert.equal(mockCalls.length, 12, "sale-status searches also reuse the shared cache");
 
   appearanceTitle = "キャッシュ検証用の出演情報 C";
-  // The installed Next 16.3.4 default remote handler drops production entries
-  // after `revalidate` (600s). The process-local clock shift makes that boundary
+  // The built-in local fallback remote handler drops production entries
+  // after `revalidate` (600s); this does not prove Vercel remote persistence.
+  // The process-local clock shift makes that boundary
   // deterministic without changing app configuration or sleeping ten minutes.
   await writeFile(clockFile, String(601_000));
   const expired = await requestPage(productionPort, "/news");
